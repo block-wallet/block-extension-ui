@@ -1,0 +1,202 @@
+name: Release
+
+on:
+
+  pull_request:
+    branches:
+      - master
+    types: [closed]
+
+  workflow_dispatch:
+    inputs:
+      cache:
+        description: 'Delete cache'     
+        required: false
+        default: 'true'
+
+  repository_dispatch:
+    types: [ automation ]
+
+jobs:
+  build:
+
+    if: github.event.pull_request.merged == true || github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+    runs-on: self-hosted
+
+    steps:
+      - run: echo "::set-output name=branch::$(git ls-remote https://${{ secrets.USER_PAT }}:${{ secrets.PAT }}@github.com/Blank-Wallet/extension.git ${{ github.head_ref }})"
+        id: monorepo-branch
+
+      - run: echo "::set-output name=branch::$(git ls-remote https://${{ secrets.USER_PAT }}:${{ secrets.PAT }}@github.com/Blank-Wallet/extension-provider.git ${{ github.head_ref }})"
+        id: provider-branch
+      
+      - run: echo "::set-output name=branch::$(git ls-remote https://${{ secrets.USER_PAT }}:${{ secrets.PAT }}@github.com/Blank-Wallet/extension-background.git ${{ github.head_ref }})"
+        id: background-branch
+
+      - run: echo "::set-output name=name::${{ github.event.number }}_$(date +"%FT%T").zip"
+        id: zip
+
+      - run: echo "::set-output name=title::$(gh pr view https://${{ secrets.USER_PAT }}:${{ secrets.PAT }}@github.com/Blank-Wallet/extension-ui/pull/${{ github.event.number }} --json title --jq '.title')"
+        id: pr
+
+      - name: Checkout monorepo
+        uses: actions/checkout@v2
+        if: ${{ (steps.monorepo-branch.outputs.branch == '') }}
+        with:
+          repository: Blank-Wallet/extension
+          ref: refs/heads/master
+          token: ${{ secrets.PAT }}
+      
+      - name: Checkout background
+        uses: actions/checkout@v2
+        if: ${{ (steps.background-branch.outputs.branch == '') }}
+        with:
+          repository: Blank-Wallet/extension-background
+          ref: refs/heads/master
+          path: packages/background/
+          token: ${{ secrets.PAT }}
+        
+      - name: Checkout provider
+        uses: actions/checkout@v2
+        if: ${{ (steps.provider-branch.outputs.branch == '') }}
+        with:
+          repository: Blank-Wallet/extension-provider
+          ref: refs/heads/master
+          path: packages/provider/
+          token: ${{ secrets.PAT }}
+      
+      - name: Checkout monorepo
+        uses: actions/checkout@v2
+        if: ${{ (steps.monorepo-branch.outputs.branch != '') }}
+        with:
+          repository: Blank-Wallet/extension
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.PAT }}
+      
+      - name: Checkout background
+        uses: actions/checkout@v2
+        if: ${{ (steps.background-branch.outputs.branch != '') }}
+        with:
+          repository: Blank-Wallet/extension-background
+          ref: ${{ github.head_ref }}
+          path: packages/background/
+          token: ${{ secrets.PAT }}
+        
+      - name: Checkout provider
+        uses: actions/checkout@v2
+        if: ${{ (steps.provider-branch.outputs.branch != '') }}
+        with:
+          repository: Blank-Wallet/extension-provider
+          ref: ${{ github.head_ref }}
+          path: packages/provider/
+          token: ${{ secrets.PAT }}
+      
+      - name: Checkout make scripts
+        uses: actions/checkout@v2
+        with:
+          repository: Blank-Wallet/blank-make
+          ref: refs/heads/main
+          path: .make
+          token: ${{ secrets.PAT }}
+          
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: packages/ui/
+
+      - name: Dependency UI cache
+        if: ${{ github.event.inputs.cache != 'true' }}
+        uses: actions/cache@v2
+        id: cache-ui
+        with:
+          key: background-ci-${{ runner.os }}-${{ hashFiles('packages/ui/package.json') }}
+          path: 'packages/ui/node_modules'
+
+      - name: Dependency provider cache
+        uses: actions/cache@v2
+        id: cache-provider
+        with:
+          key: background-ci-${{ runner.os }}-${{ hashFiles('packages/provider/package.json') }}
+          path: 'packages/provider/node_modules'
+
+      - name: Dependency background cache
+        uses: actions/cache@v2
+        id: cache-background
+        with:
+          key: background-ci-${{ runner.os }}-${{ hashFiles('packages/background/package.json') }}
+          path: 'packages/background/node_modules'
+
+      - name: Install UI dependencies
+        if: ${{ (steps.cache-ui.outputs.cache-hit != 'true') || (github.event.inputs.cache == 'true') }} 
+        run: cd packages/ui/ && yarn install --cache-folder .ui-cache
+
+      - name: Install background dependencies
+        if: ${{ (steps.cache-background.outputs.cache-hit != 'true') || (github.event.inputs.cache == 'true') }} 
+        run: cd packages/background/ && yarn install --cache-folder .background-cache
+
+      - name: Install provider dependencies
+        if: ${{ (steps.cache-provider.outputs.cache-hit != 'true') || (github.event.inputs.cache == 'true') }} 
+        run: cd packages/provider/ && yarn install --cache-folder .provider-cache
+
+      - name: Build extension
+        run: make build
+        env:
+          CI: false
+          INFURA_PROJECT_ID: ${{ secrets.INFURA_PROJECT_ID }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+
+      - name: Zip build
+        run: zip -r -D ${{ steps.zip.outputs.name }} dist/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_RELEASE_BUCKET }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_RELEASE_BUCKET }}
+          aws-region: us-east-2
+
+      - name: Upload zip to S3
+        run: aws s3 cp ${{ steps.zip.outputs.name }} s3://releases.goblank.io/ui/master/
+
+      - name: Slack notification - CI status
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+
+      - name: Slack notification - CI status
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          custom_payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#36a64f",
+                  "pretext": "<http://releases.goblank.io/ui/master/${{ steps.zip.outputs.name }}|Download> 'master' build release",
+                  "author_name": "UI",
+                  "author_link": "https://github.com/Blank-Wallet/extension-ui",
+                  "title": "${{ steps.pr.outputs.title }} #${{ github.event.number }}",
+                  "title_link": "https://github.com/Blank-Wallet/extension-ui/pull/${{ github.event.number }}",
+                  "fields": [
+                    {
+                        "title": "Branch",
+                        "value": "${{ github.head_ref }}",
+                        "short": true
+                    },
+                    {
+                        "title": "Commit",
+                        "value": "<https://github.com/Blank-Wallet/extension-ui/commit/${{github.event.pull_request.head.sha}}|${{github.event.pull_request.head.sha}}>",
+                        "short": true
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_RELEASES }}
