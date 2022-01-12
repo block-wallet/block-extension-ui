@@ -1,17 +1,11 @@
-import React, { useState } from "react"
+import React, { FunctionComponent, useEffect, useState } from "react"
 import classnames from "classnames"
 import PopupFooter from "../../components/popup/PopupFooter"
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
-import { DappReq, useDappRequest } from "../../context/hooks/useDappRequest"
+import { DappReq } from "../../context/hooks/useDappRequest"
 import { confirmDappRequest } from "../../context/commActions"
-import {
-    DappRequestParams,
-    DappSignatureReq,
-    NormalizedSwitchEthereumChainParameters,
-    RawSignatureData,
-    WatchAssetReq,
-} from "@blank/background/utils/types/ethereum"
+import { DappRequestParams } from "@blank/background/utils/types/ethereum"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 import InfoComponent from "../../components/InfoComponent"
 import { CgArrowsExchangeV } from "react-icons/cg"
@@ -19,10 +13,21 @@ import { getNetworkFromChainId } from "../../util/getExplorer"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import ErrorMessage from "../../components/error/ErrorMessage"
-import { SiteMetadata } from "@blank/provider/types"
-import { Redirect } from "react-router-dom"
-import useNextRequestRoute from "../../context/hooks/useNextRequestRoute"
 import { Classes } from "../../styles"
+import SuccessDialog from "../../components/dialog/SuccessDialog"
+import LoadingOverlay from "../../components/LoadingOverlay"
+import { DappRequest, DappRequestProps } from "./DappRequest"
+
+const SwitchEthereumChainPage = () => {
+    return (
+        <DappRequest
+            requestType={DappReq.SWITCH_NETWORK}
+            layoutRender={(props: DappRequestProps) => {
+                return <SwitchEthereumChain {...props} />
+            }}
+        />
+    )
+}
 
 const NetworkComponent = ({
     network,
@@ -48,41 +53,18 @@ const NetworkComponent = ({
     )
 }
 
-const SwitchEthereumChainPage = () => {
-    const dappRequest = useDappRequest()
-    const route = useNextRequestRoute()
-
-    return typeof dappRequest !== "undefined" &&
-        dappRequest.type === DappReq.SWITCH_NETWORK ? (
-            <SwitchEthereumChain
-            requestId={dappRequest.requestId}
-            origin={dappRequest.origin}
-            reqSiteMetadata={dappRequest.siteMetadata}
-            dappReqData={dappRequest.dappReqData}
-        />
-    ) : (
-        <Redirect to={route} />
-    )
-}
-
-const SwitchEthereumChain = ({
+const SwitchEthereumChain: FunctionComponent<DappRequestProps> = ({
     requestId,
-    reqSiteMetadata,
+    siteMetadata,
     dappReqData,
-}: {
-    dappReqData:
-        | Record<string, unknown>
-        | DappSignatureReq<keyof RawSignatureData>
-        | NormalizedSwitchEthereumChainParameters
-        | WatchAssetReq
-    requestId: string
-    origin: string
-    reqSiteMetadata: SiteMetadata
+    isConfirming,
+    setIsConfirming,
 }) => {
     const { availableNetworks } = useBlankState()!
     const { chainId: currentNetworkChainId } = useSelectedNetwork()
 
-    const [isLoading, setIsLoading] = useState(false)
+    const [showDialog, setShowDialog] = useState(false)
+
     const [error, setError] = useState<string | undefined>(undefined)
 
     // Get the network names
@@ -90,59 +72,108 @@ const SwitchEthereumChain = ({
         chainId: newNetworkChainId,
     } = dappReqData as DappRequestParams[DappReq.SWITCH_NETWORK]
 
-    const [currentNetworkName] = useState(
+    const [currentNetworkName, setCurrentNetworkName] = useState(
         getNetworkFromChainId(availableNetworks, currentNetworkChainId, "desc")
     )
-    const [newNetworkName] = useState(
+    const [newNetworkName, setNewNetworkName] = useState(
         getNetworkFromChainId(availableNetworks, newNetworkChainId, "desc")
     )
 
-    const [siteMetadata] = useState(reqSiteMetadata)
+    const [currentSiteMetadata, setSiteMetadata] = useState(siteMetadata)
+
+    useEffect(() => {
+        // Check that this wasn't the last request and popup is still open to prevent
+        // displaying same network on both labels
+        if (!isConfirming) {
+            setCurrentNetworkName(
+                getNetworkFromChainId(
+                    availableNetworks,
+                    currentNetworkChainId,
+                    "desc"
+                )
+            )
+            setNewNetworkName(
+                getNetworkFromChainId(
+                    availableNetworks,
+                    newNetworkChainId,
+                    "desc"
+                )
+            )
+            setSiteMetadata(siteMetadata)
+        }
+    }, [
+        newNetworkChainId,
+        currentNetworkChainId,
+        siteMetadata,
+        availableNetworks,
+        isConfirming,
+        currentSiteMetadata,
+    ])
 
     const approve = async () => {
         try {
-            setIsLoading(true)
+            setIsConfirming(true)
             await confirmDappRequest(requestId, true)
-            await new Promise((resolve) => setTimeout(resolve, 400))
+            await new Promise((resolve) => setTimeout(resolve, 600))
         } catch (err) {
             setError(err.message)
-            setIsLoading(false)
+        } finally {
+            setIsConfirming(false)
         }
     }
 
-    const reject = () => {
-        confirmDappRequest(requestId, false)
+    const reject = async () => {
+        try {
+            setIsConfirming(true)
+            confirmDappRequest(requestId, false)
+            await new Promise((resolve) => setTimeout(resolve, 600))
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setIsConfirming(false)
+        }
     }
 
     return (
         <PopupLayout
             header={
                 <PopupHeader
-                    icon={siteMetadata.iconURL}
-                    title={siteMetadata.name}
+                    icon={currentSiteMetadata.iconURL}
+                    title={currentSiteMetadata.name}
                     close={false}
                     backButton={false}
                 />
             }
             footer={
                 <PopupFooter>
-                    <button
-                        onClick={reject}
-                        className={classnames(
-                            Classes.liteButton,
-                            isLoading && "opacity-50 pointer-events-none"
-                        )}
-                    >
-                        Reject
-                    </button>
                     <ButtonWithLoading
-                        onClick={approve}
-                        isLoading={isLoading}
+                        onClick={reject}
+                        buttonClass={Classes.liteButton}
+                        isLoading={isConfirming}
+                        label="Reject"
+                    ></ButtonWithLoading>
+                    <ButtonWithLoading
+                        onClick={() => {
+                            setShowDialog(true)
+                        }}
+                        isLoading={isConfirming}
                         label="Switch"
                     ></ButtonWithLoading>
                 </PopupFooter>
             }
         >
+            <SuccessDialog
+                open={showDialog}
+                title="Success"
+                message="You've switched the network."
+                timeout={1200}
+                onDone={() => {
+                    setShowDialog(false)
+                    approve()
+                }}
+            />
+            {isConfirming && <LoadingOverlay />}
+
             <div className="flex flex-col p-6 space-y-4 h-full justify-between">
                 {/* Header */}
                 <div className="flex flex-col space-y-2 text-sm">

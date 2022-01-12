@@ -1,27 +1,19 @@
 import type {
     DappRequestParams,
-    DappSignatureReq,
-    NormalizedSwitchEthereumChainParameters,
-    RawSignatureData,
     WatchAssetConfirmParams,
-    WatchAssetReq,
 } from "@blank/background/utils/types/ethereum"
-import type { SiteMetadata } from "@blank/provider/types"
 import AccountIcon from "../../components/icons/AccountIcon"
 import CopyTooltip from "../../components/label/СopyToClipboardTooltip"
 import Divider from "../../components/Divider"
 import PopupFooter from "../../components/popup/PopupFooter"
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, FunctionComponent } from "react"
 import Tooltip from "../../components/label/Tooltip"
 import blankIcon from "../../assets/images/logo.svg"
-import classnames from "classnames"
-import useNextRequestRoute from "../../context/hooks/useNextRequestRoute"
 import { AiFillInfoCircle, AiFillQuestionCircle } from "react-icons/ai"
 import { Classes } from "../../styles/classes"
-import { DappReq, useDappRequest } from "../../context/hooks/useDappRequest"
-import { Redirect } from "react-router"
+import { DappReq } from "../../context/hooks/useDappRequest"
 import { capitalize } from "../../util/capitalize"
 import { confirmDappRequest, getTokenBalance } from "../../context/commActions"
 import { formatHash, formatName } from "../../util/formatAccount"
@@ -37,42 +29,30 @@ import { formatRounded } from "../../util/formatRounded"
 import unknownTokenIcon from "../../assets/images/unknown_token.svg"
 import GenericTooltip from "../../components/label/GenericTooltip"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import LoadingOverlay from "../../components/LoadingOverlay"
+import SuccessDialog from "../../components/dialog/SuccessDialog"
+import { DappRequestProps, DappRequest } from "./DappRequest"
 
 const UNKNOWN_BALANCE = "UNKNOWN_BALANCE"
 const IS_BASE64_IMAGE = "IS_BASE64_IMAGE"
 
 const WatchAssetPage = () => {
-    const dappRequest = useDappRequest()
-    const route = useNextRequestRoute()
-
-    return typeof dappRequest !== "undefined" &&
-        dappRequest.type === DappReq.ASSET ? (
-            <WatchAsset
-            requestCount={dappRequest.requestCount}
-            requestId={dappRequest.requestId}
-            origin={dappRequest.origin}
-            siteMetadata={dappRequest.siteMetadata}
-            dappReqData={dappRequest.dappReqData}
+    return (
+        <DappRequest
+            requestType={DappReq.ASSET}
+            layoutRender={(props: DappRequestProps) => {
+                return <WatchAsset {...props} />
+            }}
         />
-    ) : (
-        <Redirect to={route} />
     )
 }
 
-const WatchAsset = ({
+const WatchAsset: FunctionComponent<DappRequestProps> = ({
     requestCount,
     requestId,
     dappReqData,
-}: {
-    dappReqData:
-        | Record<string, unknown>
-        | DappSignatureReq<keyof RawSignatureData>
-        | NormalizedSwitchEthereumChainParameters
-        | WatchAssetReq
-    requestCount: number
-    requestId: string
-    origin: string
-    siteMetadata: SiteMetadata
+    isConfirming,
+    setIsConfirming,
 }) => {
     const network = useSelectedNetwork()
     const { accounts } = useBlankState()!
@@ -81,17 +61,17 @@ const WatchAsset = ({
     const [copied, setCopied] = useState(false)
     const [balance, setBalance] = useState("")
     const [isImageSaved, setIsImageSaved] = useState(false)
-    const [isSaving, setIsSaving] = useState(false)
+    const [showDialog, setShowDialog] = useState(false)
 
     const {
         params: token,
-        accountAddress,
+        activeAccount,
         isUpdate,
         savedToken,
     } = dappReqData as DappRequestParams[DappReq.ASSET]
 
-    const accountData =
-        accounts[accountAddress ? accountAddress : selectedAccount.address]
+    // Default to selected account if no active account is found for the dapp
+    const accountData = accounts[activeAccount ?? selectedAccount.address]
 
     const isBase64Image = token.image === IS_BASE64_IMAGE
 
@@ -104,16 +84,27 @@ const WatchAsset = ({
     }
 
     const addToken = async () => {
-        setIsSaving(true)
-        await confirmDappRequest(requestId, true, {
-            symbol: token.symbol,
-            decimals: token.decimals,
-            image: assetImageSrc(),
-        } as WatchAssetConfirmParams)
+        try {
+            setIsConfirming(true)
+            await confirmDappRequest(requestId, true, {
+                symbol: token.symbol,
+                decimals: token.decimals,
+                image: assetImageSrc(),
+            } as WatchAssetConfirmParams)
+            await new Promise((resolve) => setTimeout(resolve, 600))
+        } finally {
+            setIsConfirming(false)
+        }
     }
 
-    const reject = () => {
-        confirmDappRequest(requestId, false)
+    const reject = async () => {
+        try {
+            setIsConfirming(true)
+            await confirmDappRequest(requestId, false)
+            await new Promise((resolve) => setTimeout(resolve, 600))
+        } finally {
+            setIsConfirming(false)
+        }
     }
 
     const copyAssetAddress = async () => {
@@ -211,20 +202,33 @@ const WatchAsset = ({
             }
             footer={
                 <PopupFooter>
-                    <button
-                        onClick={() => reject()}
-                        className={classnames(Classes.liteButton, "font-bold")}
-                    >
-                        Reject
-                    </button>
+                    <ButtonWithLoading
+                        onClick={reject}
+                        buttonClass={Classes.liteButton}
+                        isLoading={isConfirming}
+                        label="Reject"
+                    ></ButtonWithLoading>
                     <ButtonWithLoading
                         label={`${isUpdate ? "Update" : "Add"} asset`}
-                        onClick={() => addToken()}
-                        isLoading={isSaving}
+                        onClick={() => {
+                            setShowDialog(true)
+                        }}
+                        isLoading={isConfirming}
                     />
                 </PopupFooter>
             }
         >
+            <SuccessDialog
+                open={showDialog}
+                title="Success"
+                message={`You've ${isUpdate ? "updated" : "added"} the asset.`}
+                timeout={1200}
+                onDone={() => {
+                    setShowDialog(false)
+                    addToken()
+                }}
+            />
+            {isConfirming && <LoadingOverlay />}
             {isUpdate ? UpdateAssetLayout() : null}
             <div className="flex flex-row items-center px-6 py-3">
                 <div className="flex flex-row items-center justify-center w-10 h-10 rounded-full bg-primary-100">

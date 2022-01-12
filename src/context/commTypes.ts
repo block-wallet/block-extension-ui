@@ -94,9 +94,9 @@ enum TRANSACTION {
     CALCULATE_SEND_TRANSACTION_GAS_LIMIT = "CALCULATE_SEND_TRANSACTION_GAS_LIMIT",
     CALCULATE_APPROVE_TRANSACTION_GAS_LIMIT = "CALCULATE_APPROVE_TRANSACTION_GAS_LIMIT",
     GET_LATEST_GAS_PRICE = "GET_LATEST_GAS_PRICE",
-    GET_LATEST_BASE_FEE = "GET_LATEST_BASE_FEE",
     CONFIRM = "CONFIRM_TRANSACTION",
     REJECT = "REJECT_TRANSACTION",
+    GET_NEXT_NONCE = "GET_NEXT_NONCE"
 }
 
 enum TOKEN {
@@ -190,4 +190,20 @@ export enum Origin {
 
 export enum BackgroundActions {
     CLOSE_WINDOW = "CLOSE_WINDOW",
+}
+
+/**
+ * The meta type of the transaction.
+ * - `REGULAR`: A classic transaction
+ * - `CANCEL`: A transaction sent to cancel another one
+ * - `CANCELLING`: A transaction that we try to cancel
+ * - `SPEED_UP`: A transaction sent to speed up another one
+ * - `SPEEDING_UP`: A transaction that we try to speed up
+ */
+export enum MetaType {
+    REGULAR = "REGULAR",
+    CANCEL = "CANCEL",
+    CANCELLING = "CANCELLING",
+    SPEED_UP = "SPEED_UP",
+    SPEEDING_UP = "SPEEDING_UP",
 }

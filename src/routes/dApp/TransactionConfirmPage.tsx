@@ -30,15 +30,17 @@ import { AiFillInfoCircle } from "react-icons/ai"
 import Tooltip from "../../components/label/Tooltip"
 import LoadingOverlay from "../../components/LoadingOverlay"
 import GasPriceComponent from "../../components/transactions/GasPriceComponent"
-import { FeeData } from "@blank/background/controllers/GasPricesController"
 
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 
 import useNextRequestRoute from "../../context/hooks/useNextRequestRoute"
 import { useUserSettings } from "../../context/hooks/useUserSettings"
-import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import CheckBoxDialog from "../../components/dialog/CheckboxDialog"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import SuccessDialog from "../../components/dialog/SuccessDialog"
+import { AdvancedSettings } from "../../components/transactions/AdvancedSettings"
+import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
+import { TransactionAdvancedData } from "@blank/background/controllers/transactions/utils/types"
 
 const TransactionConfirmPage = () => {
     const { transaction } = useUnapprovedTransaction()
@@ -58,7 +60,7 @@ const TransactionConfirm = () => {
         selectedAddress,
         settings,
     } = useBlankState()!
-    const { isEIP1559Compatible } = useGasPriceData()
+    const { isEIP1559Compatible } = useSelectedNetwork()
 
     const { hideAddressWarning } = useUserSettings()
 
@@ -88,6 +90,8 @@ const TransactionConfirm = () => {
     // State variables
     const ethExchangeRate = exchangeRates[networkNativeCurrency.symbol]
     const [isLoading, setIsLoading] = useState(transaction.loadingGasValues)
+    const [showDialog, setShowDialog] = useState(false)
+
     const [hasBalance, setHasBalance] = useState(true)
     const [isConfirming, setIsConfirming] = useState(false)
     const [copied, setCopied] = useState(false)
@@ -105,19 +109,24 @@ const TransactionConfirm = () => {
         )
     )
 
-    const [defaultGas, setDefaultGas] = useState<FeeData>({
+    const [defaultGas, setDefaultGas] = useState<TransactionFeeData>({
         gasLimit: params.gasLimit,
         gasPrice: params.gasPrice,
         maxPriorityFeePerGas: params.maxPriorityFeePerGas,
         maxFeePerGas: params.maxFeePerGas,
     })
 
-    const [transactionGas, setTransactionGas] = useState<FeeData>({
+    const [transactionGas, setTransactionGas] = useState<TransactionFeeData>({
         gasLimit: params.gasLimit,
         gasPrice: params.gasPrice,
         maxPriorityFeePerGas: params.maxPriorityFeePerGas,
         maxFeePerGas: params.maxFeePerGas,
     })
+
+    const [
+        transactionAdvancedData,
+        setTransactionAdvancedData,
+    ] = useState<TransactionAdvancedData>({})
 
     const description =
         transaction.methodSignature?.name ??
@@ -170,10 +179,13 @@ const TransactionConfirm = () => {
     const confirm = async () => {
         try {
             setIsConfirming(true)
-            transactionCount > 1 && setIsLoading(true)
+            setIsLoading(true)
 
-            await confirmTransaction(transaction.id, transactionGas)
-
+            await confirmTransaction(
+                transaction.id,
+                transactionGas,
+                transactionAdvancedData
+            )
             if (transactionCount > 1) {
                 await new Promise((resolve) => setTimeout(resolve, 400))
                 setIsLoading(false)
@@ -194,7 +206,7 @@ const TransactionConfirm = () => {
     const reject = async () => {
         try {
             setIsConfirming(true)
-            transactionCount > 1 && setIsLoading(true)
+            setIsLoading(true)
             await rejectTransaction(transactionId)
             if (transactionCount > 1) {
                 await new Promise((resolve) => setTimeout(resolve, 400))
@@ -227,24 +239,31 @@ const TransactionConfirm = () => {
             }
             footer={
                 <PopupFooter>
-                    <button
+                    <ButtonWithLoading
                         onClick={reject}
-                        className={classnames(
-                            Classes.liteButton,
-                            isConfirming && "opacity-50 pointer-events-none"
-                        )}
-                    >
-                        Reject
-                    </button>
+                        buttonClass={Classes.liteButton}
+                        isLoading={isConfirming}
+                        label="Reject"
+                    ></ButtonWithLoading>
                     <ButtonWithLoading
                         label="Confirm"
                         isLoading={isConfirming}
                         disabled={!hasBalance}
-                        onClick={confirm}
+                        onClick={() => setShowDialog(true)}
                     />
                 </PopupFooter>
             }
         >
+            <SuccessDialog
+                open={showDialog}
+                title="Success"
+                message="You've initiated the transaction."
+                timeout={1200}
+                onDone={() => {
+                    setShowDialog(false)
+                    confirm()
+                }}
+            />
             <div className="flex flex-row items-center justify-between w-full px-6 py-4 border-b">
                 {isLoading && <LoadingOverlay />}
                 <CheckBoxDialog
@@ -300,7 +319,12 @@ const TransactionConfirm = () => {
 
                 <div className="flex flex-row items-center justify-center w-1/5 relative">
                     <div className="w-8 border rounded-full bg-white z-10">
-                        <img src={arrowRight} className="p-2" alt="" />
+                        <img
+                            src={arrowRight}
+                            className="p-2"
+                            alt=""
+                            draggable={false}
+                        />
                     </div>
                     <div
                         className="absolute border-t transform rotate-90 z-0"
@@ -342,16 +366,14 @@ const TransactionConfirm = () => {
                     </div>
                 )}
 
-                <div className="flex flex-col items-center p-4 rounded-md bg-primary-100 space-y-2">
-                    <span title={transaction.origin} className="w-full text-xs">
-                        {transaction.origin}
-                    </span>
+                <div className="flex items-center p-4 rounded-md bg-primary-100 justify-between">
                     <div className="w-full flex flex-row items-center">
                         <img
                             src={defaultNetworkLogo}
                             alt={network.nativeCurrency.symbol}
                             width="12px"
                             height="18px"
+                            draggable={false}
                         />
                         <span
                             className="font-black pl-1 text-base"
@@ -372,6 +394,9 @@ const TransactionConfirm = () => {
                             {network.nativeCurrency.symbol}
                         </span>
                     </div>
+                    <span title={transaction.origin} className="w-full text-xs">
+                        {transaction.origin}
+                    </span>
                 </div>
 
                 <div className="flex flex-col">
@@ -444,6 +469,7 @@ const TransactionConfirm = () => {
                                         alt={network.nativeCurrency.symbol}
                                         width="12px"
                                         height="18px"
+                                        draggable={false}
                                     />
                                     <span
                                         className="pl-1 text-base"
@@ -481,6 +507,23 @@ const TransactionConfirm = () => {
                         </div>
                     </div>
                 </div>
+
+                <AdvancedSettings
+                    config={{
+                        showCustomNonce: true,
+                        showFlashbots: network.chainId === 1,
+                        address: checksumFromAddress,
+                    }}
+                    data={{
+                        flashbots: false,
+                    }}
+                    setData={(data) => {
+                        setTransactionAdvancedData({
+                            customNonce: data.customNonce,
+                            flashbots: data.flashbots,
+                        })
+                    }}
+                />
             </div>
         </PopupLayout>
     )

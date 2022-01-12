@@ -1,17 +1,31 @@
 import classnames from "classnames"
-import React, { FunctionComponent } from "react"
+import React, { FunctionComponent, useEffect, useState } from "react"
 
 const ToggleButton: FunctionComponent<{
-    label: string
-    isChecked: boolean
+    register?: any
+
+    label?: string
+    inputName?: string
+    defaultChecked: boolean
     onToggle: (checked: boolean) => void
-}> = ({ label, isChecked, onToggle }) => {
+}> = ({ register, label, inputName, defaultChecked, onToggle }) => {
+    const [isChecked, setIsCheked] = useState(defaultChecked)
+
+    useEffect(() => {
+        onToggle(isChecked)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isChecked])
+
+    useEffect(() => {
+        setIsCheked(defaultChecked)
+    }, [defaultChecked])
+
     return (
         <label
             htmlFor="toggleInput"
             className="flex items-center justify-between w-full cursor-pointer"
         >
-            <div className="font-bold text-sm">{label}</div>
+            {label && <div className="font-bold text-sm">{label}</div>}
             <div className="group relative">
                 <div
                     className={classnames(
@@ -27,10 +41,12 @@ const ToggleButton: FunctionComponent<{
                 ></div>
                 <input
                     type="checkbox"
+                    ref={register}
                     id="toggleInput"
+                    name={inputName ?? "toggleInput"}
                     className="sr-only"
                     onClick={() => {
-                        onToggle(!isChecked)
+                        setIsCheked(!isChecked)
                     }}
                 />
             </div>

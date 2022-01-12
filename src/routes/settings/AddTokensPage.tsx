@@ -1,5 +1,13 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
+
+// Types
+import { Token } from "@blank/background/controllers/erc-20/Token"
+
+// Context
+import { useBlankState } from "../../context/background/backgroundHooks"
+import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
+import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 
 // Components
 import PopupFooter from "../../components/popup/PopupFooter"
@@ -88,7 +96,7 @@ type customTokenFormData = InferType<typeof customTokenSchema>
 // Sub components
 const SearchToken = () => {
     const history = useOnMountHistory()
-    const { register, handleSubmit, setError } = useForm<searchTokenFormData>({
+    const { register, handleSubmit } = useForm<searchTokenFormData>({
         resolver: yupResolver(searchTokenSchema),
     })
 
@@ -134,24 +142,32 @@ const SearchToken = () => {
         value === "" ? setIsSearchEmpty(true) : setIsSearchEmpty(false)
 
         // If user puts address - show custom token view
-        if (utils.isAddress(value) && value !== "") {
-            setIsCustomTokenView(true)
-            setTokenAddress(value)
-            setSelected([])
-        } else if (/^[a-zA-Z0-9_.-]*$/.test(value) && value !== "") {
-            // Accept only number, letters and - . _
-            searchTokenInAssetsList(value.toUpperCase())
-                .then((res) => {
-                    const exacts = res.filter(
-                        (r) => r.symbol.toLowerCase() === value.toLowerCase()
-                    )
-                    const others = res.filter(
-                        (r) => r.symbol.toLowerCase() !== value.toLowerCase()
-                    )
+        if (value) {
+            if (utils.isAddress(value)) {
+                setIsCustomTokenView(true)
+                setTokenAddress(value)
+                setSelected([])
+            } else if (/^[a-zA-Z0-9_.-]{2,}$/.test(value)) {
+                // Accept only number, letters and - . _
+                console.time("tokens search")
+                searchTokenInAssetsList(value.toUpperCase())
+                    .then((res) => {
+                        const exacts = res.filter(
+                            (r) =>
+                                r.symbol.toLowerCase() === value.toLowerCase()
+                        )
+                        const others = res.filter(
+                            (r) =>
+                                r.symbol.toLowerCase() !== value.toLowerCase()
+                        )
 
-                    return setResults([...exacts, ...others])
-                })
-                .catch((err) => console.log(err))
+                        console.timeEnd("tokens search")
+                        return setResults([...exacts, ...others])
+                    })
+                    .catch((err) => console.log(err))
+            } else {
+                setResults([])
+            }
         } else {
             setResults([])
         }
@@ -275,7 +291,9 @@ const SearchToken = () => {
                                                                     active={
                                                                         true
                                                                     }
-                                                                    hoverable={true}
+                                                                    hoverable={
+                                                                        true
+                                                                    }
                                                                 />
                                                             </div>
                                                         )
@@ -327,7 +345,9 @@ const SearchToken = () => {
                                                                                 active={
                                                                                     false
                                                                                 }
-                                                                                hoverable={true}
+                                                                                hoverable={
+                                                                                    true
+                                                                                }
                                                                             />
                                                                         </div>
                                                                     )
@@ -347,7 +367,7 @@ const SearchToken = () => {
             </form>
             {isCustomTokenView ? (
                 <CustomToken customTokenAddress={tokenAddress} />
-            ) : ( 
+            ) : (
                 <>
                     <hr className="border-0.5 border-gray-200 w-full" />
 
@@ -361,14 +381,27 @@ const SearchToken = () => {
                         />
                     </PopupFooter>
                 </>
-                )
-            }
-  </>
-)}
+            )}
+        </>
+    )
+}
 
 const CustomToken = (props: any) => {
     const history = useOnMountHistory()
     const { customTokenAddress } = props
+
+    const { userTokens } = useBlankState()!
+    const account = useSelectedAccount()
+    const network = useSelectedNetwork()
+    const tokens = userTokens[account.address][network.chainId]
+
+    const tokenAddresses = useRef(
+        Object.keys(tokens ?? {}).map((v) => v.toLowerCase())
+    ).current
+    const tokenSymbols = useRef(
+        Object.keys(tokens ?? {}).map((key) => tokens[key].symbol.toLowerCase())
+    ).current
+
     const {
         register,
         handleSubmit,
@@ -395,6 +428,7 @@ const CustomToken = (props: any) => {
             ...prevState,
             address: customTokenAddress,
         }))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const onSubmit = handleSubmit(async (data: customTokenFormData) => {
@@ -408,54 +442,73 @@ const CustomToken = (props: any) => {
             }
 
             if (
-                !/^[a-zA-Z0-9_.-]*$/.test(data.tokenSymbol) ||
+                !/^[a-zA-Z0-9_.$-]*$/.test(data.tokenSymbol) ||
                 data.tokenSymbol === ""
             ) {
                 return setMessage("Enter valid symbol.")
             }
 
-            if (!data.tokenDecimals || isNaN(parseInt(data.tokenDecimals))) {
+            if (
+                !data.tokenDecimals ||
+                isNaN(parseInt(data.tokenDecimals)) ||
+                data.tokenDecimals.length > 2
+            ) {
                 return setMessage("Enter valid decimals.")
             }
 
             const newToken = {
-              address: data.tokenAddress,
-              decimals: data.tokenDecimals,
-              logo: "",
-              name: data.tokenSymbol,
-              symbol: data.tokenSymbol,
-              type: "",
+                address: data.tokenAddress,
+                decimals: data.tokenDecimals,
+                logo: "",
+                name: data.tokenSymbol,
+                symbol: data.tokenSymbol,
+                type: "",
             }
-            const tokenToAdd = result.symbol? result : newToken;
+            const tokenToAdd = result.symbol ? result : newToken
 
             // populate symbol logo for custom token
             searchTokenInAssetsList(tokenToAdd.symbol.toUpperCase()).then(
-              res => {
-                const exactMatch = res.filter(
-                  (r) => r.symbol.toLowerCase() === tokenToAdd.symbol.toLowerCase()
-                )[0];
+                (res) => {
+                    const exactMatch = res.filter(
+                        (r) =>
+                            r.symbol.toLowerCase() ===
+                            tokenToAdd.symbol.toLowerCase()
+                    )[0]
 
-                tokenToAdd.logo = exactMatch ? exactMatch.logo : '';
+                    tokenToAdd.logo = exactMatch ? exactMatch.logo : ""
 
-                history.push({
-                  pathname: '/settings/tokens/add/confirm',
-                  state: { tokens: [tokenToAdd] }
-                });
-              } 
-            ) 
+                    history.push({
+                        pathname: "/settings/tokens/add/confirm",
+                        state: { tokens: [tokenToAdd] },
+                    })
+                }
+            )
         } catch (event) {
             // Invalid form data
             setError("form", event.toString())
         }
     })
 
+    const verifiyToken = (token: Token): string => {
+        if (tokenAddresses.includes(token.address.toLowerCase())) {
+            return "You already added this token"
+        } else if (tokenSymbols.includes(token.symbol.toLowerCase())) {
+            return "You already added a token with this symbol"
+        } else {
+            return ""
+        }
+    }
+
     const onAddressChange = (value: string) => {
-        console.log("onAddressChange", value)
         if (utils.isAddress(value)) {
             setIsCustomTokenEmpty(false)
             searchTokenInAssetsList(value)
                 .then((res) => {
                     if (res && res.length) {
+                        const message = verifiyToken(res[0])
+
+                        setMessage(message)
+
                         setResult((prevState) => ({
                             ...prevState,
                             ...res[0],
@@ -477,17 +530,26 @@ const CustomToken = (props: any) => {
     }
 
     const onSymbolChange = (value: string) => {
-      updateResultField('symbol', value)
-      updateResultField('name', value.toUpperCase())
+        if (tokenSymbols.includes(value.toLowerCase())) {
+            setMessage("You already added a token with this symbol")
+        } else {
+            setMessage("")
+        }
+
+        updateResultField("symbol", value)
+        updateResultField("name", value.toUpperCase())
     }
 
-    const onDecimalsChange = (value: number) => updateResultField('decimals', value)
+    const onDecimalsChange = (value: number) => {
+        updateResultField("decimals", value)
+        setMessage("")
+    }
 
     const updateResultField = (field: string, value: string | number) => {
-      setResult((prevState) => ({
-        ...prevState,
-        [field]: value
-      }))
+        setResult((prevState) => ({
+            ...prevState,
+            [field]: value,
+        }))
     }
 
     if (isFirstIteration && customTokenAddress) {
@@ -566,18 +628,18 @@ const CustomToken = (props: any) => {
                         {message || <>&nbsp;</>}
                     </div>
                 </div>
-            <hr className="border-0.5 border-gray-200 w-full" />
+                <hr className="border-0.5 border-gray-200 w-full" />
 
-            {/* FOOTER */}
-            <PopupFooter>
-                <ButtonWithLoading
-                    type="submit"
-                    label="Next"
-                    disabled={isCustomTokenEmpty}
-                />
-            </PopupFooter>
-        </form>
-      </>
+                {/* FOOTER */}
+                <PopupFooter>
+                    <ButtonWithLoading
+                        type="submit"
+                        label="Next"
+                        disabled={isCustomTokenEmpty || message !== ""}
+                    />
+                </PopupFooter>
+            </form>
+        </>
     )
 }
 

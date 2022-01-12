@@ -4,7 +4,7 @@
     "private": true,
     "dependencies": {
         "@hookform/resolvers": "^1.3.2",
-        "@metamask/etherscan-link": "https://github.com/Blank-Wallet/explorer-link",
+        "@blank/explorer-link": "https://github.com/Blank-Wallet/explorer-link",
         "@tailwindcss/forms": "^0.2.1",
         "bfj": "^7.0.2",
         "classnames": "^2.2.6",

@@ -15,7 +15,16 @@ const WithdrawTypeSelectPage = () => {
     const { pair } = history.location.state
     return (
         <PopupLayout
-            header={<PopupHeader title="Withdraw From Blank" close="/" />}
+            header={
+                <PopupHeader
+                    title="Withdraw From Privacy Pool"
+                    onBack={() => {
+                        history.push({
+                            pathname: "/privacy/withdraw",
+                        })
+                    }}
+                />
+            }
         >
             <div className="flex flex-col p-6 space-y-6 text-gray-500">
                 <div className="text-sm">

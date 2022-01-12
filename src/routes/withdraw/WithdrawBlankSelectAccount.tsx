@@ -23,23 +23,6 @@ const Warning: FunctionComponent<{
         }
         footer={
             <PopupFooter>
-                {/*<button
-                    type="button"
-                    onClick={onCancel}
-                    className={classnames(
-                        Classes.liteButton,
-                        "w-1/2 font-bold"
-                    )}
-                >
-                    Back
-                </button>
-                <button
-                    type="button"
-                    onClick={onConfirm}
-                    className={classnames(Classes.button, "w-1/2 font-bold")}
-                >
-                    Got it, proceed
-                </button>*/}
                 <ButtonWithLoading
                     label="Got it, proceed"
                     type="button"
@@ -100,7 +83,16 @@ const WithdrawBlankSelectAccount = () => {
     ) : (
         <PopupLayout
             header={
-                <PopupHeader title="Withdraw From Blank" close="/" keepState />
+                <PopupHeader
+                    title="Withdraw From Privacy Pool"
+                    close="/"
+                    onBack={() => {
+                        history.push({
+                            pathname: "/privacy/withdraw/select",
+                            state: { pair },
+                        })
+                    }}
+                />
             }
             footer={
                 <PopupFooter>

@@ -11,7 +11,7 @@ import openExternal from "../../assets/images/icons/open_external.svg"
 import arrowDown from "../../assets/images/icons/circle-arrow-down.svg"
 import sites from "../../assets/images/icons/connected_sites.svg"
 
-import { generateExplorerLink, getExplorerName } from "../../util/getExplorer"
+import { generateExplorerLink, getExplorerTitle } from "../../util/getExplorer"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import classnames from "classnames"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
@@ -22,7 +22,7 @@ const AccountMenu = () => {
     const { nativeCurrency } = useSelectedNetwork()
     const history = useOnMountHistory()
 
-    const explorerName = getExplorerName(availableNetworks, selectedNetwork)
+    const explorerName = getExplorerTitle(availableNetworks, selectedNetwork)
     const options = [
         {
             icon: arrowDown,
@@ -51,14 +51,7 @@ const AccountMenu = () => {
         },
     ]
     return (
-        <PopupLayout
-            header={
-                <PopupHeader
-                    title="Account"
-                    close={history.location.state?.from ?? "/accounts"}
-                />
-            }
-        >
+        <PopupLayout header={<PopupHeader title="Account" />}>
             <div className="flex flex-col p-6 space-y-8 text-sm text-gray-500">
                 <div className="flex flex-col space-y-4">
                     <AccountDisplay

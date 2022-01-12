@@ -3,6 +3,20 @@ import { render, screen } from "@testing-library/react"
 import { MockPopup, MockTab } from "../mock/MockApp"
 import { initBackgroundState } from "../context/background/backgroundContext"
 
+// A mock is needed because ActivityList depends on an IntersectionObserver
+// And it's not defined in the test environment
+global.IntersectionObserver = class MockIntersection {
+    root = null
+    rootMargin = ""
+    readonly thresholds = []
+
+    disconnect() {}
+    observe() {}
+    takeRecords() {
+        return []
+    }
+    unobserve() {}
+}
 test("Tab renders", () => {
     render(<MockTab location="/intro" />)
 

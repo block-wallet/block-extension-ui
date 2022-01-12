@@ -11,15 +11,11 @@ import { formatUnits } from "ethers/lib/utils"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
 import { useOnClickOutside } from "../../util/useOnClickOutside"
-import arrowDown from "../../assets/images/icons/arrow_down.svg"
 import CloseIcon from "../icons/CloseIcon"
 import HorizontalSelect from "../input/HorizontalSelect"
 import eth from "../../assets/images/icons/ETH.svg"
 import { formatRounded } from "../../util/formatRounded"
-import {
-    FeeData,
-    GasPriceLevels,
-} from "@blank/background/controllers/GasPricesController"
+import { GasPriceLevels } from "@blank/background/controllers/GasPricesController"
 import * as yup from "yup"
 import { InferType } from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
@@ -30,6 +26,9 @@ import { AiFillInfoCircle } from "react-icons/ai"
 import ErrorMessage from "../error/ErrorMessage"
 import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import Spinner from "../Spinner"
+import Dialog from "../dialog/Dialog"
+import { ArrowUpDown } from "../icons/ArrowUpDown"
+import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
 
 export type TransactionSpeed = {
     [key: string]: BigNumber
@@ -85,7 +84,7 @@ const GetAmountYupSchema = (gasLimit: BigNumber, gasPrice: BigNumber) => {
             })
             .test(
                 "is-correct",
-                "Amount must be a positive number.",
+                "Gas Limit must be a positive number.",
                 (value) => {
                     if (typeof value != "string") return false
                     return parseFloat(value) > 0
@@ -108,7 +107,7 @@ const GetAmountYupSchema = (gasLimit: BigNumber, gasPrice: BigNumber) => {
                 "Amount must be a positive number.",
                 (value) => {
                     if (typeof value != "string") return false
-                    return parseFloat(value) > 0
+                    return parseFloat(value) >= 0
                 }
             ),
     })
@@ -127,6 +126,8 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
         handlePriceSelection,
     } = props
 
+    const { gasLowerCap } = useSelectedNetwork()
+
     // State
     const [isCustom, setIsCustom] = useState<boolean>(
         selectedGasPrice.label === "Custom"
@@ -137,6 +138,7 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
         handleSubmit,
         errors,
         setValue,
+        getValues,
     } = useForm<GasAdvancedForm>({
         defaultValues: {
             gasLimit: formatUnits(
@@ -184,8 +186,38 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
         setUserChanged(true)
     }
 
+    const validateFees = (fees: TransactionFeeData) => {
+        // Clean warnings
+        setGasLimitWarning("")
+        setGasPriceWarning("")
+
+        // Validations
+        if (fees.gasLimit?.lt(defaultGasLimit)) {
+            setGasLimitWarning("Gas limit lower than suggested")
+        }
+
+        if (
+            gasLowerCap &&
+            gasLowerCap.gasPrice &&
+            fees.gasPrice?.lt(gasLowerCap.gasPrice)
+        ) {
+            setGasPriceWarning("Max fee lower than network limit")
+        }
+    }
+
+    const handleBlur = () => {
+        const values = getValues()
+
+        const fees: TransactionFeeData = {
+            gasLimit: BigNumber.from(values.gasLimit),
+            gasPrice: parseUnits(values.gasPrice, "gwei"),
+        }
+
+        validateFees(fees)
+    }
+
     const handleSave = handleSubmit(async (values: GasAdvancedForm) => {
-        const fees: FeeData = {
+        const fees: TransactionFeeData = {
             gasLimit: BigNumber.from(values.gasLimit),
             gasPrice: parseUnits(values.gasPrice, "gwei"),
         }
@@ -194,6 +226,9 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
             getSpeedOption("Custom", fees.gasPrice!, fees.gasLimit!)
         )
     })
+
+    const [gasPriceWarning, setGasPriceWarning] = useState("")
+    const [gasLimitWarning, setGasLimitWarning] = useState("")
 
     const handleKeyDown = (e: React.KeyboardEvent<any>) => {
         const amt = Number(e.currentTarget.value)
@@ -234,8 +269,11 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
                             className={classnames(
                                 Classes.inputBordered,
                                 !isCustom && "text-gray-400",
-                                errors.gasPrice &&
-                                    "border-red-400 focus:border-red-600"
+                                errors.gasPrice
+                                    ? "border-red-400 focus:border-red-600"
+                                    : gasPriceWarning
+                                    ? "border-yellow-400 focus:border-yellow-600"
+                                    : ""
                             )}
                             type="text"
                             onKeyDown={handleKeyDown}
@@ -249,15 +287,22 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
                             onFocus={() => {
                                 !isCustom && handleCustomChange()
                             }}
+                            onBlur={() => {
+                                handleBlur()
+                            }}
                         />
                         {/* ERROR */}
                         <span
                             className={classnames(
-                                "text-xs text-red-500",
-                                !errors.gasPrice ? "m-0 h-0" : ""
+                                "text-xs",
+                                errors.gasPrice
+                                    ? "text-red-500"
+                                    : gasPriceWarning
+                                    ? "text-yellow-500"
+                                    : "m-0 h-0"
                             )}
                         >
-                            {errors.gasPrice?.message || ""}
+                            {errors.gasPrice?.message || gasPriceWarning || ""}
                         </span>
                     </div>
 
@@ -277,8 +322,11 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
                             className={classnames(
                                 Classes.inputBordered,
                                 !isCustom && "text-gray-400",
-                                errors.gasLimit &&
-                                    "border-red-400 focus:border-red-600"
+                                errors.gasLimit
+                                    ? "border-red-400 focus:border-red-600"
+                                    : gasLimitWarning
+                                    ? "border-yellow-400 focus:border-yellow-600"
+                                    : ""
                             )}
                             type="text"
                             onKeyDown={handleKeyDown}
@@ -292,15 +340,22 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
                             onFocus={() => {
                                 !isCustom && handleCustomChange()
                             }}
+                            onBlur={() => {
+                                handleBlur()
+                            }}
                         />
                         {/* ERROR */}
                         <span
                             className={classnames(
-                                "text-xs text-red-500",
-                                !errors.gasLimit ? "m-0 h-0" : ""
+                                "text-xs",
+                                errors.gasLimit
+                                    ? "text-red-500"
+                                    : gasLimitWarning
+                                    ? "text-yellow-500"
+                                    : "m-0 h-0"
                             )}
                         >
-                            {errors.gasLimit?.message || ""}
+                            {errors.gasLimit?.message || gasLimitWarning || ""}
                         </span>
                     </div>
                 </div>
@@ -370,6 +425,7 @@ const GasSelectorBasic = (props: GasTabProps) => {
                                             src={defaultNetworkLogo}
                                             alt={symbol}
                                             width="11px"
+                                            draggable={false}
                                         />
                                     </div>
                                     <div className="w-full">
@@ -449,7 +505,7 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
         networkNativeCurrency,
     } = useBlankState()!
 
-    const { gasPrices } = useGasPriceData()
+    const { gasPricesLevels } = useGasPriceData()
 
     const {
         showGasLevels,
@@ -461,7 +517,7 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
     const [
         transactionSpeeds,
         setTransactionSpeeds,
-    ] = useState<TransactionSpeed>(getTransactionSpeeds(gasPrices))
+    ] = useState<TransactionSpeed>(getTransactionSpeeds(gasPricesLevels))
 
     const [speeds, setTransactionSpeedOptions] = useState<
         TransactionSpeedOption[]
@@ -507,7 +563,9 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
     const [tab, setTab] = useState(
         tabs[
             !showGasLevels ||
-            !defaultGasPrice.eq(BigNumber.from(gasPrices.average.gasPrice))
+            !defaultGasPrice.eq(
+                BigNumber.from(gasPricesLevels.average.gasPrice)
+            )
                 ? 1
                 : 0
         ]
@@ -524,7 +582,7 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
             return
         }
 
-        setTransactionSpeeds(getTransactionSpeeds(gasPrices))
+        setTransactionSpeeds(getTransactionSpeeds(gasPricesLevels))
 
         let speedOptions: TransactionSpeedOption[] = []
         for (let speed in transactionSpeeds) {
@@ -571,7 +629,7 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gasPrices, defaultGasPrice, defaultGasLimit, isParentLoading])
+    }, [gasPricesLevels, defaultGasPrice, defaultGasLimit, isParentLoading])
 
     // Handlers
     const handlePriceSelection = (price: TransactionSpeedOption) => {
@@ -593,21 +651,19 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
                     setActive(!active)
                 }
             >
-                <div className="flex flex-col justify-center w-full h-11">
-                    <div className={"text-base font-semibold mb-1"}>
+                <div className="flex justify-start w-full space-x-2">
+                    <div className={"text-xs font-semibold"}>
                         {isParentLoading || !isLoaded
                             ? "Loading prices..."
                             : capitalize(selectedGasPrice!.label)}
                     </div>
-                    <div className="flex flex-row w-full items-center justify-start">
-                        <div className="w-2/5">
-                            <span className="text-xs text-gray-600">
-                                {!isParentLoading && isLoaded
-                                    ? selectedGasPrice!.nativeCurrencyAmount
-                                    : ""}
-                            </span>
-                        </div>
-                        <div className="flex flex-row space-x-2 items-center justify-start w-3/5">
+                    <div className="flex flex-row w-full items-center justify-start space-x-3 text-xs">
+                        <span className="text-xs text-gray-600">
+                            {!isParentLoading && isLoaded
+                                ? selectedGasPrice!.nativeCurrencyAmount
+                                : ""}
+                        </span>
+                        <div className="flex flex-row space-x-1 items-center justify-self-end">
                             {!isParentLoading && isLoaded && (
                                 <>
                                     <div className="justify-self-start">
@@ -615,6 +671,7 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
                                             src={defaultNetworkLogo}
                                             alt={networkNativeCurrency.symbol}
                                             width="11px"
+                                            draggable={false}
                                         />
                                     </div>
                                     <div className="w-full">
@@ -627,20 +684,11 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
                         </div>
                     </div>
                 </div>
-                <div className="flex justify-center items-center w-8 h-full">
+                <div className="flex justify-end items-center w-4 h-full">
                     {isParentLoading || !isLoaded ? (
                         <Spinner />
                     ) : (
-                        <img
-                            src={arrowDown}
-                            className="w-3 h-2"
-                            alt=""
-                            style={{
-                                transform: `${
-                                    active ? "rotate(180deg)" : "none"
-                                }`,
-                            }}
-                        />
+                        <ArrowUpDown active={active} />
                     )}
                 </div>
             </div>
@@ -649,7 +697,7 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
                     <ErrorMessage error="Gas estimation failed, transaction might fail." />
                 </div>
             )}
-            {active && (
+            {/*{active && (
                 <div
                     className="bg-white bg-opacity-80 fixed inset-0 w-full h-screen z-50 overflow-hidden flex flex-col items-center justify-center px-6"
                     style={{ maxWidth: "390px", maxHeight: "600px" }}
@@ -657,98 +705,98 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
                     <div
                         ref={ref}
                         className="relative py-6 px-3 opacity-100 w-full bg-white shadow-md rounded-md flex-col flex"
+                    >*/}
+            <Dialog open={active} onClickOutside={() => setActive(false)}>
+                <span className="absolute top-0 right-0 p-4 z-50">
+                    <div
+                        onClick={() => setActive(false)}
+                        className=" cursor-pointer p-2 ml-auto -mr-2 text-gray-900 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300"
                     >
-                        <span className="absolute top-0 right-0 p-4 z-50">
-                            <div
-                                onClick={() => setActive(false)}
-                                className=" cursor-pointer p-2 ml-auto -mr-2 text-gray-900 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300"
-                            >
-                                <CloseIcon size="10" />
+                        <CloseIcon size="10" />
+                    </div>
+                </span>
+                <div>
+                    <div className="flex flex-col w-full space-y-2">
+                        <div className="z-10 flex flex-row items-center p-2 bg-white bg-opacity-75">
+                            <h2 className="pl-0.5 pr-0 text-lg font-bold">
+                                Gas Price
+                            </h2>
+                            <div className="group relative">
+                                <a
+                                    href="https://ethereum.org/en/developers/docs/gas/"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <AiFillInfoCircle
+                                        size={26}
+                                        className="pl-2 text-primary-200 cursor-pointer hover:text-primary-300"
+                                    />
+                                </a>
+                                <Tooltip
+                                    content={
+                                        <div className="flex flex-col font-normal items-start text-xs text-white-500">
+                                            <div className="flex flex-row items-end space-x-7">
+                                                <span>
+                                                    Gas is used to operate on
+                                                    the network.
+                                                </span>{" "}
+                                            </div>
+                                            <div className="flex flex-row items-end space-x-4">
+                                                <span>
+                                                    Click on this icon to learn
+                                                    more.
+                                                </span>{" "}
+                                            </div>
+                                        </div>
+                                    }
+                                />
                             </div>
-                        </span>
-                        <div>
-                            <div className="flex flex-col w-full space-y-2">
-                                <div className="z-10 flex flex-row items-center p-2 bg-white bg-opacity-75">
-                                    <h2 className="pl-0.5 pr-0 text-lg font-bold">
-                                        Gas Price
-                                    </h2>
-                                    <div className="group relative">
-                                        <a
-                                            href="https://ethereum.org/en/developers/docs/gas/"
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            <AiFillInfoCircle
-                                                size={26}
-                                                className="pl-2 text-primary-200 cursor-pointer hover:text-primary-300"
-                                            />
-                                        </a>
-                                        <Tooltip
-                                            content={
-                                                <div className="flex flex-col font-normal items-start text-xs text-white-500">
-                                                    <div className="flex flex-row items-end space-x-7">
-                                                        <span>
-                                                            Gas is used to
-                                                            operate on the
-                                                            network.
-                                                        </span>{" "}
-                                                    </div>
-                                                    <div className="flex flex-row items-end space-x-4">
-                                                        <span>
-                                                            Click on this icon
-                                                            to learn more.
-                                                        </span>{" "}
-                                                    </div>
-                                                </div>
-                                            }
-                                        />
-                                    </div>
-                                </div>
+                        </div>
 
-                                {showGasLevels && (
-                                    <HorizontalSelect
-                                        options={tabs}
-                                        value={tab}
-                                        onChange={setTab}
-                                        display={(t) => t.label}
-                                        disableStyles
-                                        optionClassName={(value) =>
-                                            `flex-1 flex flex-row items-center justify-center p-3 text-sm
+                        {showGasLevels && (
+                            <HorizontalSelect
+                                options={tabs}
+                                value={tab}
+                                onChange={setTab}
+                                display={(t) => t.label}
+                                disableStyles
+                                optionClassName={(value) =>
+                                    `flex-1 flex flex-row items-center justify-center p-3 text-sm
                                             ${
                                                 tab === value
                                                     ? "border-primary-300 border-b-2 text-primary-300 font-bold"
                                                     : "border-gray-200 text-gray-500 border-b"
                                             }`
-                                        }
-                                        containerClassName="flex flex-row -ml-3"
-                                        containerStyle={{
-                                            width: "calc(100% + 1.5rem)",
-                                        }}
-                                    />
-                                )}
+                                }
+                                containerClassName="flex flex-row -ml-3"
+                                containerStyle={{
+                                    width: "calc(100% + 1.5rem)",
+                                }}
+                            />
+                        )}
 
-                                <TabComponent
-                                    defaultNetworkLogo={defaultNetworkLogo}
-                                    symbol={networkNativeCurrency.symbol}
-                                    options={speeds}
-                                    selectedGasPrice={selectedGasPrice!}
-                                    getSpeedOption={getSpeedOption}
-                                    defaultGasLimit={defaultGasLimit}
-                                    defaultGasPrice={defaultGasPrice}
-                                    setUserChanged={setUserChanged}
-                                    handlePriceSelection={(
-                                        option: TransactionSpeedOption
-                                    ) => {
-                                        handlePriceSelection(option)
-                                        setActive(false)
-                                        setEstimationError(false)
-                                    }}
-                                />
-                            </div>
-                        </div>
+                        <TabComponent
+                            defaultNetworkLogo={defaultNetworkLogo}
+                            symbol={networkNativeCurrency.symbol}
+                            options={speeds}
+                            selectedGasPrice={selectedGasPrice!}
+                            getSpeedOption={getSpeedOption}
+                            defaultGasLimit={defaultGasLimit}
+                            defaultGasPrice={defaultGasPrice}
+                            setUserChanged={setUserChanged}
+                            handlePriceSelection={(
+                                option: TransactionSpeedOption
+                            ) => {
+                                handlePriceSelection(option)
+                                setActive(false)
+                                setEstimationError(false)
+                            }}
+                        />
                     </div>
                 </div>
-            )}
+                {/*</div>*/}
+                {/*</div>*/}
+            </Dialog>
         </>
     )
 }

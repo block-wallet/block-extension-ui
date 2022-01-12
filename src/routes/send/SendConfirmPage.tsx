@@ -23,7 +23,7 @@ import { utils, BigNumber, constants } from "ethers"
 import { formatHash } from "../../util/formatAccount"
 import { formatUnits } from "ethers/lib/utils"
 import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
-import { DEFAULT_DECIMALS } from "../../util/constants"
+import { DEFAULT_DECIMALS, SEND_GAS_COST } from "../../util/constants"
 
 // Hooks
 import { useBlankState } from "../../context/background/backgroundHooks"
@@ -39,7 +39,6 @@ import {
     TokenWithBalance,
     useTokensList,
 } from "../../context/hooks/useTokensList"
-import { FeeData } from "@blank/background/controllers/GasPricesController"
 import GasPriceComponent from "../../components/transactions/GasPriceComponent"
 
 // Types
@@ -50,12 +49,16 @@ import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import { Classes } from "../../styles"
 import SuccessDialog from "../../components/dialog/SuccessDialog"
+import { AdvancedSettings } from "../../components/transactions/AdvancedSettings"
+import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
+import { TransactionAdvancedData } from "@blank/background/controllers/transactions/utils/types"
+import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
 
 // Schema
 const GetAmountYupSchema = (
     balance: BigNumber,
     asset: TokenWithBalance | undefined,
-    selectedGas: FeeData,
+    selectedGas: TransactionFeeData,
     isEIP1559Compatible: boolean | undefined
 ) => {
     return yup.object({
@@ -169,7 +172,7 @@ const AddressDisplay: FunctionComponent<{
     return (
         <>
             <div
-                className="flex flex-row items-center w-full px-6 py-4 space-x-3"
+                className="flex flex-row items-center w-full px-6 py-3 space-x-3"
                 style={{ maxWidth: "100vw" }}
                 title={formatHash(accountAddress, accountAddress.length)}
                 onClick={() =>
@@ -214,7 +217,7 @@ const BalanceValidation = (balance: BigNumber, amount: BigNumber): boolean => {
 
 const GasCostBalanceValidation = (
     balance: BigNumber,
-    selectedGas: FeeData,
+    selectedGas: TransactionFeeData,
     isEIP1559Compatible?: boolean
 ): boolean => {
     return BalanceValidation(
@@ -231,7 +234,7 @@ const GasCostBalanceValidation = (
 const EtherSendBalanceValidation = (
     balance: BigNumber,
     txAmount: BigNumber,
-    selectedGas: FeeData,
+    selectedGas: TransactionFeeData,
     isEIP1559Compatible?: boolean
 ): boolean => {
     balance = BigNumber.from(balance)
@@ -257,12 +260,18 @@ const HasBalance = (selectedToken: TokenWithBalance): boolean => {
 
 // Page
 const SendConfirmPage = () => {
+    // Blank Hooks
     const blankState = useBlankState()!
     const network = useSelectedNetwork()
     const history: any = useOnMountHistory()
+    const balance = useSelectedAccountBalance()
+    const { address } = useSelectedAccount()
+
+    const isEIP1559Compatible = network.isEIP1559Compatible
     const accountAddress = history.location.state.address
     const preSelectedAsset = history.location.state.asset
-    const balance = useSelectedAccountBalance()
+
+    // Tokens
     const { currentNetworkTokens, nativeToken } = useTokensList()
     const tokensList = [nativeToken].concat(currentNetworkTokens)
 
@@ -278,9 +287,9 @@ const SendConfirmPage = () => {
     const [selectedToken, setSelectedToken] = useState<TokenWithBalance>(
         preSelectedAsset ? preSelectedAsset : tokensList[0]
     )
-    const { isEIP1559Compatible, gasPrices } = useGasPriceData()
+    const { gasPricesLevels } = useGasPriceData()
 
-    const [selectedGas, setSelectedGas] = useState<FeeData>({
+    const [selectedGas, setSelectedGas] = useState<TransactionFeeData>({
         gasLimit: BigNumber.from(0),
         gasPrice: isEIP1559Compatible ? undefined : BigNumber.from(0),
         maxPriorityFeePerGas: isEIP1559Compatible
@@ -289,12 +298,17 @@ const SendConfirmPage = () => {
         maxFeePerGas: isEIP1559Compatible ? BigNumber.from(0) : undefined,
     })
 
-    const [defaultGas, setDefaultGas] = useState<FeeData>({
-        gasLimit: BigNumber.from(gasPrices.average.gasLimit ?? 0),
-        gasPrice: BigNumber.from(gasPrices.average.gasPrice ?? 0),
+    const [defaultGas, setDefaultGas] = useState<TransactionFeeData>({
+        gasLimit: SEND_GAS_COST,
+        gasPrice: BigNumber.from(gasPricesLevels.average.gasPrice ?? 0),
     })
 
     const [gasEstimationFailed, setGasEstimationFailed] = useState(false)
+
+    const [
+        transactionAdvancedData,
+        setTransactionAdvancedData,
+    ] = useState<TransactionAdvancedData>({})
 
     const calcNativeCurrency = () => {
         if (!selectedToken) return
@@ -403,15 +417,17 @@ const SendConfirmPage = () => {
             if (selectedToken.token.address === nativeToken.token.address) {
                 txHash = await sendEther(
                     accountAddress,
-                    selectedGas as FeeData,
-                    value
+                    selectedGas as TransactionFeeData,
+                    value,
+                    transactionAdvancedData
                 )
             } else {
                 txHash = await sendToken(
                     selectedToken.token.address,
                     accountAddress,
-                    selectedGas as FeeData,
-                    value
+                    selectedGas as TransactionFeeData,
+                    value,
+                    transactionAdvancedData
                 )
             }
             setTxHash(txHash)
@@ -552,7 +568,7 @@ const SendConfirmPage = () => {
     const [inputFocus, setInputFocus] = useState(false)
     return (
         <PopupLayout
-            header={<PopupHeader title="Send" close="/" />}
+            header={<PopupHeader title="Send" disabled={isLoading} />}
             footer={
                 <PopupFooter>
                     <ButtonWithLoading
@@ -616,7 +632,7 @@ const SendConfirmPage = () => {
                             <div
                                 className={classnames(
                                     "flex flex-col",
-                                    !errors.amount && "mb-4"
+                                    !errors.amount && "mb-3"
                                 )}
                             >
                                 <div className="flex flex-row">
@@ -756,6 +772,24 @@ const SendConfirmPage = () => {
                             )}
                             <div className={`${error ? "pl-1 my-2" : null}`}>
                                 <ErrorMessage error={error} />
+                            </div>
+
+                            <div className="mt-3">
+                                <AdvancedSettings
+                                    config={{
+                                        showCustomNonce: true,
+                                        showFlashbots: false,
+                                        address,
+                                    }}
+                                    data={{}}
+                                    setData={function (
+                                        data: TransactionAdvancedData
+                                    ): void {
+                                        setTransactionAdvancedData({
+                                            customNonce: data.customNonce,
+                                        })
+                                    }}
+                                />
                             </div>
                         </div>
                     )}

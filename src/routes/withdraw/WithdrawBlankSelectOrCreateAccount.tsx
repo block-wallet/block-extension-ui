@@ -16,7 +16,9 @@ const WithdrawBlankSelectOrCreateAccount = ({}) => {
     const { pair } = history.location.state
     return (
         <PopupLayout
-            header={<PopupHeader title="Withdraw From Blank" close="/" />}
+            header={
+                <PopupHeader title="Withdraw From Privacy Pool" close="/" />
+            }
             footer={
                 <PopupFooter>
                     <LinkButton

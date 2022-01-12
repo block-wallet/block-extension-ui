@@ -105,10 +105,8 @@ const BackupConfirmPage = () => {
     const backLink = isReminder ? "/reminder" : "/setup/create/notice"
     const doneLink = isReminder ? "/reminder/backup/done" : "/setup/done"
     const [inputWords, setInputWords] = useState<SeedPhraseWord[]>([])
-    const [
-        isVerificationInProgress,
-        setIsVerificationInProgress,
-    ] = useState<boolean>(false)
+    const [isVerificationInProgress, setIsVerificationInProgress] =
+        useState<boolean>(false)
     const [verificationError, setVerificationError] = useState<string>("")
     const seedWords = useMemo(() => {
         let wordsForSeedPhrase: SeedPhraseWord[] = []
@@ -233,6 +231,7 @@ const BackupConfirmPage = () => {
                                 state: { seedPhrase, password },
                             }}
                             className={Classes.liteButton}
+                            draggable={false}
                         >
                             Back
                         </Link>

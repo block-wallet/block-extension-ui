@@ -1,16 +1,16 @@
-import React, { forwardRef, useEffect, useState, useRef } from 'react'
+import React, { forwardRef, useEffect, useState, useRef } from "react"
 
 // Style
-import classnames from 'classnames'
-import { Classes } from '../../styles/classes'
+import classnames from "classnames"
+import { Classes } from "../../styles/classes"
 
 // Hooks
-import { useOnClickOutside } from '../../util/useOnClickOutside';
-import { useMergeRefs } from '../../context/hooks/useMergeRefs';
+import { useOnClickOutside } from "../../util/useOnClickOutside"
+import { useMergeRefs } from "../../context/hooks/useMergeRefs"
 
 // Assets
-import searchIcon from '../../assets/images/icons/search.svg'
-import CheckmarkCircle from '../icons/CheckmarkCircle'
+import searchIcon from "../../assets/images/icons/search.svg"
+import CheckmarkCircle from "../icons/CheckmarkCircle"
 
 // Types
 type SearchInputProps = {
@@ -25,6 +25,9 @@ type SearchInputProps = {
     autoComplete?: boolean
     isValid?: boolean
     onChange?: (event: any) => void
+    debounced?: boolean
+    debounceTime?: number
+    minSearchChar?: number
 }
 
 /**
@@ -43,15 +46,35 @@ type SearchInputProps = {
  * @param autoComplete - Enable browser autocomplete suggestions if true.
  * @param isValid - Display a green outline & checkmark if true.
  * @param onChange - Function to execute on input change.
+ * @param debounced - If set to true, onChange will only be triggered after the user didn't change the input for `debounceTime`.
+ * @param debounceTime - Set the debouncing time.
+ * @param minSearchChar - Set a minimum char before triggering `onChange`. Note that this has the priority over `onChange` and `debounce`.
  */
 const SearchInput = forwardRef<SearchInputProps, any>(
-    ({ label, placeholder, name, error = '', warning = '', disabled, autoFocus, autoComplete, isValid, onChange }, register) => {
+    (
+        {
+            label,
+            placeholder,
+            name,
+            error = "",
+            warning = "",
+            disabled,
+            autoFocus,
+            autoComplete,
+            isValid,
+            onChange,
+            debounced = false,
+            debounceTime = 300,
+            minSearchChar = 0,
+        }: SearchInputProps,
+        register
+    ) => {
         const inputRef = useRef(null)
-
+        const timeoutIdRef = useRef<ReturnType<typeof setTimeout>>()
         // State
         const [forwardedRef, setForwardedRef] = useState<any>(null)
         const [isFocus, setIsFocus] = useState<boolean>(false)
-        const [search, setSearch] = useState<string>('')
+        const [search, setSearch] = useState<string>("")
 
         // Hooks
         useEffect(() => {
@@ -59,52 +82,75 @@ const SearchInput = forwardRef<SearchInputProps, any>(
         }, [register])
 
         useOnClickOutside(inputRef, () => {
-            if (search === '') setIsFocus(false)
+            if (search === "") setIsFocus(false)
         })
+
+        const onValueChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+            setSearch(e.target.value)
+            if (onChange) onChange(e)
+        }
 
         return (
             <>
                 {/* LABEL */}
-                {
-                    label ? (
-                        <label htmlFor="accountName" className={Classes.inputLabel}>
-                            {label}
-                        </label>
-                    ) : null
-                }
+                {label ? (
+                    <label htmlFor="accountName" className={Classes.inputLabel}>
+                        {label}
+                    </label>
+                ) : null}
 
                 {/* SEARCH */}
-                <div className={classnames(
-                    "flex justify-start items-center relative",
-                    label ? "mt-2" : "",
-                    error !== "" || warning !== "" ? "mb-2" : ""
-                )}>
+                <div
+                    className={classnames(
+                        "flex justify-start items-center relative",
+                        label ? "mt-2" : "",
+                        error !== "" || warning !== "" ? "mb-2" : ""
+                    )}
+                >
                     <img
                         src={searchIcon}
                         alt="search"
                         className={classnames(
-                            'h-4 ml-3 absolute z-10 transition-all delay-100',
-                            isFocus ? 'opacity-0 w-0' : 'opacity-100 w-4'
+                            "h-4 ml-3 absolute z-10 transition-all delay-100",
+                            isFocus ? "opacity-0 w-0" : "opacity-100 w-4"
                         )}
                     />
 
                     <input
-                        name={name ? name : 'Search'}
+                        name={name ? name : "Search"}
                         type="text"
-                        ref={useMergeRefs(inputRef, forwardedRef ? forwardedRef : null)}
+                        ref={useMergeRefs(
+                            inputRef,
+                            forwardedRef ? forwardedRef : null
+                        )}
                         className={classnames(
                             Classes.inputBordered,
-                            'w-full relative z-0 outline-none	transition-all delay-100',
-                            isFocus ? 'pl-2' : 'pl-9',
-                            isValid ? 'border-green-400 focus:border-green-400' : ''
+                            "w-full relative z-0 outline-none	transition-all delay-100",
+                            isFocus ? "pl-2" : "pl-9",
+                            isValid
+                                ? "border-green-400 focus:border-green-400"
+                                : ""
                         )}
-                        placeholder={placeholder ? placeholder : ''}
+                        placeholder={placeholder ? placeholder : ""}
                         autoFocus={autoFocus ? autoFocus : false}
                         disabled={disabled ? disabled : false}
                         autoComplete={autoComplete ? "on" : "off"}
-                        onChange={e => {
-                            setSearch(e.target.value)
-                            if (onChange) onChange(e)
+                        onChange={(e) => {
+                            const value = e.target.value
+
+                            if (value.length < minSearchChar) return
+
+                            if (debounced) {
+                                if (timeoutIdRef.current)
+                                    clearTimeout(timeoutIdRef.current)
+
+                                timeoutIdRef.current = setTimeout(
+                                    () => onValueChanged(e),
+                                    debounceTime
+                                )
+                            } else {
+                                onValueChanged(e)
+                            }
                         }}
                         onFocus={() => setIsFocus(true)}
                     />
@@ -112,7 +158,7 @@ const SearchInput = forwardRef<SearchInputProps, any>(
                     <CheckmarkCircle
                         classes={`
               h-4 transition-all delay-100
-              ${isValid ? 'opacity-100 w-4 ml-3' : 'opacity-0 w-0 ml-0'}
+              ${isValid ? "opacity-100 w-4 ml-3" : "opacity-0 w-0 ml-0"}
             `}
                         animate={isValid}
                     />
@@ -124,10 +170,10 @@ const SearchInput = forwardRef<SearchInputProps, any>(
                         "text-xs",
                         error !== "" ? "text-red-500" : "",
                         warning !== "" ? "text-yellow-500" : "",
-                        error === "" && warning === "" ? "m-0 h-0" : "",
+                        error === "" && warning === "" ? "m-0 h-0" : ""
                     )}
                 >
-                    {error || warning || ''}
+                    {error || warning || ""}
                 </span>
             </>
         )

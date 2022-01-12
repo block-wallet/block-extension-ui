@@ -2123,9 +2123,9 @@
   resolved "https://registry.yarnpkg.com/@mdx-js/util/-/util-1.6.22.tgz#219dfd89ae5b97a8801f015323ffa4b62f45718b"
   integrity sha512-H1rQc1ZOHANWBvPcW+JpGwr+juXSxM8Q8YCkm3GhZd8REu1fHR3z99CErO1p9pkcfcxZnMdIZdIsXkOHY0NilA==
 
-"@metamask/etherscan-link@https://github.com/Blank-Wallet/explorer-link":
-  version "2.1.0"
-  resolved "https://github.com/Blank-Wallet/explorer-link#c92aa24f8c1394ebe0a346f088a6020918eaa262"
+"@blank/explorer-link@https://github.com/Blank-Wallet/explorer-link":
+  version "2.1.1"
+  resolved "https://github.com/Blank-Wallet/explorer-link#bbd0423fccdcbb892dcd2041dc82a2abc1574577"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"

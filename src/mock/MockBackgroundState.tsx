@@ -61,6 +61,14 @@ export const initBackgroundState: BackgroundStateType = {
                     isEns: false,
                 },
             },
+            POLYGON: {
+                "0x5621C68f21852811E1fd6208fDDD0FC13A844fD1": {
+                    address: "0x5621C68f21852811E1fd6208fDDD0FC13A844fD1",
+                    name: "Test Contact ",
+                    note: "",
+                    isEns: false,
+                },
+            },
             BSC_TESTNET: {
                 "0x5621C68f21852811E1fd6208fDDD0FC13A844fD1": {
                     address: "0x5621C68f21852811E1fd6208fDDD0FC13A844fD1",
@@ -324,7 +332,9 @@ export const initBackgroundState: BackgroundStateType = {
                 },
             ],
         },
-        blockData: { 5: -1 },
+        blockData: { 5: { blockNumber: -1, updateCounter: -1 } },
+        areDepositsPending: false,
+        areWithdrawalsPending: false,
         pendingDeposits: {
             eth: {} as any,
             dai: {} as any,
@@ -343,9 +353,11 @@ export const initBackgroundState: BackgroundStateType = {
             // Default Coingecko id for ETH rates
             coingeckoPlatformId: "ethereum",
         },
+        isEIP1559Compatible: { 5: true },
         gasPriceData: {
             5: {
-                gasPrices: {
+                blockGasLimit: BigNumber.from(0),
+                gasPricesLevels: {
                     slow: {
                         gasPrice: BigNumber.from(111111111110),
                         maxPriorityFeePerGas: BigNumber.from(0),
@@ -362,8 +374,7 @@ export const initBackgroundState: BackgroundStateType = {
                         maxFeePerGas: BigNumber.from(0),
                     },
                 },
-                isEIP1559Compatible: true,
-                baseFeePerGas: BigNumber.from("0x02540be400"),
+                baseFee: BigNumber.from("0x02540be400"),
             },
         },
         incomingTransactions: {},

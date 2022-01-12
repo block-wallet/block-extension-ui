@@ -12,7 +12,12 @@ const InfoComponent: FunctionComponent<
             className
         )}
     >
-        <img src={infoIcon} alt="info" className="w-3 h-3 mt-1" />
+        <img
+            src={infoIcon}
+            alt="info"
+            className="w-3 h-3 mt-1"
+            draggable={false}
+        />
         <span>{children}</span>
     </div>
 )

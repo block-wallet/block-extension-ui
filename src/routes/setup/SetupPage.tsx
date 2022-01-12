@@ -27,7 +27,11 @@ const SetupOption: FunctionComponent<{
         />
         <span className="text-sm font-bold font-title">{title}</span>
         <span className="h-16 mt-4 text-xs text-gray-500">{description}</span>
-        <Link to={linkTo} className={classnames(Classes.button, "w-full")}>
+        <Link
+            to={linkTo}
+            className={classnames(Classes.button, "w-full")}
+            draggable={false}
+        >
             {linkLabel}
         </Link>
     </div>

@@ -45,9 +45,7 @@
     position: absolute;
 }
 
-
 /** End Slide Down **/
-
 
 /** Slide Down **/
 
@@ -94,9 +92,7 @@
     position: absolute;
 }
 
-
 /** End Slide Down **/
-
 
 /** Slide Horizontal Left **/
 
@@ -139,9 +135,7 @@
     transition: opacity 0.15s ease-in, transform 0.2s ease-in;
 }
 
-
 /** Slide Horizontal Left **/
-
 
 /** Slide Horizontal Right **/
 
@@ -184,5 +178,19 @@
     transition: opacity 0.15s ease-in, transform 0.2s ease-in;
 }
 
-
 /** Slide Horizontal Right **/
+
+.appear-enter {
+    opacity: 0;
+}
+.appear-enter-active {
+    opacity: 1;
+    transition: opacity 200ms;
+}
+.appear-exit {
+    opacity: 1;
+}
+.appear-exit-active {
+    opacity: 0;
+    transition: opacity 200ms;
+}

@@ -5,7 +5,6 @@ import {
     CurrencyAmountPair,
     KnownCurrencies,
 } from "@blank/background/controllers/blank-deposit/types"
-import { FeeData } from "@blank/background/controllers/GasPricesController"
 import {
     Handlers,
     MessageTypes,
@@ -21,7 +20,7 @@ import { Messages, Origin, BackgroundActions } from "./commTypes"
 import { ITokens, Token } from "@blank/background/controllers/erc-20/Token"
 import { IBlankDeposit } from "@blank/background/controllers/blank-deposit/BlankDeposit"
 import { SiteMetadata } from "@blank/provider/types"
-import { TransactionMeta } from "@blank/background/controllers/transactions/utils/types"
+import { TransactionAdvancedData, TransactionMeta } from "@blank/background/controllers/transactions/utils/types"
 import { checkRedraw } from "./util/platform"
 import log from "loglevel"
 import { TransactionGasEstimation } from "@blank/background/controllers/transactions/TransactionController"
@@ -30,6 +29,7 @@ import {
     UserSettings,
 } from "@blank/background/controllers/PreferencesController"
 import { DappRequestConfirmOptions } from "@blank/background/utils/types/ethereum"
+import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
 
 const handlers: Handlers = {}
 let requestId = 0
@@ -94,7 +94,7 @@ const initPort = () => {
             }
 
             if (data.subscription) {
-                ;(handler.subscriber as Function)(data.subscription)
+                ; (handler.subscriber as Function)(data.subscription)
             } else if ("error" in data) {
                 handler.reject(new Error(data.error))
             } else {
@@ -436,10 +436,11 @@ export const lookupAddressEns = async (
  */
 export const sendEther = async (
     to: string,
-    feeData: FeeData,
-    value: BigNumber
+    feeData: TransactionFeeData,
+    value: BigNumber,
+    advancedData: TransactionAdvancedData
 ): Promise<string> => {
-    return sendMessage(Messages.TRANSACTION.SEND_ETHER, { to, feeData, value })
+    return sendMessage(Messages.TRANSACTION.SEND_ETHER, { to, feeData, value, advancedData })
 }
 
 /**
@@ -453,7 +454,7 @@ export const sendEther = async (
 export const addNewSendTransaction = async (
     address: string,
     to: string,
-    feeData: FeeData,
+    feeData: TransactionFeeData,
     value: BigNumber
 ): Promise<TransactionMeta> => {
     return sendMessage(Messages.TRANSACTION.ADD_NEW_SEND_TRANSACTION, {
@@ -472,7 +473,7 @@ export const addNewSendTransaction = async (
  */
 export const updateSendTransactionGas = async (
     transactionId: string,
-    feeData: FeeData
+    feeData: TransactionFeeData
 ): Promise<void> => {
     return sendMessage(Messages.TRANSACTION.UPDATE_SEND_TRANSACTION_GAS, {
         transactionId,
@@ -535,13 +536,6 @@ export const getSendTransactionGasLimit = async (
  */
 export const getLatestGasPrice = async (): Promise<BigNumber> => {
     return sendMessage(Messages.TRANSACTION.GET_LATEST_GAS_PRICE)
-}
-
-/**
- * It obtains the current base fee per gas
- */
-export const getBaseFee = async (): Promise<BigNumber> => {
-    return sendMessage(Messages.TRANSACTION.GET_LATEST_BASE_FEE)
 }
 
 /**
@@ -643,14 +637,16 @@ export const deleteCustomToken = async (address: string): Promise<void> => {
 export const sendToken = async (
     tokenAddress: string,
     to: string,
-    feeData: FeeData,
-    value: BigNumber
+    feeData: TransactionFeeData,
+    value: BigNumber,
+    advancedData: TransactionAdvancedData
 ): Promise<string> => {
     return sendMessage(Messages.TOKEN.SEND_TOKEN, {
         tokenAddress,
         to,
         value,
         feeData,
+        advancedData
     })
 }
 
@@ -726,7 +722,7 @@ export const resetWallet = async (
  */
 export const makeBlankDeposit = async (
     pair: CurrencyAmountPair,
-    feeData: FeeData,
+    feeData: TransactionFeeData,
     unlimitedAllowance: boolean = false
 ): Promise<string> => {
     return sendMessage(Messages.BLANK.DEPOSIT, {
@@ -894,7 +890,7 @@ export const addNewSiteWithPermissions = (
  */
 export const addNewDepositTransaction = async (
     currencyAmountPair: CurrencyAmountPair,
-    feeData: FeeData
+    feeData: TransactionFeeData
 ): Promise<TransactionMeta> => {
     return sendMessage(Messages.BLANK.ADD_NEW_DEPOSIT_TRANSACTION, {
         currencyAmountPair,
@@ -937,7 +933,7 @@ export const confirmDappRequest = (
  */
 export const updateDepositTransactionGas = async (
     transactionId: string,
-    feeData: FeeData
+    feeData: TransactionFeeData
 ): Promise<void> => {
     return sendMessage(Messages.BLANK.UPDATE_DEPOSIT_TRANSACTION_GAS, {
         transactionId,
@@ -1080,11 +1076,13 @@ export const setShowTestNetworks = async (
  */
 export const confirmTransaction = async (
     transactionId: string,
-    feeData: FeeData
+    feeData: TransactionFeeData,
+    advancedData: TransactionAdvancedData
 ) => {
     return sendMessage(Messages.TRANSACTION.CONFIRM, {
         id: transactionId,
         feeData,
+        advancedData
     })
 }
 
@@ -1161,9 +1159,21 @@ export const addressBookGetRecentAddresses = async (limit?: number) => {
 }
 
 /**
- *
- *
+ * Stores the user settings.
+ * @param settings Object containing settings and values to store.
  */
 export const setUserSettings = async (settings: UserSettings) => {
     return sendMessage(Messages.APP.SET_USER_SETTINGS, { settings })
+}
+
+
+/**
+ * Get the contacts
+ *
+ * @param address - Recipient address to search
+ *
+ * @returns - A address book entry
+ */
+export const getNextNonce = async (address: string) => {
+    return sendMessage(Messages.TRANSACTION.GET_NEXT_NONCE, { address })
 }

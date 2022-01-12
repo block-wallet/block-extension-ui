@@ -1,11 +1,11 @@
-import React, { useState, FunctionComponent } from 'react'
+import React, { useState, FunctionComponent } from "react"
 
 // Assets
-import unknownTokenIcon from '../assets/images/unknown_token.svg'
-import checkmarkMiniIcon from '../assets/images/icons/checkmark_mini.svg'
+import unknownTokenIcon from "../assets/images/unknown_token.svg"
+import checkmarkMiniIcon from "../assets/images/icons/checkmark_mini.svg"
 
 // Types
-import { TokenResponse } from '../routes/settings/AddTokensPage'
+import { TokenResponse } from "../routes/settings/AddTokensPage"
 type TokenDisplayType = {
     data: TokenResponse
     clickable?: boolean
@@ -58,9 +58,9 @@ const TokenDisplay: FunctionComponent<TokenDisplayType> = ({
         <div
             className={`
         flex justify-between items-center flex-row relative px-3 mt-1 rounded-md transition-all duration-300 active:scale-95
-        ${clickable ? 'cursor-pointer' : null}
-        ${selected ? 'bg-primary-200' : null}
-        ${hoverable ? 'hover:bg-primary-100' : null}
+        ${clickable ? "cursor-pointer" : null}
+        ${selected ? "bg-primary-200" : null}
+        ${hoverable ? "hover:bg-primary-100" : null}
       `}
             onClick={() => (clickable ? setSelected(!selected) : null)}
         >
@@ -69,13 +69,17 @@ const TokenDisplay: FunctionComponent<TokenDisplayType> = ({
                 alt="checkmark"
                 className={`
           absolute mr-6 right-0
-          ${selected ? 'visible' : 'hidden'}
+          ${selected ? "visible" : "hidden"}
         `}
             />
             <div className="flex justify-start items-center flex-row py-3">
                 <div className="flex flex-row items-center justify-center w-9 h-9 p-1.5 bg-white border border-gray-200 rounded-full">
                     <img
-                        src={data.logo === '' ? unknownTokenIcon : data.logo}
+                        src={data.logo === "" ? unknownTokenIcon : data.logo}
+                        onError={(e) => {
+                            ;(e.target as any).onerror = null
+                            ;(e.target as any).src = unknownTokenIcon
+                        }}
                         alt={data.name}
                         className="rounded-full"
                     />

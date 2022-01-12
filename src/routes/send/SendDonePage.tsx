@@ -6,7 +6,7 @@ import PopupLayout from "../../components/popup/PopupLayout"
 import arrow from "../../assets/images/icons/arrow_right.svg"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import LinkButton from "../../components/button/LinkButton"
-import { generateExplorerLink, getExplorerName } from "../../util/getExplorer"
+import { generateExplorerLink, getExplorerTitle } from "../../util/getExplorer"
 import Icon, { IconNames } from "../../components/Icon"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 
@@ -16,7 +16,7 @@ const SendConfirmPage = () => {
     const txHash = history.location.state.txHash
 
     const { selectedNetwork, availableNetworks } = useBlankState()!
-    const explorerName = getExplorerName(availableNetworks, selectedNetwork)
+    const explorerName = getExplorerTitle(availableNetworks, selectedNetwork)
     return (
         <PopupLayout
             footer={

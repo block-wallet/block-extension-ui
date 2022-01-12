@@ -67,6 +67,13 @@ const LockTimeout = () => {
         })
     }, [])
 
+    useEffect(() => {
+        setSelectedTimeout(
+            timeoutEnabled ? (currentTimeout === 0 ? 5 : currentTimeout) : 0
+        )
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [timeoutEnabled])
+
     const onSave = async () => {
         try {
             await setIdleTimeout(selectedTimeout)
@@ -92,7 +99,7 @@ const LockTimeout = () => {
             <SuccessDialog
                 open={saved}
                 title="Congratulations"
-                timeout={1400}
+                timeout={800}
                 message="Your changes have been succesfully saved!"
                 onDone={() => history.push("/")}
             />
@@ -103,19 +110,12 @@ const LockTimeout = () => {
                 </span>
                 <ToggleButton
                     label="Enabled"
-                    isChecked={timeoutEnabled}
+                    defaultChecked={timeoutEnabled}
                     onToggle={(checked: boolean) => {
                         setTimeoutEnabled(checked)
-                        setSelectedTimeout(
-                            checked
-                                ? currentTimeout === 0
-                                    ? 5
-                                    : currentTimeout
-                                : 0
-                        )
                     }}
                 />
-                {timeoutEnabled && (
+                {timeoutEnabled && selectedTimeout !== 0 && (
                     <div className="flex flex-col space-y-2">
                         <span className="text-xs text-gray-500">Period</span>
                         <TimeoutSelect

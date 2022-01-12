@@ -79,6 +79,10 @@ const WithdrawDisplay = (props: WithdrawDisplayType) => {
                                 ? currentAsset.logo
                                 : defaultNetworkLogo
                         }
+                        onError={(e) => {
+                            ;(e.target as any).onerror = null
+                            ;(e.target as any).src = defaultNetworkLogo
+                        }}
                         alt={
                             currentAsset
                                 ? currentAsset.symbol

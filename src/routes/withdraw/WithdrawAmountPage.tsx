@@ -15,6 +15,8 @@ import { useBlankState } from "../../context/background/backgroundHooks"
 import LinkButton from "../../components/button/LinkButton"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import Spinner from "../../components/Spinner"
+import log from "loglevel"
 
 const CanWithdrawView: FunctionComponent<{
     options: ResponseBlankCurrencyDepositsCount
@@ -35,7 +37,14 @@ const CanWithdrawView: FunctionComponent<{
     return (
         <PopupLayout
             header={
-                <PopupHeader title="Withdraw From Blank" close="/privacy" />
+                <PopupHeader
+                    title="Withdraw From Privacy Pool"
+                    onBack={() => {
+                        history.push({
+                            pathname: "/privacy",
+                        })
+                    }}
+                />
             }
             footer={
                 <PopupFooter>
@@ -78,14 +87,17 @@ const CannotWithdrawView = () => {
     return (
         <PopupLayout
             header={
-                <PopupHeader title="Withdraw From Blank" close="/privacy" />
+                <PopupHeader
+                    title="Withdraw From Privacy Pool"
+                    close="/privacy"
+                />
             }
             footer={
                 <PopupFooter>
                     <LinkButton
                         location="/privacy/deposit"
                         classes="w-full"
-                        text="Deposit To Blank"
+                        text="Deposit To Privacy Pool"
                     />
                 </PopupFooter>
             }
@@ -97,8 +109,25 @@ const CannotWithdrawView = () => {
                 </span>
                 <span className="w-64 text-sm text-center text-gray-700">
                     You don't have any deposits on Blank in this wallet. To see
-                    your funds here, make a deposit to Blank.
+                    your funds here, make a deposit to the privacy pool.
                 </span>
+            </div>
+        </PopupLayout>
+    )
+}
+
+const UpdatingNotesStateView = () => {
+    return (
+        <PopupLayout
+            header={
+                <PopupHeader
+                    title="Withdraw From Privacy Pool"
+                    close="/privacy"
+                />
+            }
+        >
+            <div className="flex flex-row items-center justify-center w-full h-full">
+                <Spinner size="2rem" />
             </div>
         </PopupLayout>
     )
@@ -106,6 +135,7 @@ const CannotWithdrawView = () => {
 
 const WithdrawAmountPage = () => {
     const { depositsCount } = useBlankState()!
+    const [isLoading, setIsLoading] = useState(false)
     let baseWithdrawOptions: typeof depositsCount["eth"] = []
     Object.values(depositsCount).map(
         (d) => (baseWithdrawOptions = baseWithdrawOptions.concat(d))
@@ -116,12 +146,24 @@ const WithdrawAmountPage = () => {
         .map((d) => ({ ...d, name: `${d.pair.currency}-${d.pair.amount}` }))
 
     useEffect(() => {
-        updateNotesSpentState()
+        const updateNotes = async () => {
+            try {
+                setIsLoading(true)
+                await updateNotesSpentState()
+            } catch {
+                log.debug("Error updating deposits spent state")
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        updateNotes()
     }, [])
 
     const canWithdraw = withdrawOptions.length > 0
 
-    return canWithdraw ? (
+    return isLoading ? (
+        <UpdatingNotesStateView />
+    ) : canWithdraw ? (
         <CanWithdrawView options={withdrawOptions} />
     ) : (
         <CannotWithdrawView />

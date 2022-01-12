@@ -40,7 +40,8 @@ const importAccountSchema = yup.object().shape({
 type importAccountFormData = InferType<typeof importAccountSchema>
 
 // Subcomponents
-const CreateAccountForm = () => {
+const CreateAccountForm = (props: any) => {
+    const { setIsCreating } = props
     const state = useBlankState()!
     const history = useOnMountHistory()
     const [creatingAccount, setCreatingAccount] = useState(false)
@@ -52,13 +53,19 @@ const CreateAccountForm = () => {
     } = useForm<createAccountFormData>({
         resolver: yupResolver(createAccountSchema),
     })
-    const placeholderAccountName = `Account ${
-        Object.keys(state.accounts).length + 1
-    }`
+    const [placeholderAccountName] = useState(
+        `Account ${Object.keys(state.accounts).length + 1}`
+    )
     const accountNameExists = (name: string) => {
         return Object.values(state.accounts).some((a) => a.name === name)
     }
     const onSubmit = handleSubmit(async (data: createAccountFormData) => {
+        if (!data.accountName || !data.accountName.trim()) {
+            data.accountName = placeholderAccountName
+        }
+
+        data.accountName = data.accountName.trim()
+
         try {
             if (accountNameExists(data.accountName || ""))
                 throw new Error(
@@ -66,10 +73,9 @@ const CreateAccountForm = () => {
                 )
 
             setCreatingAccount(true)
+            setIsCreating(true)
 
-            const newAccount = await createAccountAction(
-                data.accountName ? data.accountName : placeholderAccountName
-            )
+            const newAccount = await createAccountAction(data.accountName)
             await selectAccount(newAccount.address)
 
             setCreatingAccount(false)
@@ -112,7 +118,9 @@ const CreateAccountForm = () => {
     )
 }
 
-const ImportAccountForm = () => {
+const ImportAccountForm = (props: any) => {
+    const { setIsCreating } = props
+
     const state = useBlankState()!
     const history = useOnMountHistory()
     const [importingAccount, setImportingAccount] = useState(false)
@@ -131,6 +139,12 @@ const ImportAccountForm = () => {
         return Object.values(state.accounts).some((a) => a.name === name)
     }
     const onSubmit = handleSubmit(async (data: importAccountFormData) => {
+        if (!data.accountName || !data.accountName.trim()) {
+            data.accountName = placeholderAccountName
+        }
+
+        data.accountName = data.accountName.trim()
+
         try {
             if (accountNameExists(data.accountName || "")) {
                 setError("accountName", {
@@ -142,21 +156,36 @@ const ImportAccountForm = () => {
             }
 
             setImportingAccount(true)
+            setIsCreating(true)
 
             const newAccount = await importAccountPrivateKey(
                 { privateKey: data.privateKey },
-                data.accountName ? data.accountName : placeholderAccountName
+                data.accountName
             )
             await selectAccount(newAccount.address)
 
             setImportingAccount(false)
+            setIsCreating(false)
 
             history.push("/")
-        } catch {
-            setError("privateKey", {
-                message: "Error importing the account",
-                shouldFocus: true,
-            })
+        } catch (e: any) {
+            if (
+                e.message ===
+                "The account you're are trying to import is a duplicate"
+            ) {
+                setError("privateKey", {
+                    message: "Account already exists",
+                    shouldFocus: true,
+                })
+            } else {
+                setError("privateKey", {
+                    message: "Error importing the account",
+                    shouldFocus: true,
+                })
+            }
+
+            setImportingAccount(false)
+            setIsCreating(false)
         }
     })
 
@@ -219,8 +248,13 @@ const CreateAccountPage = () => {
     const tabs = ["Create", "Import"]
     const [selectedTab, setSelectedTab] = useState(tabs[0])
 
+    const [isCreating, setIsCreating] = useState(false)
     return (
-        <PopupLayout header={<PopupHeader title="Create Account" close="/" />}>
+        <PopupLayout
+            header={
+                <PopupHeader title="Create Account" disabled={isCreating} />
+            }
+        >
             <HorizontalSelect
                 options={tabs}
                 value={selectedTab}
@@ -229,9 +263,9 @@ const CreateAccountPage = () => {
             <Divider />
             <div className="flex flex-col flex-1 w-full">
                 {selectedTab === "Create" ? (
-                    <CreateAccountForm />
+                    <CreateAccountForm setIsCreating={setIsCreating} />
                 ) : (
-                    <ImportAccountForm />
+                    <ImportAccountForm setIsCreating={setIsCreating} />
                 )}
             </div>
         </PopupLayout>

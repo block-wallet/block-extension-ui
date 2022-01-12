@@ -8,6 +8,7 @@ import { Token } from "@blank/background/controllers/erc-20/Token"
 import { TokenList, useTokensList } from "../context/hooks/useTokensList"
 import { formatUnits } from "@ethersproject/units"
 
+import { Classes } from "../styles/classes"
 import plus from "../assets/images/icons/plus.svg"
 import unknownTokenIcon from "../assets/images/unknown_token.svg"
 import ChevronRightIcon from "./icons/ChevronRightIcon"
@@ -25,10 +26,14 @@ type AssetItem = {
 export const AssetIcon: FunctionComponent<{
     asset: Partial<Token>
 }> = ({ asset }) => (
-    <div className="flex flex-row items-center justify-center w-9 h-9 p-1.5 bg-white border border-gray-200 rounded-full">
+    <div className={Classes.roundedIcon}>
         {
             <img
                 src={asset.logo || unknownTokenIcon}
+                onError={(e) => {
+                    ;(e.target as any).onerror = null
+                    ;(e.target as any).src = unknownTokenIcon
+                }}
                 alt={asset.symbol || ""}
                 className="rounded-full"
             />
@@ -160,7 +165,7 @@ const SubAssetList: FunctionComponent<{ assets: TokenList }> = ({ assets }) => {
 }
 
 const AssetsList = () => {
-    const { currentNetworkTokens } = useTokensList()
+    const { currentNetworkTokens, nativeToken } = useTokensList()
 
     // Top spacing for network labels: "pt-6"
     return (
@@ -168,7 +173,9 @@ const AssetsList = () => {
             <div className="flex flex-col w-full space-y-1">
                 {/* Network label */}
                 {/* <span className="text-xs text-gray-500">ETHEREUM</span> */}
-                <SubAssetList assets={currentNetworkTokens} />
+                <SubAssetList
+                    assets={[nativeToken].concat(currentNetworkTokens)}
+                />
             </div>
             <div className="flex flex-col w-full space-y-1">
                 <ActionButton

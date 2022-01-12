@@ -1,6 +1,11 @@
 import { parseEther } from "ethers/lib/utils"
 import { TransactionMeta } from "@blank/background/controllers/transactions/utils/types"
-import { TransactionCategories, TransactionStatus } from "../context/commTypes"
+
+import {
+    TransactionCategories,
+    TransactionStatus,
+    MetaType,
+} from "../context/commTypes"
 
 export const mockTransactions: TransactionMeta[] = [
     {
@@ -11,6 +16,7 @@ export const mockTransactions: TransactionMeta[] = [
         loadingGasValues: true,
         blocksDropCount: 0,
         transactionCategory: TransactionCategories.SENT_ETHER,
+        metaType: MetaType.REGULAR,
     },
     {
         id: "1",
@@ -20,6 +26,7 @@ export const mockTransactions: TransactionMeta[] = [
         loadingGasValues: true,
         blocksDropCount: 0,
         transactionCategory: TransactionCategories.CONTRACT_INTERACTION,
+        metaType: MetaType.REGULAR,
     },
     {
         id: "2",
@@ -29,6 +36,7 @@ export const mockTransactions: TransactionMeta[] = [
         loadingGasValues: true,
         blocksDropCount: 0,
         transactionCategory: TransactionCategories.INCOMING,
+        metaType: MetaType.REGULAR,
     },
     {
         id: "3",
@@ -38,6 +46,7 @@ export const mockTransactions: TransactionMeta[] = [
         loadingGasValues: true,
         blocksDropCount: 0,
         transactionCategory: TransactionCategories.TOKEN_METHOD_TRANSFER,
+        metaType: MetaType.REGULAR,
     },
     {
         id: "4",
@@ -47,6 +56,7 @@ export const mockTransactions: TransactionMeta[] = [
         loadingGasValues: true,
         blocksDropCount: 0,
         transactionCategory: TransactionCategories.BLANK_DEPOSIT,
+        metaType: MetaType.REGULAR,
     },
     {
         id: "5",
@@ -56,5 +66,6 @@ export const mockTransactions: TransactionMeta[] = [
         loadingGasValues: true,
         blocksDropCount: 0,
         transactionCategory: TransactionCategories.BLANK_WITHDRAWAL,
+        metaType: MetaType.REGULAR,
     },
 ]

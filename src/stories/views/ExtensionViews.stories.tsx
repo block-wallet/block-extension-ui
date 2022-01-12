@@ -6,6 +6,7 @@ import { initBackgroundState } from "../../mock/MockBackgroundState"
 import {
     TransactionCategories,
     TransactionStatus,
+    MetaType,
 } from "../../context/commTypes"
 import { parseEther } from "@ethersproject/units"
 import { CurrencyAmountPair } from "@blank/background/controllers/blank-deposit/types"
@@ -53,7 +54,9 @@ const generateTx = (i: number) => ({
     loadingGasValues: false,
     origin: "0x0",
     transactionCategory: TransactionCategories.SENT_ETHER,
+    metaType: MetaType.REGULAR,
 })
+
 const mockTxs = [0, 1, 2, 3, 4].map(generateTx)
 const mockTxsByHash = mockTxs.reduce((o, tx) => {
     o[tx.id] = tx
@@ -128,6 +131,7 @@ export const PopupTransactions = () => (
                     arbitrum: { lastBlockQueried: 500, list: {} },
                     optimism: { lastBlockQueried: 500, list: {} },
                     bsc: { lastBlockQueried: 500, list: {} },
+                    polygon: { lastBlockQueried: 500, list: {} },
                     bsc_testnet: { lastBlockQueried: 500, list: {} },
                     kovan: { lastBlockQueried: 500, list: {} },
                     ropsten: { lastBlockQueried: 500, list: {} },
@@ -231,6 +235,7 @@ export const TransactionConfirm = () => (
                     loadingGasValues: false,
                     gasEstimationFailed: true,
                     blocksDropCount: 0,
+                    metaType: MetaType.REGULAR,
                 },
                 "2": {
                     id: "1",
@@ -281,6 +286,7 @@ export const TransactionConfirm = () => (
                     },
                     loadingGasValues: false,
                     blocksDropCount: 0,
+                    metaType: MetaType.REGULAR,
                 },
             },
         }}

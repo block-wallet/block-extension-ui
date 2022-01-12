@@ -1,10 +1,11 @@
-import React from "react"
+import React, { useState } from "react"
 import { useHistory } from "react-router-dom"
 
 import PopupFooter from "../components/popup/PopupFooter"
 import PopupHeader from "../components/popup/PopupHeader"
 import PopupLayout from "../components/popup/PopupLayout"
 import PasswordInput from "../components/input/PasswordInput"
+import ConfirmDialog from "../components/dialog/ConfirmDialog"
 
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
@@ -34,6 +35,9 @@ const UnlockPage = () => {
     })
     const history = useHistory()
     const { isSeedPhraseBackedUp, isUserNetworkOnline } = useBlankState()!
+    const [hasDialog, setHasDialog] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+
     const getSeedPhrase = async (password: any) => {
         try {
             const phrase = await requestSeedPhrase(password)
@@ -46,31 +50,36 @@ const UnlockPage = () => {
     }
     const onSubmit = handleSubmit(async (data: PasswordFormData) => {
         try {
-            await unlockApp(data.password)
-            if (!isSeedPhraseBackedUp) {
-                const seedPhrase = await getSeedPhrase(data.password)
+            setIsLoading(true)
+            if (await unlockApp(data.password)) {
+                if (!isSeedPhraseBackedUp) {
+                    const seedPhrase = await getSeedPhrase(data.password)
 
-                history.push({
-                    pathname: "/reminder",
-                    state: { seedPhrase, password: data.password },
-                })
+                    history.push({
+                        pathname: "/reminder",
+                        state: {
+                            seedPhrase,
+                            password: data.password,
+                            hasBack: false,
+                        },
+                    })
+                } else {
+                    history.push({
+                        pathname: "/",
+                    })
+                }
             } else {
-                history.push({
-                    pathname: "/",
-                })
-            }
-        } catch (e: any) {
-            if (e.toString() === "Error: Incorrect password") {
                 setError("password", {
                     message: "Incorrect password",
                     shouldFocus: true,
                 })
-            } else {
-                setError("password", {
-                    message: "Error unlocking the extension",
-                    shouldFocus: true,
-                })
             }
+            setIsLoading(false)
+        } catch (e: any) {
+            setError("password", {
+                message: "Error unlocking the extension",
+                shouldFocus: true,
+            })
         }
     })
 
@@ -86,10 +95,20 @@ const UnlockPage = () => {
                 }
                 footer={
                     <PopupFooter>
-                        <ButtonWithLoading label="Confirm" />
+                        <ButtonWithLoading
+                            label="Confirm"
+                            isLoading={isLoading}
+                        />
                     </PopupFooter>
                 }
             >
+                <ConfirmDialog
+                    title="Confirmation"
+                    message="Are you sure you want to reset your wallet? This action can not be undone."
+                    open={hasDialog}
+                    onClose={() => setHasDialog(false)}
+                    onConfirm={() => openReset()}
+                />
                 <div className="p-6 flex flex-col space-y-8">
                     <div className="flex flex-col space-y-2">
                         <img
@@ -113,7 +132,7 @@ const UnlockPage = () => {
                             or&nbsp;
                             <span
                                 className="rounded text-primary-300 cursor-pointer hover:underline"
-                                onClick={() => openReset()}
+                                onClick={() => setHasDialog(true)}
                             >
                                 reset wallet using seed phrase
                             </span>

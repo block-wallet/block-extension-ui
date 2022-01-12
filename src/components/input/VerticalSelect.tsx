@@ -6,11 +6,11 @@ const VerticalSelect: FunctionComponent<{
     onChange: (value: any) => void
     display: (option: any, i: number) => React.ReactNode
     disableStyles?: boolean
-    disabledOptions?: any[]
+    disabledOptions?: boolean[] | { [k: string]: boolean }
     containerClassName?: string
     containerStyle?: any
     isActive?: (option: any) => boolean
-    isDisabled?: (option: any) => boolean
+    isDisabled?: (option: any, i: number) => boolean
 }> = ({
     options,
     value,
@@ -22,9 +22,11 @@ const VerticalSelect: FunctionComponent<{
     disabledOptions,
     isActive = (option) =>
         option === value || (option.label && option.label === value),
-    isDisabled = (option) =>
+    isDisabled = (option: any, i: number) =>
         disabledOptions &&
-        (disabledOptions[option] || disabledOptions[option.label]),
+        (Array.isArray(disabledOptions)
+            ? disabledOptions[i]
+            : disabledOptions[option.label]),
 }) => (
     <div
         className={containerClassName || "flex flex-col space-y-2"}
@@ -33,7 +35,7 @@ const VerticalSelect: FunctionComponent<{
         {options.map((option, i) => (
             <button
                 type="button"
-                disabled={isDisabled(option)}
+                disabled={isDisabled(option, i)}
                 key={option.label || option.name || option}
                 className={
                     !disableStyles
@@ -45,7 +47,7 @@ const VerticalSelect: FunctionComponent<{
                             : "bg-primary-100 hover:bg-primary-200"
                     }
                     ${
-                        isDisabled(option)
+                        isDisabled(option, i)
                             ? "pointer-events-none opacity-50"
                             : ""
                     }`

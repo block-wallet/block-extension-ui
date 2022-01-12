@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useEffect } from "react"
 import { useBlankState } from "../../context/background/backgroundHooks"
-import { generateExplorerLink, getExplorerName } from "../../util/getExplorer"
+import { generateExplorerLink, getExplorerTitle } from "../../util/getExplorer"
 import Divider from "../Divider"
 import Icon, { IconNames } from "../Icon"
 import arrow from "../../assets/images/icons/arrow_right.svg"
@@ -18,7 +18,7 @@ const SuccessDialog: FunctionComponent<{
 }> = ({ open, title, message, timeout, txHash, onDone }) => {
     const { selectedNetwork, availableNetworks } = useBlankState()!
 
-    const explorerName = getExplorerName(availableNetworks, selectedNetwork)
+    const explorerName = getExplorerTitle(availableNetworks, selectedNetwork)
 
     useEffect(() => {
         if (timeout && open) {

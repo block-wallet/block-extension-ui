@@ -16,27 +16,30 @@ const Dialog: FunctionComponent<{
 
     //) : null
     return (
-        <div
-            className={classnames(
-                "bg-gray-100 bg-opacity-50 fixed inset-0 w-full h-screen z-50 overflow-hidden flex flex-col items-center justify-center",
-                !open && "hidden"
-            )}
-            style={{ maxWidth: "390px", maxHeight: "600px" }}
+        <CSSTransition
+            in={open}
+            timeout={200}
+            unmountOnExit
+            classNames={"appear"}
         >
-            <CSSTransition
-                in={open}
-                timeout={400}
-                unmountOnExit
-                classNames={"slide"}
+            <div
+                className={classnames(
+                    "bg-gray-100 bg-opacity-50 fixed inset-0 w-full h-screen z-50 overflow-hidden flex flex-col items-center justify-center px-6"
+                )}
+                style={{
+                    maxWidth: "390px",
+                    maxHeight: "600px",
+                    marginTop: "0px",
+                }}
             >
                 <div
                     ref={ref}
-                    className="relative p-6 opacity-100 w-10/12 bg-white shadow-md rounded-md flex-col flex"
+                    className="relative py-6 px-3 opacity-100 w-full bg-white shadow-md rounded-md flex-col flex"
                 >
                     {children}
                 </div>
-            </CSSTransition>
-        </div>
+            </div>
+        </CSSTransition>
     )
 }
 

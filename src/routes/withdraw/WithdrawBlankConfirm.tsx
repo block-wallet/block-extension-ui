@@ -31,7 +31,6 @@ import { EnsResult } from "../../util/searchEns"
 import infoIcon from "../../assets/images/icons/info_circle.svg"
 import FeesTooltip from "../../components/label/FeesTooltip"
 import { AiFillInfoCircle } from "react-icons/ai"
-import Tooltip from "../../components/label/Tooltip"
 import { hasDepositedRecently } from "../../util/hasDepositedRecently"
 import { WithdrawTimeFrameWarning } from "./WithdrawTimeFrameWarning"
 import { Link } from "react-router-dom"
@@ -42,13 +41,16 @@ import { BigNumber } from "ethers"
 import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import SuccessDialog from "../../components/dialog/SuccessDialog"
+import GenericTooltip from "../../components/label/GenericTooltip"
 
 const WithdrawBlankConfirm = () => {
     const history: any = useOnMountHistory()
-    const { pair, address: accountAddress, ens } = history.location.state as {
+    const { pair, address: accountAddress, ens, external } = history.location
+        .state as {
         pair: CurrencyAmountPair
         address: string
         ens: EnsResult | undefined
+        external: boolean | undefined
     }
 
     const [isWithdrawing, setisWithdrawing] = useState(false)
@@ -76,7 +78,7 @@ const WithdrawBlankConfirm = () => {
 
     const state = useBlankState()!
     const network = useSelectedNetwork()
-    const { gasPrices } = useGasPriceData()
+    const { gasPricesLevels } = useGasPriceData()
     const amountInNativeCurrency = toCurrencyAmount(
         utils.parseUnits(pair.amount, network.nativeCurrency.decimals),
         state.exchangeRates[pair.currency.toUpperCase()],
@@ -91,9 +93,9 @@ const WithdrawBlankConfirm = () => {
 
     // If we have gasPrice, this mean it's a non EIP-1559 network
     // otherwise we use maxFeePerGas
-    const fastGasPrice = gasPrices.fast.gasPrice
-        ? gasPrices.fast.gasPrice._hex
-        : gasPrices.fast.maxFeePerGas!._hex
+    const fastGasPrice = gasPricesLevels.fast.gasPrice
+        ? gasPricesLevels.fast.gasPrice._hex
+        : gasPricesLevels.fast.maxFeePerGas!._hex
 
     let decimals
 
@@ -188,7 +190,14 @@ const WithdrawBlankConfirm = () => {
                 <PopupHeader
                     title="Confirm Withdraw"
                     close={false}
-                    backButton={false}
+                    onBack={() => {
+                        history.push({
+                            pathname: external
+                                ? "/privacy/withdraw/external"
+                                : "/privacy/withdraw/blank/accounts",
+                            state: { pair },
+                        })
+                    }}
                 >
                     <>
                         <div className="group relative">
@@ -202,7 +211,9 @@ const WithdrawBlankConfirm = () => {
                                     className="pl-2 text-primary-200 cursor-pointer hover:text-primary-300"
                                 />
                             </a>
-                            <Tooltip
+                            <GenericTooltip
+                                className="w-52 p-2"
+                                centerX
                                 content={
                                     <div className="flex flex-col font-normal items-start text-xs text-white-500">
                                         <div className="flex flex-row items-end space-x-7">
@@ -231,6 +242,7 @@ const WithdrawBlankConfirm = () => {
                             <Link
                                 to={"/"}
                                 className="p-2 ml-auto -mr-2 text-gray-900 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300"
+                                draggable={false}
                             >
                                 <CloseIcon />
                             </Link>
