@@ -28,6 +28,7 @@ const AccountDisplay: FunctionComponent<{
     }
     account: AccountInfo
     selected: boolean
+    showSelectedCheckmark?: boolean
     defaultAccount?: boolean
     showAddress?: boolean
     withOptions?: boolean
@@ -38,6 +39,7 @@ const AccountDisplay: FunctionComponent<{
 }> = ({
     account,
     selected,
+    showSelectedCheckmark = true,
     networkNativeCurrency,
     defaultAccount = false,
     showAddress = false,
@@ -93,7 +95,7 @@ const AccountDisplay: FunctionComponent<{
                         <span className="font-bold">
                             {formatName(account.name, 24)}{" "}
                             {!showAddress
-                                ? "...(" + account.address.substr(-4) + ")"
+                                ? "(..." + account.address.substr(-4) + ")"
                                 : ""}
                         </span>
                         {!showAddress ? (
@@ -125,7 +127,7 @@ const AccountDisplay: FunctionComponent<{
                 </div>
             </div>
             <div className="flex flex-row items-center space-x-3">
-                {selected ? (
+                {selected && showSelectedCheckmark ? (
                     <img
                         src={checkmarkIcon}
                         alt="checkmark"

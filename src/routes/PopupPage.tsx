@@ -14,6 +14,7 @@ import { formatCurrency, toCurrencyAmount } from "../util/formatCurrency"
 import { BiCircle } from "react-icons/bi"
 import { useSelectedAccount } from "../context/hooks/useSelectedAccount"
 import GearIcon from "../components/icons/GearIcon"
+import QRIcon from "../components/icons/QRIcon"
 import NetworkSelect from "../components/input/NetworkSelect"
 import ArrowHoverAnimation from "../components/icons/ArrowHoverAnimation"
 import AccountIcon from "../components/icons/AccountIcon"
@@ -29,10 +30,8 @@ import { useConnectedSite } from "../context/hooks/useConnectedSite"
 import { formatRounded } from "../util/formatRounded"
 import { HiOutlineExclamationCircle } from "react-icons/hi"
 import eye from "../assets/images/icons/eye.svg"
-import { ReactComponent as OpenIcon } from "../assets/images/icons/open_external.svg"
+
 import { useTokensList } from "../context/hooks/useTokensList"
-import { generateExplorerLink, getExplorerTitle } from "../util/getExplorer"
-import { Networks } from "@blank/background/utils/constants/networks"
 
 const AccountDisplay = () => {
     const blankState = useBlankState()!
@@ -59,28 +58,6 @@ const AccountDisplay = () => {
             </span>
             <CopyTooltip copied={copied} />
         </button>
-    )
-}
-
-const ExplorerLink: FunctionComponent<{
-    availableNetworks: Networks
-    selectedNetwork: string
-    address: string
-}> = ({ availableNetworks, selectedNetwork, address }) => {
-    return (
-        <a
-            className="flex flex-row items-center justify-start p-1.5 rounded-full transition duration-300 hover:bg-primary-200"
-            href={generateExplorerLink(
-                availableNetworks,
-                selectedNetwork,
-                address,
-                "address"
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            <OpenIcon className="w-3.5 h-3.5" />
-        </a>
     )
 }
 
@@ -168,26 +145,18 @@ const PopupPage = () => {
                         </Link>
                         <div className="flex flex-row items-center space-x-1">
                             <AccountDisplay />
-                            <GenericTooltip
-                                bottom={true}
-                                centerX={true}
-                                className="ml-4 transition delay-1000 hover:delay-0"
-                                content={
-                                    <p className="w-35 text-center">
-                                        View on{" "}
-                                        {getExplorerTitle(
-                                            state.availableNetworks,
-                                            state.selectedNetwork
-                                        )}
-                                    </p>
-                                }
+                            <Link
+                                to="/accounts/menu/receive"
+                                draggable={false}
+                                onClick={(e) => {
+                                    e.preventDefault()
+
+                                    history.push("/accounts/menu/receive")
+                                }}
+                                className="p-2 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300"
                             >
-                                <ExplorerLink
-                                    availableNetworks={state.availableNetworks}
-                                    selectedNetwork={state.selectedNetwork}
-                                    address={state.selectedAddress}
-                                />
-                            </GenericTooltip>
+                                <QRIcon />
+                            </Link>
                         </div>
                     </div>
                     <div className="flex flex-row items-center -mr-1 space-x-2">

@@ -237,7 +237,6 @@ const ConnectedSiteAccountsPage = () => {
                 <PopupHeader
                     icon={site.iconURL}
                     title={new URL(origin).hostname}
-                    close={fromRoot ? "/" : "/settings/connectedSites"}
                 ></PopupHeader>
             }
         >

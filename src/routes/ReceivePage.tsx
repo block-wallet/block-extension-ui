@@ -20,11 +20,7 @@ const ReceivePage = () => {
     }
 
     return (
-        <PopupLayout
-            header={
-                <PopupHeader title="Receive Funds" close="/accounts/menu" />
-            }
-        >
+        <PopupLayout header={<PopupHeader title="Receive Funds" />}>
             <div className="flex items-center justify-center my-6">
                 <QRCode value={accountAddress} />
             </div>
