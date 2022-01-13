@@ -10,12 +10,14 @@ import { filterAccounts } from "../../util/filterAccounts"
 const AccountSelect: FunctionComponent<{
     accounts: AccountInfo[]
     selectedAccount: AccountInfo
+    showSelectedCheckmark?: boolean
     showDefaultLabel?: boolean
     onAccountChange: any
     createAccountTo?: any
 }> = ({
     accounts,
     selectedAccount,
+    showSelectedCheckmark = true,
     showDefaultLabel,
     onAccountChange,
     createAccountTo = "/accounts/create",
@@ -42,6 +44,7 @@ const AccountSelect: FunctionComponent<{
         <div className="flex flex-col p-6 space-y-5 text-sm text-gray-500">
             <AccountSearchBar
                 onChange={onFilterChange}
+                createAccountTo={createAccountTo}
                 setIsSearching={(searching) => {
                     setIsSearching(searching)
                     if (!searching) setShowResults(false)
@@ -71,6 +74,7 @@ const AccountSelect: FunctionComponent<{
                                     selectedAccount.address ===
                                     currentAccount.address
                                 }
+                                showSelectedCheckmark={showSelectedCheckmark}
                             />
                         </div>
                     </div>

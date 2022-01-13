@@ -22,10 +22,11 @@ const AccountsPage = () => {
             <AccountSelect
                 accounts={accounts}
                 selectedAccount={selectedAccount!}
+                showSelectedCheckmark={false}
                 onAccountChange={(account: AccountInfo) =>
                     setSelectedAccount(account)
                 }
-            ></AccountSelect>
+            />
         </PopupLayout>
     )
 }

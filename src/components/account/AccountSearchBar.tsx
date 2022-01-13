@@ -8,9 +8,10 @@ import searchIcon from "../../assets/images/icons/search.svg"
 import CloseIcon from "../icons/CloseIcon"
 
 const AccountSearchBar: FunctionComponent<{
+    createAccountTo?: string
     onChange: (value: string) => void
     setIsSearching: (isSearching: boolean) => void
-}> = ({ onChange, setIsSearching }) => {
+}> = ({ createAccountTo = "/accounts/create", onChange, setIsSearching }) => {
     const [searchBarVisible, setSearchBarVisible] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -41,7 +42,7 @@ const AccountSearchBar: FunctionComponent<{
                     <ActionButton
                         icon={accountAdd}
                         label="Create New Account"
-                        to="/accounts/create"
+                        to={createAccountTo}
                     />
                 )}
             </div>

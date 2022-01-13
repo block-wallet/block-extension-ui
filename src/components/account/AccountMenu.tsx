@@ -8,7 +8,7 @@ import AccountDisplay from "./AccountDisplay"
 
 import exportIcon from "../../assets/images/icons/export.svg"
 import openExternal from "../../assets/images/icons/open_external.svg"
-import arrowDown from "../../assets/images/icons/circle-arrow-down.svg"
+import qrIcon from "../../assets/images/icons/qr_icon.svg"
 import sites from "../../assets/images/icons/connected_sites.svg"
 
 import { generateExplorerLink, getExplorerTitle } from "../../util/getExplorer"
@@ -25,7 +25,7 @@ const AccountMenu = () => {
     const explorerName = getExplorerTitle(availableNetworks, selectedNetwork)
     const options = [
         {
-            icon: arrowDown,
+            icon: qrIcon,
             label: "Receive Funds",
             to: "/accounts/menu/receive",
         },
