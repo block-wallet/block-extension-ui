@@ -26,6 +26,8 @@ const PrivacyPage = () => {
         isImportingDeposits,
         importingErrors,
         isUserNetworkOnline,
+        areDepositsPending,
+        areWithdrawalsPending,
     } = useBlankState()!
 
     const [isLoading, setIsLoading] = useState(false)
@@ -34,10 +36,18 @@ const PrivacyPage = () => {
         importingErrors && importingErrors.length > 0
 
     return (
-        <PopupLayout header={<PopupHeader title="Privacy" close="/" />}>
+        <PopupLayout
+            header={
+                <PopupHeader
+                    title="Privacy"
+                    close="/"
+                    onBack={() => history.push("/")}
+                />
+            }
+        >
             <div className="flex flex-col space-y-7 p-6">
                 <div className="space-y-4">
-                    <span className="text-xs">BLANK ACTIONS</span>
+                    <span className="text-xs">PRIVACY POOL ACTIONS</span>
                     <div className="flex flex-row space-x-4 items-center justify-evenly">
                         <button
                             type="button"
@@ -68,7 +78,7 @@ const PrivacyPage = () => {
                                 )}
                             </div>
                             <span className="text-sm font-bold text-center">
-                                Blank Deposit
+                                Deposit
                             </span>
                         </button>
                         <button
@@ -100,7 +110,7 @@ const PrivacyPage = () => {
                                 )}
                             </div>
                             <span className="text-sm font-bold text-center">
-                                Blank Withdraw
+                                Withdraw
                             </span>
                         </button>
                     </div>
@@ -151,7 +161,9 @@ const PrivacyPage = () => {
                         isDisabled={(option) =>
                             isImportingDeposits ||
                             (option.name === "reconstruct" &&
-                                !isUserNetworkOnline)
+                                !isUserNetworkOnline) ||
+                            (option.name === "reconstruct" &&
+                                (areDepositsPending || areWithdrawalsPending))
                         }
                     />
                 </div>
@@ -169,9 +181,7 @@ const PrivacyPage = () => {
                                 onClick={async () => {
                                     setIsLoading(true)
                                     await forceDepositsImport()
-                                    setTimeout(() => {
-                                        setIsLoading(false)
-                                    }, 10000)
+                                    setIsLoading(false)
                                 }}
                                 className={classnames(
                                     "w-100 rounded-md cursor-pointer font-normal hover:bg-gray-50 border border-red-600 p-1 bg-white text-red-600",

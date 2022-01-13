@@ -11,9 +11,24 @@ export const ButtonWithLoading: FunctionComponent<{
     to?: string
     buttonClass?: string
     formId?: string
-}> = ({ type, onClick, isLoading, disabled, label, to, buttonClass, formId = undefined}) => {
+}> = ({
+    type,
+    onClick,
+    isLoading,
+    disabled,
+    label,
+    to,
+    buttonClass,
+    formId = undefined,
+}) => {
     const children = (
-        <>{!isLoading ? label : <Spinner color="white" size="24" />}</>
+        <>
+            {!isLoading ? (
+                label
+            ) : (
+                <Spinner color={buttonClass ? "black" : "white"} size="24" />
+            )}
+        </>
     )
 
     return (
@@ -26,7 +41,7 @@ export const ButtonWithLoading: FunctionComponent<{
                 (isLoading || disabled) && "opacity-50 pointer-events-none"
             )}
             onClick={onClick}
-            {...(formId ? {form: formId} : {})}
+            {...(formId ? { form: formId } : {})}
         >
             {to?.includes("https://") ? (
                 <a

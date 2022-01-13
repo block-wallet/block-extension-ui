@@ -101,6 +101,7 @@ const BackupNoticePage = () => {
                         Classes.button,
                         !revealed && "opacity-50 pointer-events-none"
                     )}
+                    draggable={false}
                 >
                     Next
                 </Link>

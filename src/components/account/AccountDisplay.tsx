@@ -69,6 +69,7 @@ const AccountDisplay: FunctionComponent<{
         <div
             className={classnames(
                 "flex flex-row items-center justify-between w-full rounded-md cursor-default",
+                defaultAccount && "pr-2",
                 !selected &&
                     !showEditButton &&
                     !withOptions &&
@@ -211,12 +212,13 @@ const AccountDisplay: FunctionComponent<{
                     </div>
                 ) : null}
 
-                {showEditButton ? (
+                {showEditButton && !defaultAccount ? (
                     <div
                         onClick={() => {
                             history.push("/accounts/menu/edit")
                         }}
                         className="cursor-pointer p-2 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300"
+                        draggable={false}
                     >
                         <img src={editIcon} alt="Edit"></img>
                     </div>

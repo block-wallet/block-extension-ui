@@ -24,6 +24,7 @@ type PasswordInputProps = {
     strengthBar?: boolean
     onChange?: (value: any) => void
     setPasswordScore?: (value: number) => void
+    onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>
 }
 
 /**
@@ -40,6 +41,7 @@ type PasswordInputProps = {
  * @param strengthBar - Show the strength of the input password.
  * @param onChange - Function to execute on input change.
  * @param setPasswordScore - Function to execute on password score change (if it has strengthBar).
+ * @param onKeyDown - Function to execute on key down.
  */
 const PasswordInput = (props: PasswordInputProps) => {
     const {
@@ -53,6 +55,7 @@ const PasswordInput = (props: PasswordInputProps) => {
         strengthBar,
         onChange,
         setPasswordScore,
+        onKeyDown,
     } = props
 
     // State
@@ -98,6 +101,7 @@ const PasswordInput = (props: PasswordInputProps) => {
                             autoComplete={autoComplete ? autoComplete : "off"}
                             autoFocus={autoFocus ? autoFocus : false}
                             onChange={(e) => handlePasswordChange(e)}
+                            onKeyDown={onKeyDown}
                         />
                         <img
                             className={classNames(

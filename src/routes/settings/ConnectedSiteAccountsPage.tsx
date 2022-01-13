@@ -9,6 +9,7 @@ import blueDotsIcon from "../../assets/images/icons/blue_dots.svg"
 import TrashBinIcon from "../../components/icons/TrashBinIcon"
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
+import ConfirmDialog from "../../components/dialog/ConfirmDialog"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import {
     removeAccountFromSite,
@@ -47,6 +48,8 @@ const ConnectedSiteAccount: FunctionComponent<{
     handleSwitchAccount,
 }) => {
     const [showOptions, setShowOptions] = useState(false)
+    const [hasDialog, setHasDialog] = useState(false)
+
     const { selectedAddress, networkNativeCurrency } = useBlankState()!
     const { nativeToken } = useTokensList()
 
@@ -55,6 +58,16 @@ const ConnectedSiteAccount: FunctionComponent<{
 
     return (
         <>
+            <ConfirmDialog
+                title="Remove site connection"
+                message={`Do you want to remove ${account.name} connection?`}
+                open={hasDialog}
+                onClose={() => setHasDialog(false)}
+                onConfirm={() => {
+                    handleRemoveFromSite(account.address)
+                    setShowOptions(!showOptions)
+                }}
+            />
             <div className="flex flex-col items-start">
                 <div className="flex flex-row items-center justify-between w-full">
                     <div className="flex flex-row items-center space-x-4">
@@ -103,19 +116,18 @@ const ConnectedSiteAccount: FunctionComponent<{
                         </div>
                         <div
                             className={classnames(
-                                "absolute shadow-md bg-white w-32 mt-2 right-0 select-none rounded-md z-50 font-semibold",
+                                "absolute shadow-md bg-white right-0 select-none rounded-md z-10 font-semibold",
                                 showOptions ? "" : "hidden"
                             )}
                         >
                             {connected ? (
                                 <div
                                     onClick={() => {
-                                        handleRemoveFromSite(account.address)
-                                        setShowOptions(!showOptions)
+                                        setHasDialog(true)
                                     }}
-                                    className="text-red-500 cursor-pointer flex flex-row justify-start p-2 items-center hover:bg-gray-100"
+                                    className="text-red-500 cursor-pointer flex flex-row justify-center p-2 items-center hover:bg-gray-100"
                                 >
-                                    <div className="pl-2 pr-3">
+                                    <div className="pl-1 pr-1">
                                         <TrashBinIcon fill="red" />
                                     </div>
                                     <span>Disconnect</span>
@@ -128,7 +140,7 @@ const ConnectedSiteAccount: FunctionComponent<{
                                     }}
                                     className="text-green-400 cursor-pointer flex flex-row justify-start p-2 items-center hover:bg-gray-100"
                                 >
-                                    <div className="pl-1 pr-2">
+                                    <div className="">
                                         <BiRadioCircleMarked size={24} />
                                     </div>
                                     <span>Connect</span>

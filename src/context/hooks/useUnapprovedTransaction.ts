@@ -1,10 +1,12 @@
 import { BigNumber } from "ethers"
 import { useBlankState } from "../background/backgroundHooks"
 import { useGasPriceData } from "./useGasPriceData"
+import { useSelectedNetwork } from "./useSelectedNetwork"
 
 export const useUnapprovedTransaction = () => {
     const { unapprovedTransactions } = useBlankState()!
-    const { isEIP1559Compatible, gasPrices } = useGasPriceData()
+    const { isEIP1559Compatible } = useSelectedNetwork()
+    const { gasPricesLevels } = useGasPriceData()
 
     // Gets first unapproved transaction
     const transactions = Object.keys(unapprovedTransactions)
@@ -22,22 +24,22 @@ export const useUnapprovedTransaction = () => {
         //Legacy
         gasPrice: !isEIP1559Compatible
             ? BigNumber.from(
-                transaction?.transactionParams.gasPrice ??
-                gasPrices.average.gasPrice
-            )
+                  transaction?.transactionParams.gasPrice ??
+                      gasPricesLevels.average.gasPrice
+              )
             : undefined,
         //EIP-1559
         maxPriorityFeePerGas: isEIP1559Compatible
             ? BigNumber.from(
-                transaction?.transactionParams.maxPriorityFeePerGas ??
-                gasPrices.average.maxPriorityFeePerGas
-            )
+                  transaction?.transactionParams.maxPriorityFeePerGas ??
+                      gasPricesLevels.average.maxPriorityFeePerGas
+              )
             : undefined,
         maxFeePerGas: isEIP1559Compatible
             ? BigNumber.from(
-                transaction?.transactionParams.maxFeePerGas ??
-                gasPrices.average.maxFeePerGas
-            )
+                  transaction?.transactionParams.maxFeePerGas ??
+                      gasPricesLevels.average.maxFeePerGas
+              )
             : undefined,
     }
 

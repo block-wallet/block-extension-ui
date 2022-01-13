@@ -20,10 +20,9 @@ import { AiFillInfoCircle } from "react-icons/ai"
 import Tooltip from "../../components/label/Tooltip"
 import { useSortedAccounts } from "../../context/hooks/useSortedAccounts"
 import useNextRequestRoute from "../../context/hooks/useNextRequestRoute"
-import { ActionButton } from "../../components/button/ActionButton"
-
-import accountAdd from "../../assets/images/icons/account_add.svg"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import AccountSearchBar from "../../components/account/AccountSearchBar"
+import { filterAccounts } from "../../util/filterAccounts"
 
 const ConnectPage = () => {
     const { requestId } = usePendingPermissionRequest()
@@ -39,6 +38,10 @@ const ConnectSteps = () => {
 
     // State
     const [selectedAccounts, setSelectedAccounts] = useState<AccountInfo[]>([])
+    const [filteredAccounts, setFilteredAccounts] = useState<AccountInfo[]>(
+        accountsList
+    )
+
     const [step, setStep] = useState(1)
     const [allowSite, setAllowSite] = useState(true)
     const [isLoading, setIsLoading] = useState(false)
@@ -77,10 +80,10 @@ const ConnectSteps = () => {
     }
 
     useEffect(() => {
-        if (selectedAccounts.length !== accountsList.length) {
+        if (selectedAccounts.length !== filteredAccounts.length) {
             setCheckAll(false)
         }
-    }, [selectedAccounts, accountsList])
+    }, [selectedAccounts, filteredAccounts])
 
     return (
         <PopupLayout
@@ -88,6 +91,7 @@ const ConnectSteps = () => {
                 <PopupHeader
                     title="Connect With Blank"
                     close={false}
+                    disabled={isConfirming}
                     onBack={cancel}
                 >
                     {requestCount > 1 && (
@@ -137,11 +141,28 @@ const ConnectSteps = () => {
                         </div>
                         <Divider />
                         <div className="flex flex-col p-6 space-y-5">
-                            <ActionButton
+                            <AccountSearchBar
+                                setIsSearching={(value) => {
+                                    if (!value)
+                                        setFilteredAccounts(accountsList)
+                                }}
+                                onChange={(value) => {
+                                    // Filter accounts if filter has value otherwise display full account list.
+                                    setFilteredAccounts(
+                                        value
+                                            ? filterAccounts(
+                                                  accountsList,
+                                                  value.toLowerCase()
+                                              )
+                                            : accountsList
+                                    )
+                                }}
+                            />
+                            {/*<ActionButton
                                 icon={accountAdd}
                                 label="Create New Account"
                                 to="/accounts/create"
-                            />
+                            />*/}
                             <div className="flex flex-row items-center justify-start w-full text-sm space-x-4 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -149,7 +170,9 @@ const ConnectSteps = () => {
                                     checked={checkAll}
                                     onClick={() => {
                                         !checkAll
-                                            ? setSelectedAccounts(accountsList)
+                                            ? setSelectedAccounts(
+                                                  filteredAccounts
+                                              )
                                             : setSelectedAccounts([])
                                     }}
                                     onChange={() => {
@@ -166,7 +189,7 @@ const ConnectSteps = () => {
                             </div>
                             <div className="flex flex-col space-y-3 text-sm text-gray-600">
                                 <AccountMultipleSelect
-                                    accounts={accountsList}
+                                    accounts={filteredAccounts}
                                     selectedAccount={account}
                                     value={selectedAccounts}
                                     onChange={setSelectedAccounts}

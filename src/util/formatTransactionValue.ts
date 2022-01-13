@@ -1,16 +1,17 @@
-import { formatUnits } from '@ethersproject/units'
-import { TransferType } from '@blank/background/controllers/transactions/utils/types'
-import { formatRounded } from './formatRounded'
+import { formatUnits } from "@ethersproject/units"
+import { TransferType } from "@blank/background/controllers/transactions/utils/types"
+import { formatRounded } from "./formatRounded"
 
-const formatTransactionValue = ({
-    amount,
-    currency,
-    decimals,
-}: TransferType,
+const formatTransactionValue = (
+    { amount, currency, decimals }: TransferType,
     round = false,
-    roundDecimals = 6) => {
+    roundDecimals = 6
+) => {
     const value = formatUnits(amount, decimals)
-    return `${round ? formatRounded(value, roundDecimals) : value} ${currency.toUpperCase()}`
+    return [
+        `${round ? formatRounded(value, roundDecimals) : value}`,
+        currency.toUpperCase(),
+    ]
 }
 
 export default formatTransactionValue

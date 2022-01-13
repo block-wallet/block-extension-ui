@@ -1,18 +1,26 @@
-import React, { FunctionComponent } from "react"
+import React, { FunctionComponent, useState, useRef, useEffect } from "react"
 import { FaExchangeAlt } from "react-icons/fa"
 import { FiUpload } from "react-icons/fi"
 import { RiCopperCoinFill } from "react-icons/ri"
+import { AiFillInfoCircle } from "react-icons/ai"
 import { ImSpinner } from "react-icons/im"
 import { ContextMenuTrigger, ContextMenu, MenuItem } from "react-contextmenu"
 import { BigNumber } from "ethers"
+import classNames from "classnames"
+
+// Styles
+import { Classes, classnames } from "../styles"
 
 // Components
 import ComplianceMenu from "../components/withdraw/ComplianceMenu"
 import { AssetIcon } from "./AssetsList"
+import Tooltip from "../components/label/Tooltip"
 
 // Asset
 import eth from "../assets/images/icons/ETH.svg"
 import blankLogo from "../assets/images/logo.svg"
+import dotLoading from "../assets/images/icons/dot_loading.svg"
+import flashbotsLogo from "../assets/images/flashbots.png"
 
 // Context
 import { useBlankState } from "../context/background/backgroundHooks"
@@ -29,10 +37,12 @@ import { capitalize } from "../util/capitalize"
 import { getDisplayTime } from "../util/getDisplayTime"
 import formatTransactionValue from "../util/formatTransactionValue"
 import { useSelectedNetwork } from "../context/hooks/useSelectedNetwork"
+import AppIcon from "./icons/AppIcon"
+import { useSelectedAccount } from "../context/hooks/useSelectedAccount"
 
 const transactionMessages = {
-    [TransactionCategories.BLANK_DEPOSIT]: "Blank Deposit",
-    [TransactionCategories.BLANK_WITHDRAWAL]: "Blank Withdrawal",
+    [TransactionCategories.BLANK_DEPOSIT]: "Privacy Pool Deposit",
+    [TransactionCategories.BLANK_WITHDRAWAL]: "Privacy Pool Withdraw",
     [TransactionCategories.INCOMING]: "Received Ether",
     [TransactionCategories.SENT_ETHER]: "Sent Ether",
     [TransactionCategories.CONTRACT_DEPLOYMENT]: "Deploy Contract",
@@ -99,6 +109,7 @@ const transactionIcons = {
 const failedStatuses = [
     TransactionStatus.FAILED,
     TransactionStatus.CANCELLED,
+    TransactionStatus.DROPPED,
     TransactionStatus.REJECTED,
 ]
 
@@ -118,20 +129,24 @@ const TransactionIcon: FunctionComponent<{
     transaction: { transactionCategory: category, transactionStatus },
     transactionIcon,
 }) => (
-    <div className="flex flex-row items-center justify-center w-9 h-9 p-1.5 bg-white border border-gray-200 rounded-full">
+    <div className="align-start">
         {transactionStatus !== TransactionStatus.SUBMITTED ? (
             transactionIcon ? (
-                <div>
-                    <AssetIcon asset={{
+                <AssetIcon
+                    asset={{
                         logo: transactionIcon,
                         symbol: "",
-                    }} />
-                </div>
+                    }}
+                />
             ) : category ? (
-                transactionIcons[category]
+                <div className={Classes.roundedIcon}>
+                    {transactionIcons[category]}
+                </div>
             ) : null
         ) : (
-            <PendingSpinner />
+            <div className={Classes.roundedIcon}>
+                <PendingSpinner />
+            </div>
         )}
     </div>
 )
@@ -160,7 +175,7 @@ const getTransactionLabel = (
     transactionCategory: TransactionCategories | undefined,
     methodSignature: TransactionMeta["methodSignature"],
     networkNativeCurrency: { symbol: string }
-): React.ReactNode => {
+): string => {
     const getCategoryMessage = () => {
         const isPending =
             status === TransactionStatus.SUBMITTED && pendingIndex === 0
@@ -230,6 +245,7 @@ const Transaction: FunctionComponent<{
         submittedTime,
         transferType,
         id,
+        flashbots,
     },
 }) => {
     const state = useBlankState()!
@@ -240,7 +256,7 @@ const Transaction: FunctionComponent<{
 
     const txHash = hash
     const transfer = transferType ?? {
-        amount: value,
+        amount: value ? value : BigNumber.from("0"),
         currency: networkNativeCurrency.symbol,
         decimals: networkNativeCurrency.decimals,
         logo: iconUrls ? iconUrls[0] : eth,
@@ -248,6 +264,21 @@ const Transaction: FunctionComponent<{
     const isBlankWithdraw: boolean =
         transactionCategory === "blankWithdrawal" ? true : false
     const blankWithdrawId: string = id
+
+    const label = getTransactionLabel(
+        status,
+        index,
+        transactionCategory,
+        methodSignature,
+        networkNativeCurrency
+    )
+
+    const txValue = transfer.amount
+        ? formatTransactionValue(transfer as TransferType, true, 5)[0]
+        : ""
+
+    const [methodWidth, valueWidth] =
+        txValue.length <= 5 ? ["w-4/6", "w-2/6"] : ["w-7/12", "w-5/12"]
 
     return (
         <>
@@ -275,7 +306,12 @@ const Transaction: FunctionComponent<{
                     }}
                 >
                     {/* Type */}
-                    <div className="flex flex-row items-center">
+                    <div
+                        className={classNames(
+                            "flex flex-row items-center",
+                            !transfer.amount ? "w-5/6" : methodWidth
+                        )}
+                    >
                         <TransactionIcon
                             transaction={{
                                 transactionCategory,
@@ -283,16 +319,58 @@ const Transaction: FunctionComponent<{
                             }}
                             transactionIcon={transfer.logo}
                         />
-                        <div className="flex flex-col ml-2">
-                            <span className="text-sm font-bold">
-                                {getTransactionLabel(
-                                    status,
-                                    index,
-                                    transactionCategory,
-                                    methodSignature,
-                                    networkNativeCurrency
+                        <div
+                            className="flex flex-col ml-2"
+                            style={{ width: "calc(100% - 3.5rem)" }}
+                        >
+                            <div className="flex flex-row w-full items-center space-x-1">
+                                <span
+                                    className="text-sm font-bold truncate"
+                                    title={label}
+                                >
+                                    {label}
+                                </span>
+                                {flashbots && (
+                                    <AppIcon
+                                        iconURL={flashbotsLogo}
+                                        size={6}
+                                        iconSize={5}
+                                        title="Flashbots"
+                                    />
                                 )}
-                            </span>
+                                {status === TransactionStatus.DROPPED && (
+                                    <div className="group relative self-start">
+                                        <a
+                                            href="https://help.goblank.io/hc/en-us/articles/4410031249553"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            <AiFillInfoCircle
+                                                size={24}
+                                                className="pl-2 pb-1 text-primary-200 cursor-pointer hover:text-primary-300"
+                                            />
+                                        </a>
+                                        <Tooltip
+                                            content={
+                                                <div className="flex flex-col font-normal items-start text-xs text-white-500">
+                                                    <div className="flex flex-row items-end space-x-7">
+                                                        <span>
+                                                            This transaction was
+                                                            never mined.
+                                                        </span>{" "}
+                                                    </div>
+                                                    <div className="flex flex-row items-end space-x-4">
+                                                        <span>
+                                                            Click on this icon
+                                                            to learn more.
+                                                        </span>{" "}
+                                                    </div>
+                                                </div>
+                                            }
+                                        />
+                                    </div>
+                                )}
+                            </div>
                             {getTransactionTimeOrStatus(
                                 status,
                                 confirmationTime,
@@ -304,13 +382,21 @@ const Transaction: FunctionComponent<{
                     </div>
 
                     {/* Amount */}
-                    <div className="flex flex-col items-end w-2/6">
-                        {transfer.amount ? (
-                            <>
+                    {transfer.amount && (
+                        <div
+                            className={classNames(
+                                "flex flex-col items-end",
+                                valueWidth
+                            )}
+                        >
+                            <div className="w-full flex justify-end">
                                 <span
-                                    className="text-sm font-bold text-right truncate"
+                                    className="text-sm font-bold text-right truncate w-4/6 mr-1"
                                     title={formatTransactionValue(
                                         transfer as TransferType
+                                    ).reduce(
+                                        (acc, curr) => `${acc} ${curr}`,
+                                        ""
                                     )}
                                 >
                                     {(() => {
@@ -322,19 +408,21 @@ const Transaction: FunctionComponent<{
                                             default:
                                                 return BigNumber.from(
                                                     transfer.amount
-                                                ).eq(0)
+                                                ).gte(0)
                                                     ? ""
                                                     : "-"
                                         }
                                     })()}
-                                    {formatTransactionValue(
-                                        transfer as TransferType,
-                                        true,
-                                        5
-                                    )}
+                                    {txValue}
                                 </span>
-                                <span className="text-xs text-gray-600">
-                                    {formatCurrency(
+                                <span className="text-sm font-bold text-right">
+                                    {transfer.currency.toUpperCase()}
+                                </span>
+                            </div>
+                            <div className="w-full flex justify-end">
+                                <span
+                                    className="text-xs text-gray-600 truncate w-5/6 text-right mr-1"
+                                    title={formatCurrency(
                                         toCurrencyAmount(
                                             transfer.amount,
                                             state.exchangeRates[
@@ -349,10 +437,30 @@ const Transaction: FunctionComponent<{
                                             showSymbol: true,
                                         }
                                     )}
+                                >
+                                    {formatCurrency(
+                                        toCurrencyAmount(
+                                            transfer.amount,
+                                            state.exchangeRates[
+                                                transfer.currency.toUpperCase()
+                                            ],
+                                            transfer.decimals
+                                        ),
+                                        {
+                                            currency: state.nativeCurrency,
+                                            locale_info: state.localeInfo,
+                                            returnNonBreakingSpace: true,
+                                            showSymbol: true,
+                                            showCurrency: false,
+                                        }
+                                    )}
                                 </span>
-                            </>
-                        ) : null}
-                    </div>
+                                <span className="text-xs text-gray-600 text-right">
+                                    {state.nativeCurrency.toUpperCase()}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </a>
             </ContextMenuTrigger>
 
@@ -379,16 +487,88 @@ const Transaction: FunctionComponent<{
 }
 
 const ActivityList = () => {
+    const { chainId } = useSelectedNetwork()
+    const { address } = useSelectedAccount()
     const { confirmed, pending } = useBlankState()!.activityList
+
+    const getInitialCount = () =>
+        confirmed.length > 10 ? 10 : confirmed.length
+
+    const [transactionCount, setTransactionCount] = useState(getInitialCount())
+    const [isLoading, setIsLoading] = useState(false)
+
+    const loaderRef = useRef<HTMLImageElement>(null)
+    const observerRef = useRef<IntersectionObserver | null>(null)
+    const oldNetworkIdRef = useRef<number | null>(chainId)
+    const oldAccountAddressRef = useRef<string | null>(address)
+
+    const getTransactions = () =>
+        pending.concat(confirmed.slice(0, transactionCount))
+
+    useEffect(() => {
+        if (!loaderRef.current) return
+        if (observerRef.current) observerRef.current.disconnect()
+
+        observerRef.current = new IntersectionObserver(
+            async (entries) => {
+                const countToLoad = confirmed.length - transactionCount
+
+                if (countToLoad === 0) return
+
+                const entry = entries[0]
+                if (!entry || !entry.isIntersecting) return
+
+                setIsLoading(true)
+
+                await new Promise((resolve) => setTimeout(resolve, 300))
+
+                setTransactionCount(
+                    transactionCount + (countToLoad > 10 ? 10 : countToLoad)
+                )
+                setIsLoading(false)
+            },
+            { threshold: 0.5 }
+        )
+
+        observerRef.current.observe(loaderRef.current)
+
+        return () => {
+            if (!observerRef.current) return
+
+            observerRef.current.disconnect()
+        }
+    }, [transactionCount, confirmed, observerRef])
+
+    useEffect(() => {
+        if (
+            chainId === oldNetworkIdRef.current &&
+            address === oldAccountAddressRef.current
+        )
+            return
+
+        oldNetworkIdRef.current = chainId
+        oldAccountAddressRef.current = address
+
+        setTransactionCount(getInitialCount())
+    }, [confirmed, chainId, oldNetworkIdRef, address, oldAccountAddressRef])
 
     return (
         <div className="flex flex-col flex-1 w-full space-y-0">
-            {pending.concat(confirmed).map((t, i) => (
+            {getTransactions().map((t, i) => (
                 <React.Fragment key={i}>
                     {i > 0 ? <hr /> : null}
                     <Transaction transaction={t} index={i} />
                 </React.Fragment>
             ))}
+            <img
+                ref={loaderRef}
+                src={dotLoading}
+                alt="Loader"
+                className={classnames(
+                    "m-auto w-8 mt-4",
+                    isLoading ? "opacity-100" : "opacity-0"
+                )}
+            />
         </div>
     )
 }

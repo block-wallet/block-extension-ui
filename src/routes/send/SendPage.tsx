@@ -161,6 +161,8 @@ const SendPage = () => {
                             autoFocus={false}
                             isValid={isAddress}
                             onChange={onChangeHandler}
+                            debounce
+                            minSearchChar={3}
                         />
                     </div>
                 ) : (

@@ -20,8 +20,11 @@ import account from "../../assets/images/icons/account.svg"
 // Context
 import { lockApp } from "../../context/commActions"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
+import { useBlankState } from "../../context/background/backgroundHooks"
+import classNames from "classnames"
 
 const SettingsPage = () => {
+    const { isSeedPhraseBackedUp } = useBlankState()!
     const handleError = useErrorHandler()
     const history = useOnMountHistory()
 
@@ -73,46 +76,69 @@ const SettingsPage = () => {
         >
             <div className="flex flex-col space-y-6 p-6">
                 <div className="flex flex-col space-y-1">
-                    <VerticalSelect
-                        options={options}
-                        value={undefined}
-                        onChange={(option) =>
-                            option.to.includes("https://")
-                                ? chrome.tabs.create({ url: option.to })
-                                : history.push({
-                                      pathname: option.to,
-                                      state: { from: "/settings" },
-                                  })
-                        }
-                        containerClassName="flex flex-col space-y-4"
-                        display={(option, i) => {
-                            const className =
-                                "flex flex-row space-x-3 items-center text-gray-900"
-                            const children = (
-                                <>
-                                    <div
-                                        className={classnames(
-                                            option.classes ?? ""
-                                        )}
-                                    >
-                                        <img
-                                            src={option.icon}
-                                            alt="icon"
-                                            className={option.size ?? "w-5 h-5"}
-                                        />
+                    <div className="flex flex-col space-y-4">
+                        <VerticalSelect
+                            options={options}
+                            value={undefined}
+                            onChange={(option) =>
+                                option.to.includes("https://")
+                                    ? chrome.tabs.create({ url: option.to })
+                                    : history.push({
+                                          pathname: option.to,
+                                          state: {
+                                              from: "/settings",
+                                              ...(option.state ?? {}),
+                                          },
+                                      })
+                            }
+                            containerClassName="flex flex-col space-y-4"
+                            display={(option, i) => {
+                                const className =
+                                    "flex flex-row space-x-3 items-center text-gray-900"
+                                const children = (
+                                    <>
+                                        <div
+                                            className={classnames(
+                                                option.classes ?? ""
+                                            )}
+                                        >
+                                            <img
+                                                src={option.icon}
+                                                alt="icon"
+                                                className={
+                                                    option.size ?? "w-5 h-5"
+                                                }
+                                            />
+                                        </div>
+                                        <span className="font-bold">
+                                            {option.label}
+                                        </span>
+                                    </>
+                                )
+                                return (
+                                    <div className={classnames(className)}>
+                                        {children}
                                     </div>
-                                    <span className="font-bold">
-                                        {option.label}
-                                    </span>
-                                </>
-                            )
-                            return (
-                                <div className={classnames(className)}>
-                                    {children}
-                                </div>
-                            )
-                        }}
-                    />
+                                )
+                            }}
+                        />
+                        {!isSeedPhraseBackedUp && (
+                            <div className="w-full border border-gray-200 rounded-md flex justify-between items-center p-4">
+                                <span className="text-xs mr-2">
+                                    Back your seed phrase up and store it in a
+                                    safe place.
+                                </span>
+                                <button
+                                    className={classNames(Classes.smallButton)}
+                                    onClick={() => {
+                                        history.push("/reminder")
+                                    }}
+                                >
+                                    Backup
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </PopupLayout>

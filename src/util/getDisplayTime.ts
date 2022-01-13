@@ -3,9 +3,16 @@ export const getDisplayTime = (time?: Date) => {
 
     const checkTime: Date = time
 
-    const options: Intl.DateTimeFormatOptions = { dateStyle: "medium", timeStyle: "short" }
+    const options: Intl.DateTimeFormatOptions = {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+    }
 
-    const checkTimeHours: string = checkTime.toLocaleTimeString(undefined, { timeStyle: "short" })
+    const checkTimeHours: string = checkTime.toLocaleTimeString(undefined, {
+        timeStyle: "short",
+    })
 
     const today: Date = new Date()
     const yesterday: Date = new Date(

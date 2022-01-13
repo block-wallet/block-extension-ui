@@ -1,5 +1,9 @@
 import { Networks } from "@blank/background/utils/constants/networks"
-import { createExplorerLink, createAccountLink } from "@metamask/etherscan-link"
+import {
+    createExplorerLink,
+    createAccountLink,
+    getExplorerName,
+} from "@blank/explorer-link"
 import { capitalize } from "./capitalize"
 
 export const getChainIdFromNetwork = (networks: Networks, network?: String) => {
@@ -47,15 +51,8 @@ export const generateExplorerLink = (
     }
 }
 
-export const getExplorerName = (networks: Networks, network: string) => {
-    if (
-        network === networks.BSC.name ||
-        network === networks.BSC_TESTNET.name
-    ) {
-        return "Bscscan"
-    } else if (network === networks.ARBITRUM.name) {
-        return "Arbiscan"
-    } else {
-        return "Etherscan"
-    }
+export const getExplorerTitle = (networks: Networks, network: string) => {
+    const chainId = String(getChainIdFromNetwork(networks, network))
+
+    return getExplorerName(chainId)
 }

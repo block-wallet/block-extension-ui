@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
@@ -50,6 +50,9 @@ const AddContactPage = (props: any) => {
     })
 
     const { editMode, contact } = history.location.state
+
+    const [canUpdate, setCanUpdate] = useState(!editMode)
+
     const pageTitle = editMode ? "Edit Contact" : "New Contact"
     const buttonTitle = editMode ? "Update" : "Add"
 
@@ -66,9 +69,12 @@ const AddContactPage = (props: any) => {
     const onSubmit = handleSubmit(async (data: contactFormData) => {
         try {
             if (contactNameExists(data.contactName || "")) {
-                throw new Error(
-                    "Сontact name is already in use, please use a different one."
-                )
+                setError("contactName", {
+                    message: "Contact Name already in use",
+                    shouldFocus: true,
+                })
+
+                return
             }
 
             await addressBookSet(
@@ -76,7 +82,10 @@ const AddContactPage = (props: any) => {
                 data.contactName ? data.contactName : placeholderСontactName,
                 ""
             )
-            history.push("/settings/addressBook")
+            history.push({
+                pathname: "/settings/addressBook",
+                state: { fromAction: true },
+            })
         } catch {
             setError("contactName", {
                 message: "Error saving the new contact.",
@@ -94,6 +103,7 @@ const AddContactPage = (props: any) => {
                         label={buttonTitle}
                         type="submit"
                         onClick={onSubmit}
+                        disabled={!canUpdate}
                     />
                 </PopupFooter>
             }
@@ -112,6 +122,7 @@ const AddContactPage = (props: any) => {
                             autoFocus={true}
                             maxLength={40}
                             defaultValue={contact?.name}
+                            onChange={() => setCanUpdate(true)}
                         />
                     </div>
                     <div className="flex flex-col space-y-1">
@@ -124,6 +135,7 @@ const AddContactPage = (props: any) => {
                             error={errors.contactAddress?.message}
                             autoFocus={false}
                             defaultValue={contact?.address}
+                            onChange={() => setCanUpdate(true)}
                         />
                     </div>
                 </div>

@@ -12,11 +12,13 @@ import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
 import TextInput from "../../components/input/TextInput"
 import PopupFooter from "../../components/popup/PopupFooter"
 import { renameAccount } from "../../context/commActions"
+import SuccessDialog from "../../components/dialog/SuccessDialog"
 
 // Schema
 const editAccountSchema = yup.object().shape({
     accountName: yup
         .string()
+        .trim()
         .required("Please enter an account name")
         .max(40, "Account name is too long"),
 })
@@ -26,6 +28,7 @@ const EditAccountPage = () => {
     const account = useSelectedAccount()
     const history = useOnMountHistory()
     const [isSaving, setIsSaving] = useState(false)
+    const [saved, setSaved] = useState(false)
 
     const {
         register,
@@ -58,18 +61,19 @@ const EditAccountPage = () => {
             await renameAccount(account.address, data.accountName)
 
             setIsSaving(false)
-
-            history.push("/accounts/menu")
+            setSaved(true)
         } catch {
             setError("accountName", {
                 message: "Error creating the account",
                 shouldFocus: true,
             })
+
+            setIsSaving(false)
         }
     })
     return (
         <PopupLayout
-            header={<PopupHeader title="Edit Account" close="/accounts/menu" />}
+            header={<PopupHeader title="Edit Account" disabled={isSaving} />}
             footer={
                 <PopupFooter>
                     <ButtonWithLoading
@@ -81,6 +85,18 @@ const EditAccountPage = () => {
                 </PopupFooter>
             }
         >
+            <SuccessDialog
+                open={saved}
+                title="Congratulations"
+                timeout={1400}
+                message="Your changes have been succesfully saved!"
+                onDone={() =>
+                    history.push({
+                        pathname: "/accounts/menu",
+                        state: { fromAction: true },
+                    })
+                }
+            />
             <div className="flex flex-col justify-between flex-1 h-full">
                 <div className="flex flex-col flex-1 p-6 space-y-1">
                     <TextInput

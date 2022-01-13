@@ -128,7 +128,7 @@ export const AssetSelection = (props: AssetSelectionProps) => {
 
     // Component
     return (
-        <div className={!error ? "mb-4" : ""}>
+        <div className={!error ? "mb-3" : ""}>
             <div className="ml-1 mb-2 text-sm text-gray-600">Asset</div>
             <DropDownSelector
                 title={

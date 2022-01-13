@@ -1,11 +1,13 @@
 import classnames from "classnames"
-import React, { FunctionComponent } from "react"
-import { useOnMountHistory } from "../../context/hooks/useOnMount"
+import React, { FunctionComponent, useEffect, useState } from "react"
+import {
+    useOnMountHistory,
+    useOnMountLastLocation,
+} from "../../context/hooks/useOnMount"
 import AppIcon from "../icons/AppIcon"
 
 import CloseIcon from "../icons/CloseIcon"
 import ArrowIcon from "../icons/ArrowIcon"
-import { useLastLocation } from "react-router-last-location"
 
 const PopupHeader: FunctionComponent<{
     title: string
@@ -13,6 +15,7 @@ const PopupHeader: FunctionComponent<{
     keepState?: boolean // if true, keeps the previous state while going back using the back button
     close?: string | boolean
     icon?: string | null
+    disabled?: boolean // used to disable back or close buttons
     onClose?: () => void
     onBack?: () => void // in case we want to replace default back behavior
 }> = ({
@@ -22,11 +25,24 @@ const PopupHeader: FunctionComponent<{
     close = "/home",
     icon,
     children,
+    disabled = false,
     onClose,
     onBack,
 }) => {
     const history = useOnMountHistory()
-    const lastLocation = useLastLocation()
+    const lastLocation = useOnMountLastLocation()
+    const [fromAction, setFromAction] = useState(false)
+
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setFromAction(history.location.state?.fromAction)
+        setMounted(true)
+
+        return () => setMounted(false)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     return (
         <div
             className="z-10 flex flex-row items-center p-6 bg-white bg-opacity-75 max-w-full"
@@ -36,18 +52,25 @@ const PopupHeader: FunctionComponent<{
                 <button
                     type="button"
                     onClick={() => {
-                        onBack
-                            ? onBack()
-                            : keepState
-                            ? history.push({
-                                  pathname: lastLocation?.pathname,
-                                  state: lastLocation?.state && {
-                                      keepState: true,
-                                  },
-                              })
-                            : history.goBack()
+                        if (onBack) return onBack()
+
+                        if (keepState)
+                            return history.replace({
+                                pathname: lastLocation?.pathname,
+                                state:
+                                    lastLocation?.state &&
+                                    (lastLocation?.state as any & {
+                                        keepState: true
+                                    }),
+                            })
+
+                        fromAction ? history.go(-3) : history.goBack()
                     }}
-                    className="p-2 -ml-2 mr-1 cursor-pointer transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300"
+                    disabled={disabled || !mounted}
+                    className={classnames(
+                        "p-2 -ml-2 mr-1 cursor-pointer transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300",
+                        disabled && "pointer-events-none text-gray-300"
+                    )}
                 >
                     <ArrowIcon />
                 </button>
@@ -70,11 +93,15 @@ const PopupHeader: FunctionComponent<{
                 <button
                     onClick={() => {
                         onClose && onClose()
-                        //history.push(close.toString())
-                        // close button always returns to home now. TBD if we want to return to the beginning of each flow
-                        history.push("/home")
+                        history.push(
+                            typeof close === "string" ? close : "/home"
+                        )
                     }}
-                    className="p-2 ml-auto -mr-2 text-gray-900 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300"
+                    disabled={disabled}
+                    className={classnames(
+                        "p-2 ml-auto -mr-2 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300",
+                        disabled && "pointer-events-none text-gray-300"
+                    )}
                 >
                     <CloseIcon />
                 </button>

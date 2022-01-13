@@ -26,14 +26,21 @@ export const useTokensList = () => {
         const { nativeTokenBalance, tokens } = balances[chainId]
 
         // Place tokens with balance on top
-        const currentNetworkTokens = Object.values(tokens).sort((a, b) => {
-            const firstNumber = BigNumber.from(b.balance)
-            return firstNumber.gt(a.balance)
-                ? 1
-                : firstNumber.eq(a.balance)
+        const currentNetworkTokens = Object.values(tokens)
+            .filter((token) => {
+                return !(
+                    token.token.address in
+                    ["0x0000000000000000000000000000000000000000", "0x0"]
+                )
+            })
+            .sort((a, b) => {
+                const firstNumber = BigNumber.from(b.balance)
+                return firstNumber.gt(a.balance)
+                    ? 1
+                    : firstNumber.eq(a.balance)
                     ? 0
                     : -1
-        })
+            })
 
         return {
             nativeToken: {

@@ -108,7 +108,12 @@ const WithdrawExternalPage = () => {
     const onSubmit = handleSubmit(async (data: AddressFormData) => {
         history.push({
             pathname: "/privacy/withdraw/blank/accounts/step/confirm",
-            state: { address: data.address, pair, ens: ensSelected },
+            state: {
+                address: data.address,
+                pair,
+                ens: ensSelected,
+                external: true,
+            },
         })
     })
 
@@ -117,9 +122,13 @@ const WithdrawExternalPage = () => {
             <PopupLayout
                 header={
                     <PopupHeader
-                        title="Withdraw From Blank"
-                        close="/"
-                        keepState
+                        title="Withdraw From Privacy Pool"
+                        onBack={() => {
+                            history.push({
+                                pathname: "/privacy/withdraw/select",
+                                state: { pair },
+                            })
+                        }}
                     />
                 }
                 footer={
@@ -144,6 +153,8 @@ const WithdrawExternalPage = () => {
                             autoFocus={false}
                             isValid={isAddress}
                             onChange={onChangeHandler}
+                            debounce
+                            minSearchChar={3}
                         />
                     </div>
                 ) : (

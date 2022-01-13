@@ -129,7 +129,8 @@ const NetworkSelect: FunctionComponent<{
                             id="showTestNetworks"
                             type="checkbox"
                             className="border-2 border-gray-200 rounded-md focus:ring-0 cursor-pointer"
-                            defaultChecked={showTestNetworks}
+                            checked={showTestNetworks}
+                            onChange={() => {}}
                         />
                     </li>
                     {showTestNetworks &&

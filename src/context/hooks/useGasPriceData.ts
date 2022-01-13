@@ -11,6 +11,22 @@ export const useGasPriceData = () => {
     }
 
     return {
-        gasPrices: { slow: {}, average: {}, fast: {} },
+        gasPricesLevels: {
+            slow: {
+                gasPrice: null,
+                maxFeePerGas: null,
+                maxPriorityFeePerGas: null,
+            },
+            average: {
+                gasPrice: null,
+                maxFeePerGas: null,
+                maxPriorityFeePerGas: null,
+            },
+            fast: {
+                gasPrice: null,
+                maxFeePerGas: null,
+                maxPriorityFeePerGas: null,
+            },
+        },
     } as GasPriceData
 }

@@ -1,13 +1,19 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
+import { BigNumber } from "ethers"
+import { parseUnits } from "ethers/lib/utils"
 
 import PopupFooter from "../../components/popup/PopupFooter"
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
+import VerticalSelect from "../../components/input/VerticalSelect"
 
 import { Classes } from "../../styles/classes"
 
-import VerticalSelect from "../../components/input/VerticalSelect"
+import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
+import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
+
 import { getCurrencyAmountList } from "../../context/util/getCurrencyAmountList"
+
 import { KnownCurrencies } from "@blank/background/controllers/blank-deposit/types"
 import { usePendingDeposits } from "../../context/hooks/usePendingDeposits"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
@@ -18,6 +24,9 @@ import { TokenWithBalance } from "../../context/hooks/useTokensList"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 
 const DepositPage = () => {
+    const account = useSelectedAccount()
+    const { chainId, nativeCurrency } = useSelectedNetwork()
+
     const [selectedCurrency, setSelectedCurrency] = useState<KnownCurrencies>()
     const [selectedToken, setSelectedToken] = useState<TokenWithBalance>()
 
@@ -25,22 +34,56 @@ const DepositPage = () => {
     const [amountsList, setAmountsList] = useState<Array<any>>([])
 
     const globalPendingDeposits = usePendingDeposits()
-    const [pendingDeposits, setPendingDeposits] = useState<any>(undefined)
+    const [pendingDeposits, setPendingDeposits] = useState<{
+        [k: string]: boolean
+    }>({})
+
+    const [disabledOptions, setDisabledOptions] = useState<boolean[]>([])
 
     const tokens = useDepositTokens()
 
-    useEffect(() => {
-        if (selectedCurrency) {
-            const amounts = getCurrencyAmountList(selectedCurrency)
-            setAmountsList(amounts)
+    const selectedTokenBalance = useMemo(() => {
+        const keys = Object.keys(account.balances[chainId].tokens)
 
-            setPendingDeposits(
-                globalPendingDeposits
-                    ? globalPendingDeposits[selectedCurrency]
-                    : ({} as any)
+        const key = keys.find((key) => {
+            return (
+                account.balances[chainId].tokens[
+                    key
+                ].token.symbol.toLowerCase() === selectedCurrency?.toLowerCase()
             )
-        }
+        })
+
+        return key
+            ? BigNumber.from(account.balances[chainId].tokens[key].balance)
+            : BigNumber.from(0)
+    }, [selectedCurrency, account.balances, chainId])
+
+    useEffect(() => {
+        if (!selectedCurrency) return
+
+        const amounts = getCurrencyAmountList(selectedCurrency)
+        setAmountsList(amounts)
+
+        setPendingDeposits(
+            globalPendingDeposits
+                ? globalPendingDeposits[selectedCurrency]
+                : ({} as any)
+        )
     }, [selectedCurrency, globalPendingDeposits])
+
+    useEffect(() => {
+        if (!selectedCurrency) return
+
+        const amounts: string[] = getCurrencyAmountList(selectedCurrency)
+
+        setDisabledOptions(
+            amounts.map((amount: string) =>
+                selectedTokenBalance.lt(
+                    parseUnits(amount, nativeCurrency.decimals)
+                )
+            )
+        )
+    }, [selectedCurrency, selectedTokenBalance, nativeCurrency])
 
     const history = useOnMountHistory()
     const next = () => {
@@ -52,27 +95,9 @@ const DepositPage = () => {
 
     return (
         <PopupLayout
-            header={<PopupHeader title="Deposit to Blank" close="/privacy" />}
+            header={<PopupHeader title="Deposit to Privacy Pool" />}
             footer={
                 <PopupFooter>
-                    {/*<button
-                        disabled={
-                            !amount ||
-                            (pendingDeposits && pendingDeposits[amount!])
-                        }
-                        onClick={next}
-                        className={classnames(
-                            Classes.button,
-                            "w-1/2 font-bold",
-                            !amount && "opacity-50",
-                            amount &&
-                                pendingDeposits[amount] &&
-                                "opacity-50 pointer-events-none"
-                        )}
-                    >
-                        Next
-                    </button>*/}
-
                     <ButtonWithLoading
                         label="Next"
                         disabled={
@@ -105,7 +130,9 @@ const DepositPage = () => {
                             options={amountsList}
                             value={amount}
                             onChange={setAmount}
-                            disabledOptions={pendingDeposits}
+                            disabledOptions={Object.values(pendingDeposits).map(
+                                (value, i) => value || disabledOptions[i]
+                            )}
                             display={(option) => (
                                 <div
                                     title={`Deposit ${option} ${selectedCurrency.toUpperCase()} to Blank`}

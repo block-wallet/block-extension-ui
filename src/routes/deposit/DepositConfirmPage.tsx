@@ -30,13 +30,13 @@ import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { TokenWithBalance } from "../../context/hooks/useTokensList"
 import { GasPriceSelector } from "../../components/transactions/GasPriceSelector"
 import { Token } from "@blank/background/controllers/erc-20/Token"
-import { FeeData } from "@blank/background/controllers/GasPricesController"
 import GasPriceComponent from "../../components/transactions/GasPriceComponent"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 import { formatNumberLength } from "../../util/formatNumberLength"
 import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import SuccessDialog from "../../components/dialog/SuccessDialog"
+import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
 
 let freezedAmounts = {
     amountInNativeCurrency: 0,
@@ -72,7 +72,8 @@ const DepositConfirmPage = () => {
         networkNativeCurrency,
     } = useBlankState()!
 
-    const { isEIP1559Compatible, gasPrices } = useGasPriceData()
+    const { isEIP1559Compatible } = useSelectedNetwork()
+    const { gasPricesLevels } = useGasPriceData()
 
     const network = useSelectedNetwork()
 
@@ -80,18 +81,20 @@ const DepositConfirmPage = () => {
         gasPrice: BigNumber
         gasLimit: BigNumber
     }>({
-        gasPrice: BigNumber.from(gasPrices.average.gasPrice ?? "0"),
+        gasPrice: BigNumber.from(gasPricesLevels.average.gasPrice ?? "0"),
         gasLimit: BigNumber.from(DEPOSIT_GAS_COST),
     })
 
     const [selectedFees, setSelectedFees] = useState({
         maxPriorityFeePerGas: BigNumber.from(
-            gasPrices.average.maxPriorityFeePerGas ?? "0"
+            gasPricesLevels.average.maxPriorityFeePerGas ?? "0"
         ),
-        maxFeePerGas: BigNumber.from(gasPrices.average.maxFeePerGas ?? "0"),
+        maxFeePerGas: BigNumber.from(
+            gasPricesLevels.average.maxFeePerGas ?? "0"
+        ),
     })
     const [selectedGasPrice, setSelectedGasPrice] = useState(
-        BigNumber.from(gasPrices.average.gasPrice ?? "0")
+        BigNumber.from(gasPricesLevels.average.gasPrice ?? "0")
     )
     const [selectedGasLimit, setSelectedGasLimit] = useState(
         BigNumber.from(DEPOSIT_GAS_COST)
@@ -148,7 +151,7 @@ const DepositConfirmPage = () => {
                     maxPriorityFeePerGas: isEIP1559Compatible
                         ? selectedFees.maxPriorityFeePerGas
                         : undefined,
-                } as FeeData,
+                } as TransactionFeeData,
                 true
             )
             setTxHash(txHash)
@@ -251,7 +254,8 @@ const DepositConfirmPage = () => {
             header={
                 <PopupHeader
                     title="Confirm Deposit"
-                    close={!isDepositing ? "/" : ""}
+                    keepState
+                    disabled={isDepositing}
                 />
             }
             footer={

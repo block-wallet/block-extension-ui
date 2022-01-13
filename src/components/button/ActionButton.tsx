@@ -9,7 +9,11 @@ export const ActionButton: FunctionComponent<{
     to: string
 }> = ({ icon, label, to }) => {
     return (
-        <Link className={classnames(Classes.actionButton)} to={to}>
+        <Link
+            className={classnames(Classes.actionButton)}
+            to={to}
+            draggable={false}
+        >
             <img
                 src={icon}
                 alt={label}
