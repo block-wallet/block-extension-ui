@@ -27,14 +27,14 @@ jobs:
           - name: Checkout monorepo
             uses: actions/checkout@v2
             with:
-              repository: Blank-Wallet/extension
+              repository: Block-Wallet/extension
               ref: refs/heads/master
               token: ${{ secrets.PAT }}
 
           - name: Checkout background
             uses: actions/checkout@v2
             with:
-              repository: Blank-Wallet/extension-background
+              repository: Block-Wallet/extension-background
               ref: refs/heads/master
               path: packages/background/
               token: ${{ secrets.PAT }}
@@ -42,7 +42,7 @@ jobs:
           - name: Checkout provider
             uses: actions/checkout@v2
             with:
-              repository: Blank-Wallet/extension-provider
+              repository: Block-Wallet/extension-provider
               ref: refs/heads/master
               path: packages/provider/
               token: ${{ secrets.PAT }}
@@ -50,7 +50,7 @@ jobs:
           - name: Checkout make scripts
             uses: actions/checkout@v2
             with:
-              repository: Blank-Wallet/blank-make
+              repository: Block-Wallet/blank-make
               ref: refs/heads/main
               path: .make
               token: ${{ secrets.PAT }}
@@ -150,7 +150,7 @@ jobs:
                       "color": "#00F6FA",
                       "pretext": "<http://releases.goblank.io/tags/{{ steps.zip.outputs.name }}|Download> ${{ github.event.inputs.tag }} tag release",
                       "author_name": "UI ${{ github.event.inputs.tag }}",
-                      "author_link": "https://github.com/Blank-Wallet/extension-ui",
+                      "author_link": "https://github.com/Block-Wallet/extension-ui",
                       "title": "Tag ${{ github.event.inputs.tag }} has been created in UI"
                     }
                   ]

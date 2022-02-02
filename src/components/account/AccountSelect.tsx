@@ -81,7 +81,7 @@ const AccountSelect: FunctionComponent<{
                     <div className="flex flex-col space-y-4">
                         <span className="text-xs">OTHER ACCOUNTS</span>
                         <VerticalSelect
-                            containerClassName="flex flex-col space-y-6"
+                            containerClassName="flex flex-col space-y-3"
                             options={otherAccounts}
                             value={selectedAccount}
                             onChange={onAccountChange}

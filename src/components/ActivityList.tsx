@@ -39,6 +39,10 @@ import formatTransactionValue from "../util/formatTransactionValue"
 import { useSelectedNetwork } from "../context/hooks/useSelectedNetwork"
 import AppIcon from "./icons/AppIcon"
 import { useSelectedAccount } from "../context/hooks/useSelectedAccount"
+import {
+    flagQueuedTransactions,
+    RichedTransactionMeta,
+} from "../util/transactionUtils"
 
 const transactionMessages = {
     [TransactionCategories.BLANK_DEPOSIT]: "Privacy Pool Deposit",
@@ -154,11 +158,12 @@ const TransactionIcon: FunctionComponent<{
 const getTransactionTime = (
     status: TransactionStatus,
     time: number,
-    pendingIndex: number
+    pendingIndex: number,
+    isQueued: boolean
 ) => {
     const { color, label } =
         status === TransactionStatus.SUBMITTED
-            ? pendingIndex === 0
+            ? !isQueued
                 ? { color: "text-gray-600", label: "Pending..." }
                 : { color: "text-yellow-600", label: "Queued" }
             : {
@@ -181,7 +186,7 @@ const getTransactionLabel = (
             status === TransactionStatus.SUBMITTED && pendingIndex === 0
 
         if (!transactionCategory) {
-            return ""
+            return "Transaction"
         }
 
         return isPending
@@ -213,7 +218,8 @@ const getTransactionTimeOrStatus = (
     confirmationTime: number | undefined,
     submittedTime: number | undefined,
     time: number,
-    index: number
+    index: number,
+    isQueued: boolean
 ) => {
     if (failedStatuses.includes(status)) {
         return (
@@ -225,13 +231,14 @@ const getTransactionTimeOrStatus = (
         return getTransactionTime(
             status,
             confirmationTime || submittedTime || time,
-            index
+            index,
+            isQueued
         )
     }
 }
 
 const Transaction: FunctionComponent<{
-    transaction: TransactionMeta
+    transaction: RichedTransactionMeta
     index: number
 }> = ({
     index,
@@ -246,12 +253,13 @@ const Transaction: FunctionComponent<{
         transferType,
         id,
         flashbots,
+        isQueued,
     },
 }) => {
     const state = useBlankState()!
     const {
         nativeCurrency: networkNativeCurrency,
-        iconUrls,
+        defaultNetworkLogo,
     } = useSelectedNetwork()
 
     const txHash = hash
@@ -259,7 +267,7 @@ const Transaction: FunctionComponent<{
         amount: value ? value : BigNumber.from("0"),
         currency: networkNativeCurrency.symbol,
         decimals: networkNativeCurrency.decimals,
-        logo: iconUrls ? iconUrls[0] : eth,
+        logo: defaultNetworkLogo,
     }
     const isBlankWithdraw: boolean =
         transactionCategory === "blankWithdrawal" ? true : false
@@ -376,7 +384,8 @@ const Transaction: FunctionComponent<{
                                 confirmationTime,
                                 submittedTime,
                                 time,
-                                index
+                                index,
+                                isQueued || false
                             )}
                         </div>
                     </div>
@@ -503,7 +512,9 @@ const ActivityList = () => {
     const oldAccountAddressRef = useRef<string | null>(address)
 
     const getTransactions = () =>
-        pending.concat(confirmed.slice(0, transactionCount))
+        flagQueuedTransactions(pending).concat(
+            confirmed.slice(0, transactionCount)
+        )
 
     useEffect(() => {
         if (!loaderRef.current) return
@@ -553,7 +564,7 @@ const ActivityList = () => {
     }, [confirmed, chainId, oldNetworkIdRef, address, oldAccountAddressRef])
 
     return (
-        <div className="flex flex-col flex-1 w-full space-y-0">
+        <div className="flex flex-col flex-1 w-full space-y-0" data-testid="activity-list">
             {getTransactions().map((t, i) => (
                 <React.Fragment key={i}>
                     {i > 0 ? <hr /> : null}
@@ -564,6 +575,9 @@ const ActivityList = () => {
                 ref={loaderRef}
                 src={dotLoading}
                 alt="Loader"
+                aria-label="loading"
+                role="alert" 
+                aria-busy="true"
                 className={classnames(
                     "m-auto w-8 mt-4",
                     isLoading ? "opacity-100" : "opacity-0"

@@ -1,4 +1,5 @@
 import React, { useState, FunctionComponent } from "react"
+import classnames from "classnames"
 
 // Assets
 import unknownTokenIcon from "../assets/images/unknown_token.svg"
@@ -6,11 +7,13 @@ import checkmarkMiniIcon from "../assets/images/icons/checkmark_mini.svg"
 
 // Types
 import { TokenResponse } from "../routes/settings/AddTokensPage"
+
 type TokenDisplayType = {
     data: TokenResponse
     clickable?: boolean
     active?: boolean | false
     hoverable?: boolean | false
+    textSize?: "base" | "sm"
 }
 
 /**
@@ -29,6 +32,7 @@ const TokenDisplay: FunctionComponent<TokenDisplayType> = ({
     clickable,
     active,
     hoverable,
+    textSize = "base",
 }) => {
     // State
     const [selected, setSelected] = useState<boolean>(active ? active : false)
@@ -49,7 +53,7 @@ const TokenDisplay: FunctionComponent<TokenDisplayType> = ({
         if (name.length < chars - symbol.length) {
             return name
         } else {
-            return `${name.substr(0, chars - 5)}..`
+            return `${name.substring(0, chars - 5)}..`
         }
     }
 
@@ -85,10 +89,20 @@ const TokenDisplay: FunctionComponent<TokenDisplayType> = ({
                     />
                 </div>
                 <div className="flex justify-start items-center h-full ml-4 box-border">
-                    <span className="text-base text-black font-semibold mr-1">
+                    <span
+                        className={classnames(
+                            "text-black font-semibold mr-1",
+                            `text-${textSize}`
+                        )}
+                    >
                         {printName(data.name, data.symbol)}
                     </span>
-                    <span className="text-base text-gray-400">
+                    <span
+                        className={classnames(
+                            "text-gray-400",
+                            `text-${textSize}`
+                        )}
+                    >
                         {printSymbol(data.symbol, data.name)}
                     </span>
                 </div>

@@ -6,7 +6,6 @@ import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
 import TextInput from "../../components/input/TextInput"
 import SearchInput from "../../components/input/SearchInput"
-import AccountIcon from "../../components/icons/AccountIcon"
 
 import classnames from "classnames"
 
@@ -17,13 +16,15 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import { InferType } from "yup"
 import { utils } from "ethers"
 import { searchEns, EnsResult } from "../../util/searchEns"
-import { formatHash } from "../../util/formatAccount"
 
 import { CurrencyAmountPair } from "@blank/background/controllers/blank-deposit/types"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import AddressBookSelect from "../../components/addressBook/AddressBookSelect"
+import { AccountInfo } from "@blank/background/controllers/AccountTrackerController"
+import AccountDisplay from "../../components/account/AccountDisplay"
 
 const schema = yup.object().shape({
     address: yup
@@ -97,6 +98,7 @@ const WithdrawExternalPage = () => {
         if (!isEnsSelected) {
             setValue("address", result.address, { shouldValidate: true })
             setIsAddress(true)
+            setEnsSearch(result.address)
         } else {
             setValue("address", null)
             setEnsSearch("")
@@ -154,7 +156,7 @@ const WithdrawExternalPage = () => {
                             isValid={isAddress}
                             onChange={onChangeHandler}
                             debounce
-                            minSearchChar={3}
+                            //minSearchChar={3}
                         />
                     </div>
                 ) : (
@@ -172,66 +174,73 @@ const WithdrawExternalPage = () => {
 
                 {/* Results */}
                 {ensEnabled && ensResult ? (
-                    <>
+                    <div className="flex flex-col space-y-4 p-6 pb-0">
                         <div
                             className={classnames(
-                                "text-sm text-grey-200 p-6 pb-0",
+                                "text-xs text-gray-500 pb-0 uppercase",
                                 ensSearch.length > 2 ? "visible" : "hidden"
                             )}
                         >
-                            Search Result
+                            ENS Result
                         </div>
-                        <div className="flex flex-col w-full">
-                            {ensResult ? (
-                                <div
-                                    className={classnames(
-                                        "flex flex-row items-center px-6 py-4 cursor-pointer mt-1 rounded-md transition-colors duration-300",
-                                        isEnsSelected ? "bg-primary-100" : ""
-                                    )}
-                                    onClick={() => handleEnsClick(ensResult)}
-                                >
-                                    <div className="flex flex-row justify-between items-center">
-                                        <AccountIcon
-                                            className="w-10 h-10 mr-4"
-                                            fill="#1673FF"
-                                        />
-                                        <div className="flex flex-col justify-center items-start">
-                                            <span className="font-regular text-base font-semibold mb-1">
-                                                {ensResult.name}
-                                            </span>
-                                            <span className="text-xs text-gray-600">
-                                                {formatHash(ensResult.address)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <img
-                                        src={checkmarkMiniIcon}
-                                        alt="checkmark"
-                                        className={`
-                                                absolute mr-6 right-0
+                        {/*<div className="flex flex-col w-full">*/}
+                        {ensResult ? (
+                            <div
+                                className={classnames(
+                                    "flex flex-row text-sm items-center cursor-pointer mt-1 rounded-md transition-colors duration-300",
+                                    isEnsSelected ? "bg-primary-100" : ""
+                                )}
+                                onClick={() => handleEnsClick(ensResult)}
+                            >
+                                <AccountDisplay
+                                    networkNativeCurrency={
+                                        network.nativeCurrency
+                                    }
+                                    account={
+                                        {
+                                            name: ensResult.name,
+                                            address: ensResult.address,
+                                        } as AccountInfo
+                                    }
+                                    selected={false}
+                                    showAddress={true}
+                                />
+                                <img
+                                    src={checkmarkMiniIcon}
+                                    alt="checkmark"
+                                    className={`
+                                                absolute mr-8 right-0
                                                 ${
                                                     isEnsSelected
                                                         ? "visible"
                                                         : "hidden"
                                                 }
                                             `}
-                                    />
-                                </div>
-                            ) : (
-                                <div
-                                    className={classnames(
-                                        "text-base font-bold text-black w-full text-center mt-4",
-                                        ensSearch.length >= 3
-                                            ? "visible"
-                                            : "hidden"
-                                    )}
-                                >
-                                    No corresponding ENS domain found
-                                </div>
-                            )}
-                        </div>
-                    </>
+                                />
+                            </div>
+                        ) : (
+                            <div
+                                className={classnames(
+                                    "text-base font-bold text-black w-full text-center mt-4",
+                                    ensSearch.length >= 3 ? "visible" : "hidden"
+                                )}
+                            >
+                                No corresponding ENS domain found
+                            </div>
+                        )}
+                    </div>
                 ) : null}
+                <AddressBookSelect
+                    filter={ensSearch}
+                    onSelect={(account: any) => {
+                        setValue("address", account.address, {
+                            shouldValidate: true,
+                        })
+                        setEnsSearch(account.address)
+                        setIsAddress(true)
+                        setEnsResult(undefined)
+                    }}
+                />
             </PopupLayout>
         </form>
     )

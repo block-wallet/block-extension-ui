@@ -1,18 +1,53 @@
-import React from 'react'
+import React, { FC } from "react"
 
-const ExclamationCircleIconFull = (props: any) => (
-    <svg
-        width={props?.size ?? '20'}
-        height={props?.size ?? '20'}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-    >
-        <path
-            d="M12 0C5.383 0 0 5.383 0 12C0 18.617 5.383 24 12 24C18.617 24 24 18.617 24 12C24 5.383 18.617 0 12 0ZM13.645 5L13 14H11L10.392 5H13.645ZM12 20C10.895 20 10 19.105 10 18C10 16.895 10.895 16 12 16C13.105 16 14 16.895 14 18C14 19.105 13.105 20 12 20Z"
-            fill="currentColor"
-        />
-    </svg>
-)
+interface IconProps {
+    profile?: "normal" | "outlined"
+    size?: string
+}
+
+interface ColorsDef {
+    background: string
+    icon: string
+}
+
+interface ProfileDef {
+    [key: string]: ColorsDef
+}
+
+const PROFILES: ProfileDef = {
+    normal: {
+        background: "#F9F2E7",
+        icon: "#FFBB54",
+    },
+    outlined: {
+        background: "#FFBB54",
+        icon: "white",
+    },
+}
+
+const ExclamationCircleIconFull: FC<IconProps> = (props: any) => {
+    const { profile = "normal", size = "20", className = "" } = props
+    const { background, icon } = PROFILES[profile] || PROFILES.normal
+    return (
+        <svg
+            width={size}
+            height={size}
+            className={className}
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <rect width="24" height="24" rx="12" fill={background} />
+            <path
+                d="M12.961 13.633L13.359 6H10.656L11.055 13.633H12.961Z"
+                fill={icon}
+            />
+            <path
+                d="M12 18C12.8284 18 13.5 17.3284 13.5 16.5C13.5 15.6716 12.8284 15 12 15C11.1716 15 10.5 15.6716 10.5 16.5C10.5 17.3284 11.1716 18 12 18Z"
+                fill={icon}
+            />
+        </svg>
+    )
+}
 
 export default ExclamationCircleIconFull

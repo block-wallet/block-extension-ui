@@ -5,6 +5,7 @@ import PopupHeader from "../popup/PopupHeader"
 import PopupLayout from "../popup/PopupLayout"
 import { MdError } from "react-icons/md"
 import { FaGithub, FaTelegram, FaTwitter } from "react-icons/fa"
+import { LINKS } from "../../util/constants"
 
 const ErrorFallbackPage: FunctionComponent<{
     error: Error
@@ -54,21 +55,17 @@ const ErrorFallbackPage: FunctionComponent<{
                     <p>Contact</p>
                     <div className="flex flex-row items-center space-x-4">
                         <a
-                            href="https://t.me/blankwallet"
+                            href={LINKS.TELEGRAM}
                             target="_blank"
                             rel="noreferrer"
                         >
                             <FaTelegram size={24} />
                         </a>
-                        <a
-                            href="https://github.com/Blank-Wallet/"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
+                        <a href={LINKS.GITHUB} target="_blank" rel="noreferrer">
                             <FaGithub size={24} />
                         </a>
                         <a
-                            href="https://twitter.com/BlankWallet"
+                            href={LINKS.TWITTER}
                             target="_blank"
                             rel="noreferrer"
                         >

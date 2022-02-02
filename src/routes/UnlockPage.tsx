@@ -6,6 +6,7 @@ import PopupHeader from "../components/popup/PopupHeader"
 import PopupLayout from "../components/popup/PopupLayout"
 import PasswordInput from "../components/input/PasswordInput"
 import ConfirmDialog from "../components/dialog/ConfirmDialog"
+import ClickableText from "../components/button/ClickableText"
 
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
@@ -55,7 +56,7 @@ const UnlockPage = () => {
                 if (!isSeedPhraseBackedUp) {
                     const seedPhrase = await getSeedPhrase(data.password)
 
-                    history.push({
+                    return history.push({
                         pathname: "/reminder",
                         state: {
                             seedPhrase,
@@ -64,7 +65,7 @@ const UnlockPage = () => {
                         },
                     })
                 } else {
-                    history.push({
+                    return history.push({
                         pathname: "/",
                     })
                 }
@@ -130,12 +131,9 @@ const UnlockPage = () => {
                         />
                         <div>
                             or&nbsp;
-                            <span
-                                className="rounded text-primary-300 cursor-pointer hover:underline"
-                                onClick={() => setHasDialog(true)}
-                            >
+                            <ClickableText onClick={() => setHasDialog(true)}>
                                 reset wallet using seed phrase
-                            </span>
+                            </ClickableText>
                         </div>
                     </div>
                 </div>

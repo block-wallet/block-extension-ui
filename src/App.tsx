@@ -1,12 +1,12 @@
-import React from 'react'
-import GlobalModal from './components/GlobalModal'
-import BackgroundState from './context/background/BackgroundState'
-import { ModalProvider } from './context/ModalContext'
-import Spinner from './components/Spinner'
-import { useBlankState } from './context/background/backgroundHooks'
-import { isPopup } from './context/util/isPopup'
-import PopupRouter from './router/PopupRouter'
-import TabRouter from './router/TabRouter'
+import React from "react"
+import GlobalModal from "./components/GlobalModal"
+import BackgroundState from "./context/background/BackgroundState"
+import { ModalProvider } from "./context/ModalContext"
+import Spinner from "./components/Spinner"
+import { useBlankState } from "./context/background/backgroundHooks"
+import { isPopup } from "./context/util/isPopup"
+import PopupRouter from "./router/PopupRouter"
+import TabRouter from "./router/TabRouter"
 
 const AppLoading = () => {
     return (

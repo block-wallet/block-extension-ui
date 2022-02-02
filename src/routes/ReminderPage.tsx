@@ -57,8 +57,8 @@ const ReminderPage = () => {
     })
 
     useEffect(() => {
-        setSeedPhrase(history.location.state.seedPhrase)
-        setPassword(history.location.state.password)
+        setSeedPhrase(history.location?.state?.seedPhrase)
+        setPassword(history.location?.state?.password)
     }, [])
 
     const shouldEnterPassword = !seedPhrase || !password
@@ -81,7 +81,10 @@ const ReminderPage = () => {
                         }
                         label={shouldEnterPassword ? "Next" : "Backup now"}
                         onClick={() => {
-                            if (shouldEnterPassword) return
+                            if (shouldEnterPassword) {
+                                onSubmit()
+                                return
+                            }
 
                             history.push({
                                 pathname: "/reminder/backup",

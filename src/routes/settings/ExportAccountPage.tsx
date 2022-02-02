@@ -99,12 +99,7 @@ const ExportAccountPage = () => {
     return (
         <div className="flex flex-col w-full h-full" id="export-key-form">
             <PopupLayout
-                header={
-                    <PopupHeader
-                        title="Export Account Data"
-                        close={history.location.state?.from ?? "/settings"}
-                    />
-                }
+                header={<PopupHeader title="Export Account Data" />}
                 footer={
                     <PopupFooter>
                         <ButtonWithLoading

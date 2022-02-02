@@ -12,9 +12,9 @@ const ConfirmDialog: FunctionComponent<{
     onConfirm: () => void
 }> = ({ title, message, open, onClose, onConfirm }) => {
     return (
-        <Dialog open={open} onClickOutside={onClose}>
+        <Dialog open={open} onClickOutside={onClose} horizontalPadding="px-6">
             <>
-                <h2 className="text-lg font-bold">{title}</h2>
+                <h2 className="text-lg font-bold text-black">{title}</h2>
                 <div className="py-5">
                     <span className="text-sm">{message}</span>
                 </div>

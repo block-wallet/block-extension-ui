@@ -4,9 +4,8 @@ import { useBlankState } from "../context/background/backgroundHooks"
 import PendingSetupPage from "../routes/setup/PendingSetupPage"
 import UnlockPage from "../routes/UnlockPage"
 import { appRoutes } from "./routes"
-import IdleTimer from "react-idle-timer"
 import "./routeTransitions.css"
-import { lockApp, setLastUserActiveTime } from "../context/commActions"
+import { lockApp } from "../context/commActions"
 import { LastLocationProvider } from "react-router-last-location"
 import { TransitionRoute } from "./TransitionRoute"
 import { ErrorBoundary } from "react-error-boundary"
@@ -18,6 +17,8 @@ import { Classes } from "../styles"
 import classnames from "classnames"
 import NetworkSelect from "../components/input/NetworkSelect"
 import Divider from "../components/Divider"
+import IdleComponent from "../components/IdleComponent"
+import WalletNews from "../components/news/WalletNews"
 /**  Purpose of this component is to check in Blank State if there is any pending connect to site or transaction confirm
  *  in order to show that page always, whenever the extension is loaded and unlocked.
  */
@@ -55,33 +56,12 @@ const PopupComponent = () => {
     }
 
     return (
-        <>
+        <WalletNews>
             <Route exact path="/">
                 {showPage ? <Redirect to={route} /> : <Redirect to="/home" />}
             </Route>
             {appRoutes}
-        </>
-    )
-}
-
-const IdleComponent: FunctionComponent = ({ children }) => {
-    let idleTimer: IdleTimer = {} as IdleTimer
-
-    const handleOnAction = async () => {
-        setLastUserActiveTime()
-    }
-
-    return (
-        <IdleTimer
-            ref={(ref: IdleTimer) => {
-                idleTimer = ref
-            }}
-            onAction={handleOnAction}
-            debounce={1000}
-            eventsThrottle={420}
-        >
-            {children}
-        </IdleTimer>
+        </WalletNews>
     )
 }
 

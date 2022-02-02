@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useMemo, useState } from "react"
+import React, { FunctionComponent, useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 
 import PageLayout from "../../components/PageLayout"
@@ -12,6 +12,10 @@ import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupFooter from "../../components/popup/PopupFooter"
+import { useBlankState } from "../../context/background/backgroundHooks"
+import { closeCurrentTab } from "../../util/window"
+import IdleComponent from "../../components/IdleComponent"
+import PopupLayout from '../../components/popup/PopupLayout';
 
 export interface SeedPhraseWord {
     word: string
@@ -99,14 +103,57 @@ const SeedWordsInput: FunctionComponent<{
     )
 }
 
+
+// subcomponent
+const SeedPhraseBlock = (props: any ) => {
+    const {isReminder, verificationError, seedWords, inputWords, onSeedWordsChange} = props
+
+    return (
+        <div className={classnames("flex flex-col text-gray-600 text-sm",
+                        isReminder ? "space-y-6 p-4" : "space-y-8 p-8")}
+        >
+            <span>
+                Make sure that you've got it right - type out your
+                phrase by selecting the words below in the correct
+                order.
+            </span>
+
+            <span
+                className={classnames(
+                    "text-red-500 text-xs",
+                    verificationError ? "" : "hidden"
+                )}
+            >
+                verificationError || <>&nbsp;</>
+            </span>
+            <SeedWordsInput
+                words={seedWords}
+                value={inputWords}
+                onChange={(words) => onSeedWordsChange(words)}
+            />
+        </div>
+    )
+}
+
 const BackupConfirmPage = () => {
+    const { isUnlocked } = useBlankState()!
+    useEffect(() => {
+        if (!isUnlocked) {
+            alert(
+                "For security reasons the extension is now blocked. Login again in the extension to continue with the backup process."
+            )
+            closeCurrentTab()
+        }
+    }, [isUnlocked])
     const history: any = useOnMountHistory()
     const { seedPhrase, isReminder, password } = history.location.state
     const backLink = isReminder ? "/reminder" : "/setup/create/notice"
     const doneLink = isReminder ? "/reminder/backup/done" : "/setup/done"
     const [inputWords, setInputWords] = useState<SeedPhraseWord[]>([])
-    const [isVerificationInProgress, setIsVerificationInProgress] =
-        useState<boolean>(false)
+    const [
+        isVerificationInProgress,
+        setIsVerificationInProgress,
+    ] = useState<boolean>(false)
     const [verificationError, setVerificationError] = useState<string>("")
     const seedWords = useMemo(() => {
         let wordsForSeedPhrase: SeedPhraseWord[] = []
@@ -151,111 +198,89 @@ const BackupConfirmPage = () => {
     }
 
     return (
-        <PageLayout
-            screen={isReminder}
-            header={!isReminder}
-            maxWidth={isReminder ? "" : "max-w-md"}
-            className={classnames(
-                "text-center",
-                isReminder ? "max-h-screen" : ""
-            )}
-        >
-            {isReminder ? (
-                <div className="w-full">
-                    <PopupHeader
-                        title="Confirm Seed Phrase"
-                        keepState
-                        close={false}
-                    />
-                </div>
-            ) : (
-                <>
-                    <span
-                        className={classnames(
-                            "font-bold my-6 font-title",
-                            isReminder ? "text-base" : "text-lg "
-                        )}
-                    >
+        <IdleComponent>
+            {isReminder ?
+            (
+                // reminder view in app
+                <PopupLayout
+                    header={
+                        <PopupHeader
+                            title="Confirm Seed Phrase"
+                            keepState
+                        />
+                    }
+                    footer={
+                        <PopupFooter>
+                            <ButtonWithLoading
+                                label="Confirm"
+                                isLoading={isVerificationInProgress}
+                                onClick={confirmSeedPhrase}
+                            />
+                        </PopupFooter>
+                    }
+                >
+                    <SeedPhraseBlock 
+                        isReminder={true} 
+                        verificationError={verificationError} 
+                        seedWords={seedWords} 
+                        inputWords={inputWords}
+                        onSeedWordsChange={(words: any) => setInputWords(words)} />  
+                </PopupLayout>
+            )
+            :
+            (
+                // browser tab version during installation
+                <PageLayout
+                    screen={isReminder}
+                    header={!isReminder}
+                    maxWidth={isReminder ? "" : "max-w-md"}
+                    className={"text-center"}
+                >
+                    <span className="font-bold my-6 font-title text-lg">
                         Confirm Seed Phrase
                     </span>
-                </>
-            )}
-            <Divider />
-            <div
-                className={classnames(
-                    "flex flex-col text-gray-600 text-sm ",
-                    isReminder ? "space-y-6 p-4" : "space-y-8 p-8"
-                )}
-            >
-                <span>
-                    Make sure that you've got it right - type out your phrase by
-                    selecting the words below in the correct order.
-                </span>
+                    <Divider />
+                    <SeedPhraseBlock 
+                        isReminder={isReminder} 
+                        verificationError={verificationError} 
+                        seedWords={seedWords} 
+                        inputWords={inputWords}
+                        onSeedWordsChange={(words: any) => setInputWords(words)} />  
+                    <Divider />
 
-                <span
-                    className={classnames(
-                        "text-red-500 text-xs",
-                        verificationError ? "" : "hidden"
-                    )}
-                >
-                    {verificationError || <>&nbsp;</>}
-                </span>
-                <SeedWordsInput
-                    words={seedWords}
-                    value={inputWords}
-                    onChange={(words) => setInputWords(words)}
-                />
-            </div>
-            <Divider />
-
-            {isReminder ? (
-                <PopupFooter>
-                    <ButtonWithLoading
-                        label="Confirm"
-                        isLoading={isVerificationInProgress}
-                        onClick={confirmSeedPhrase}
-                    />
-                </PopupFooter>
-            ) : (
-                <>
-                    <div
-                        className={classnames(
-                            "flex flex-row space-x-4 w-full",
-                            isReminder ? "p-5" : "p-6"
-                        )}
-                    ></div>
                     <div className="flex flex-row p-6 space-x-4">
-                        <Link
-                            to={{
-                                pathname: backLink,
-                                state: { seedPhrase, password },
-                            }}
-                            className={Classes.liteButton}
-                            draggable={false}
-                        >
-                            Back
-                        </Link>
-                        <button
-                            type="button"
-                            className={classnames(
-                                Classes.button,
-                                "font-bold border-2 border-primary-300",
-                                (!isPhraseValid() ||
-                                    isVerificationInProgress) &&
-                                    "opacity-50 pointer-events-none"
-                            )}
-                            onClick={confirmSeedPhrase}
-                        >
-                            {!isVerificationInProgress ? (
-                                "Confirm"
-                            ) : (
-                                <Spinner />
-                            )}
-                        </button>
-                    </div>
-                </>
+                            <Link
+                                to={{
+                                    pathname: backLink,
+                                    state: { seedPhrase, password },
+                                }}
+                                className={Classes.liteButton}
+                                draggable={false}
+                            >
+                                Back
+                            </Link>
+                            <button
+                                    type="button"
+                                    className={classnames(
+                                        Classes.button,
+                                        "font-bold border-2 border-primary-300",
+                                        (!isPhraseValid() ||
+                                            isVerificationInProgress) &&
+                                            "opacity-50 pointer-events-none"
+                                    )}
+                                    onClick={confirmSeedPhrase}
+                            >
+                                {!isVerificationInProgress ? (
+                                    "Confirm"
+                                ) : (
+                                    <Spinner />
+                                )}
+                            </button>
+                        </div>
+                </PageLayout>
             )}
-        </PageLayout>
+            
+        </IdleComponent>
     )
 }
 

@@ -1,15 +1,15 @@
-import React from 'react'
+import React from "react"
 
-import PopupLayout from '../components/popup/PopupLayout'
-import PopupHeader from '../components/popup/PopupHeader'
-import LinkButton from '../components/button/LinkButton'
-import logo from '../assets/images/logo.svg'
-import PopupFooter from '../components/popup/PopupFooter'
+import PopupLayout from "../components/popup/PopupLayout"
+import PopupHeader from "../components/popup/PopupHeader"
+import LinkButton from "../components/button/LinkButton"
+import logo from "../assets/images/logo.svg"
+import PopupFooter from "../components/popup/PopupFooter"
 
 const BackupDonePage = () => {
     return (
         <PopupLayout
-            header={<PopupHeader title="You’re Now Safe!" close="/" />}
+            header={<PopupHeader title="You’re Now Safe!" />}
             footer={
                 <PopupFooter>
                     <LinkButton location="/" text="Done" lite />

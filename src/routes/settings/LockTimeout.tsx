@@ -85,7 +85,7 @@ const LockTimeout = () => {
 
     return (
         <PopupLayout
-            header={<PopupHeader title="Lock Timeout" close="/" />}
+            header={<PopupHeader title="Lock Timeout" />}
             footer={
                 <PopupFooter>
                     <ButtonWithLoading

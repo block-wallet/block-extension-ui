@@ -79,12 +79,7 @@ const ConnectedSitesPage = () => {
 
     return (
         <PopupLayout
-            header={
-                <PopupHeader
-                    title="Connected Sites"
-                    close={history.location.state?.from ?? "/settings"}
-                ></PopupHeader>
-            }
+            header={<PopupHeader title="Connected Sites"></PopupHeader>}
         >
             <div className="flex flex-col p-6 space-y-6">
                 <span className="text-sm text-gray-500">

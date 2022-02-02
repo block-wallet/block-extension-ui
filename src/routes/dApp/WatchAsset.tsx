@@ -29,7 +29,7 @@ import { formatRounded } from "../../util/formatRounded"
 import unknownTokenIcon from "../../assets/images/unknown_token.svg"
 import GenericTooltip from "../../components/label/GenericTooltip"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
-import LoadingOverlay from "../../components/LoadingOverlay"
+import LoadingOverlay from "../../components/loading/LoadingOverlay"
 import SuccessDialog from "../../components/dialog/SuccessDialog"
 import { DappRequestProps, DappRequest } from "./DappRequest"
 
@@ -91,7 +91,6 @@ const WatchAsset: FunctionComponent<DappRequestProps> = ({
                 decimals: token.decimals,
                 image: assetImageSrc(),
             } as WatchAssetConfirmParams)
-            await new Promise((resolve) => setTimeout(resolve, 600))
         } finally {
             setIsConfirming(false)
         }
@@ -101,7 +100,6 @@ const WatchAsset: FunctionComponent<DappRequestProps> = ({
         try {
             setIsConfirming(true)
             await confirmDappRequest(requestId, false)
-            await new Promise((resolve) => setTimeout(resolve, 600))
         } finally {
             setIsConfirming(false)
         }

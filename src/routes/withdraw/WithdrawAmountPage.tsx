@@ -86,12 +86,7 @@ const CanWithdrawView: FunctionComponent<{
 const CannotWithdrawView = () => {
     return (
         <PopupLayout
-            header={
-                <PopupHeader
-                    title="Withdraw From Privacy Pool"
-                    close="/privacy"
-                />
-            }
+            header={<PopupHeader title="Withdraw From Privacy Pool" />}
             footer={
                 <PopupFooter>
                     <LinkButton
@@ -119,12 +114,7 @@ const CannotWithdrawView = () => {
 const UpdatingNotesStateView = () => {
     return (
         <PopupLayout
-            header={
-                <PopupHeader
-                    title="Withdraw From Privacy Pool"
-                    close="/privacy"
-                />
-            }
+            header={<PopupHeader title="Withdraw From Privacy Pool" />}
         >
             <div className="flex flex-row items-center justify-center w-full h-full">
                 <Spinner size="2rem" />

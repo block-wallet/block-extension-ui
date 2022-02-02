@@ -55,6 +55,8 @@ const AccountDisplay: FunctionComponent<{
     const history: any = useOnMountHistory()
     const { chainId } = useSelectedNetwork()
 
+    const hover = !selected && !showEditButton && !withOptions && !canCopy
+
     const dropdownRef = useRef<any>(null)
     useOnClickOutside(dropdownRef, () => setShowOptions(false))
 
@@ -72,13 +74,14 @@ const AccountDisplay: FunctionComponent<{
             className={classnames(
                 "flex flex-row items-center justify-between w-full rounded-md cursor-default",
                 defaultAccount && "pr-2",
-                !selected &&
-                    !showEditButton &&
-                    !withOptions &&
-                    "hover:bg-primary-100 cursor-pointer"
+                hover && "hover:bg-primary-100 cursor-pointer"
             )}
         >
-            <div className="flex flex-row items-center space-x-3 text-gray-900 p-2">
+            <div
+                className="flex flex-row items-center space-x-3 text-gray-900 p-2"
+                role="link"
+                data-testid="account-icon"
+            >
                 <AccountIcon
                     className="w-10 h-10"
                     fill={getAccountColor(account?.address)}

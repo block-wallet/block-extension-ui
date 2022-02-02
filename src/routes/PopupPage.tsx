@@ -1,37 +1,41 @@
-import React, { FunctionComponent, useState } from "react"
-import PageLayout from "../components/PageLayout"
-
+import React, { useState } from "react"
 import classnames from "classnames"
 import { Link, useHistory } from "react-router-dom"
-
-import CopyTooltip from "../components/label/СopyToClipboardTooltip"
-
-import { formatHash, formatName } from "../util/formatAccount"
-import { useBlankState } from "../context/background/backgroundHooks"
 import { formatUnits } from "ethers/lib/utils"
 import { BigNumber } from "ethers"
-import { formatCurrency, toCurrencyAmount } from "../util/formatCurrency"
 import { BiCircle } from "react-icons/bi"
-import { useSelectedAccount } from "../context/hooks/useSelectedAccount"
+
+// Components
+import PageLayout from "../components/PageLayout"
+import CopyTooltip from "../components/label/СopyToClipboardTooltip"
 import GearIcon from "../components/icons/GearIcon"
 import QRIcon from "../components/icons/QRIcon"
 import NetworkSelect from "../components/input/NetworkSelect"
 import ArrowHoverAnimation from "../components/icons/ArrowHoverAnimation"
+import ErrorDialog from "../components/dialog/ErrorDialog"
 import AccountIcon from "../components/icons/AccountIcon"
-import { getAccountColor } from "../util/getAccountColor"
-import { useSelectedNetwork } from "../context/hooks/useSelectedNetwork"
-import { isFeatureEnabled } from "../context/util/isFeatureEnabled"
-import { session } from "../context/commActions"
 import ActivityAssetsView from "../components/ActivityAssetsView"
 import DisplayGasPriceComponent from "../components/popup/DisplayGasPriceComponent"
 import GenericTooltip from "../components/label/GenericTooltip"
 
-import { useConnectedSite } from "../context/hooks/useConnectedSite"
+// Utils
+import { formatHash, formatName } from "../util/formatAccount"
+import { formatCurrency, toCurrencyAmount } from "../util/formatCurrency"
+import { getAccountColor } from "../util/getAccountColor"
 import { formatRounded } from "../util/formatRounded"
 import { HiOutlineExclamationCircle } from "react-icons/hi"
-import eye from "../assets/images/icons/eye.svg"
 
+// Context
+import { useBlankState } from "../context/background/backgroundHooks"
+import { useSelectedAccount } from "../context/hooks/useSelectedAccount"
+import { useSelectedNetwork } from "../context/hooks/useSelectedNetwork"
+import { isFeatureEnabled } from "../context/util/isFeatureEnabled"
+import { session } from "../context/commActions"
+import { useConnectedSite } from "../context/hooks/useConnectedSite"
 import { useTokensList } from "../context/hooks/useTokensList"
+
+// Assets
+import eye from "../assets/images/icons/eye.svg"
 
 const AccountDisplay = () => {
     const blankState = useBlankState()!
@@ -50,7 +54,7 @@ const AccountDisplay = () => {
             className="relative flex flex-col group"
             onClick={copy}
         >
-            <span className="text-sm font-bold">
+            <span className="text-sm font-bold" data-testid="account-name">
                 {formatName(account.name, 18)}
             </span>
             <span className="text-xs text-gray-600 truncate">
@@ -117,6 +121,7 @@ const DAppConnection = () => {
 }
 
 const PopupPage = () => {
+    const error = (useHistory().location.state as { error: string })?.error
     const state = useBlankState()!
     const history = useHistory()
     const account = useSelectedAccount()
@@ -125,8 +130,19 @@ const PopupPage = () => {
     const tornadoEnabled = isFeatureEnabled(network, "tornado")
     const sendsEnabled = isFeatureEnabled(network, "sends")
 
+    const [hasErrorDialog, setHasErrorDialog] = useState(!!error)
+
     return (
         <PageLayout screen className="max-h-screen popup-layout">
+            <ErrorDialog
+                title="Error!"
+                message={error}
+                open={hasErrorDialog}
+                onClickOutside={() => {
+                    setHasErrorDialog(false)
+                }}
+                onClickButton={() => setHasErrorDialog(false)}
+            />
             <div
                 className="absolute top-0 left-0 z-10 flex flex-col items-start w-full p-6 bg-white bg-opacity-75 border-b border-b-gray-200"
                 style={{ backdropFilter: "blur(4px)" }}
@@ -137,6 +153,7 @@ const PopupPage = () => {
                             to="/accounts"
                             className="transition duration-300"
                             draggable={false}
+                            data-testid="navigate-account-link"
                         >
                             <AccountIcon
                                 className="w-8 h-8 transition-transform duration-200 ease-in transform hover:rotate-180"
@@ -176,7 +193,7 @@ const PopupPage = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex flex-col items-start flex-1 w-full h-0 max-h-screen p-6 pt-24 space-y-2 overflow-auto">
+            <div className="flex flex-col items-start flex-1 w-full h-0 max-h-screen p-6 pt-24 space-y-2 overflow-auto hide-scroll">
                 <div className="w-full">
                     <div className="flex flex-row items-start w-full justify-between pt-1 pb-2">
                         <GenericTooltip
