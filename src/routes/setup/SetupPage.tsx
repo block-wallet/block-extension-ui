@@ -41,7 +41,7 @@ const SetupPage = () => (
     <>
         <PageLayout className="relative" header>
             <span className="my-6 text-lg font-bold font-title">
-                New to Blank?
+                New to BlockWallet?
             </span>
             <Divider />
             <div className="flex flex-col w-full p-6 space-y-4 md:flex-row md:space-y-0 md:space-x-4">

@@ -20,8 +20,8 @@ global.IntersectionObserver = class MockIntersection {
 test("Tab renders", () => {
     render(<MockTab location="/intro" />)
 
-    const blank = screen.queryAllByText(/blank/i).length !== 0
-    expect(blank).toBeTruthy()
+    const blockWallet = screen.queryAllByText(/BlockWallet/i).length !== 0
+    expect(blockWallet).toBeTruthy()
 })
 
 test("PopUp renders", () => {

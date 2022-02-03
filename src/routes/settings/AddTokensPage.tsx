@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
+import { FixedSizeList as List } from "react-window"
+import AutoSizer from "react-virtualized-auto-sizer"
 
 // Types
 import { Token } from "@blank/background/controllers/erc-20/Token"
@@ -12,7 +14,7 @@ import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 // Components
 import PopupFooter from "../../components/popup/PopupFooter"
 import PopupHeader from "../../components/popup/PopupHeader"
-import Divider from "../../components/Divider"
+import PopupLayout from "../../components/popup/PopupLayout"
 import SearchInput from "../../components/input/SearchInput"
 import TokenDisplay from "../../components/TokenDisplay"
 import TextInput from "../../components/input/TextInput"
@@ -29,24 +31,16 @@ import { searchTokenInAssetsList } from "../../context/commActions"
 // Assets
 import searchIcon from "../../assets/images/icons/search.svg"
 import { utils } from "ethers/lib/ethers"
-import PageLayout from "../../components/PageLayout"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 
 // Main component
 const AddTokensPage = () => {
-    const header = PopupHeader({ title: "Add Tokens", close: "/" })
-
     return (
-        <PageLayout screen className="max-h-screen">
-            <div className="absolute top-0 left-0 w-full">
-                {header}
-                <Divider />
-            </div>
-            <div className="invisible w-full">{header}</div>
+        <PopupLayout header={<PopupHeader title="Add Tokens" close="/" />}>
             <div className="flex flex-col flex-1 w-full">
                 <SearchToken />
             </div>
-        </PageLayout>
+        </PopupLayout>
     )
 }
 
@@ -71,7 +65,7 @@ const searchTokenSchema = yup.object().shape({
 })
 type searchTokenFormData = InferType<typeof searchTokenSchema>
 
-const customTokenSchema = yup.object().shape({
+const customTokenSchema = yup.object({
     tokenAddress: yup
         .string()
         .test("is-empty", "Token contract address is empty", (s) => {
@@ -198,6 +192,10 @@ const SearchToken = () => {
         setSelected(selected.filter((el) => el.address !== token.address))
     }
 
+    const filteredResults = results.filter(
+        (result) => !selected.some((el) => el.address === result.address)
+    )
+
     return (
         <>
             <form
@@ -207,7 +205,7 @@ const SearchToken = () => {
                 } `}
                 onSubmit={onSubmit}
             >
-                <div className="flex-1 flex flex-col w-full h-0 max-h-screen overflow-auto">
+                <div className="flex-1 flex flex-col w-full h-0 max-h-screen overflow-auto hide-scroll">
                     <div className="flex flex-col flex-1 w-full">
                         <div
                             className={` ${
@@ -215,7 +213,7 @@ const SearchToken = () => {
                             } `}
                         >
                             {/* INPUT */}
-                            <div className="w-full p-6 pb-0">
+                            <div className="w-full p-6 pb-2 bg-white fixed z-20">
                                 <SearchInput
                                     name="tokenName"
                                     ref={register}
@@ -223,6 +221,8 @@ const SearchToken = () => {
                                     disabled={false}
                                     autofocus={true}
                                     onChange={onChange}
+                                    debounced
+                                    minSearchChar={3}
                                 />
                             </div>
 
@@ -235,38 +235,39 @@ const SearchToken = () => {
                                 {message || <>&nbsp;</>}
                             </div>
 
-                            {!isCustomTokenView && (
-                                <>
-                                    {/* HINT */}
-                                    {isSearchEmpty && selected.length <= 0 ? (
-                                        <div className="flex flex-col items-center justify-start flex-1 h-full p-6">
-                                            <div className="flex justify-center items-center relative mb-6">
-                                                <img
-                                                    src={searchIcon}
-                                                    alt="search"
-                                                    className="w-7 h-7 absolute z-10"
-                                                />
-                                                <div className="w-20 h-20 bg-primary-100 rounded-full relative z-0"></div>
+                            <div className="w-full mt-16">
+                                {!isCustomTokenView && (
+                                    <>
+                                        {/* HINT */}
+                                        {isSearchEmpty &&
+                                        selected.length <= 0 ? (
+                                            <div className="flex flex-col items-center justify-start flex-1 h-full p-6">
+                                                <div className="flex justify-center items-center relative mb-6">
+                                                    <img
+                                                        src={searchIcon}
+                                                        alt="search"
+                                                        className="w-7 h-7 absolute z-10"
+                                                    />
+                                                    <div className="w-20 h-20 bg-primary-100 rounded-full relative z-0"></div>
+                                                </div>
+                                                <span className="text-sm text-gray-600 text-center">
+                                                    Add the tokens that you've
+                                                    acquired using Blank Wallet.
+                                                    <br />
+                                                    Enter an address for adding
+                                                    a custom token.
+                                                </span>
                                             </div>
-                                            <span className="text-sm text-gray-600 text-center">
-                                                Add the tokens that you've
-                                                acquired using Blank Wallet.
-                                                <br />
-                                                Enter an address for adding a
-                                                custom token.
-                                            </span>
-                                        </div>
-                                    ) : (
-                                        <>
+                                        ) : (
                                             <div className="flex-1 flex flex-col w-full h-0 max-h-screen px-6 pb-0">
                                                 <div
-                                                    className={`text-sm text-grey-200 p-6 pb-0 ${
+                                                    className={`text-xs text-gray-500 pt-4 pb-0 ${
                                                         selected.length <= 0
                                                             ? "hidden"
                                                             : "visible"
                                                     }`}
                                                 >
-                                                    Selected Tokens
+                                                    SELECTED TOKENS
                                                 </div>
                                                 <div className="flex flex-col">
                                                     {selected.map((select) => {
@@ -294,19 +295,20 @@ const SearchToken = () => {
                                                                     hoverable={
                                                                         true
                                                                     }
+                                                                    textSize="sm"
                                                                 />
                                                             </div>
                                                         )
                                                     })}
                                                 </div>
                                                 <div
-                                                    className={`text-sm text-grey-200 p-6 pb-0 ${
+                                                    className={`text-xs text-gray-500 pt-4 pb-1 ${
                                                         isSearchEmpty
                                                             ? "hidden"
                                                             : "visible"
                                                     }`}
                                                 >
-                                                    Search Tokens
+                                                    SEARCH TOKENS
                                                 </div>
                                                 <div className="flex flex-col">
                                                     {results.length < 1 &&
@@ -315,52 +317,83 @@ const SearchToken = () => {
                                                             No match
                                                         </div>
                                                     ) : (
-                                                        results.map(
-                                                            (result) => {
-                                                                // Results tokens
-                                                                if (
-                                                                    !selected.some(
-                                                                        (el) =>
-                                                                            el.address ===
-                                                                            result.address
-                                                                    )
-                                                                ) {
-                                                                    return (
-                                                                        <div
-                                                                            className="cursor-pointer"
-                                                                            key={`result-${result.address}`}
-                                                                            onClick={() =>
-                                                                                onClick(
-                                                                                    result
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <TokenDisplay
-                                                                                data={
-                                                                                    result
+                                                        <div
+                                                            style={{
+                                                                height: 314,
+                                                            }}
+                                                            className="w-full"
+                                                        >
+                                                            <AutoSizer>
+                                                                {({
+                                                                    width,
+                                                                    height,
+                                                                }) => (
+                                                                    <List
+                                                                        height={
+                                                                            height
+                                                                        }
+                                                                        width={
+                                                                            width
+                                                                        }
+                                                                        itemCount={
+                                                                            filteredResults.length
+                                                                        }
+                                                                        itemSize={
+                                                                            60
+                                                                        }
+                                                                        itemData={
+                                                                            filteredResults
+                                                                        }
+                                                                    >
+                                                                        {({
+                                                                            style,
+                                                                            data,
+                                                                            index,
+                                                                        }) => (
+                                                                            <div
+                                                                                style={
+                                                                                    style
                                                                                 }
-                                                                                clickable={
-                                                                                    false
+                                                                                className="cursor-pointer"
+                                                                                key={`result-${data[index].address}`}
+                                                                                onClick={() =>
+                                                                                    onClick(
+                                                                                        data[
+                                                                                            index
+                                                                                        ]
+                                                                                    )
                                                                                 }
-                                                                                active={
-                                                                                    false
-                                                                                }
-                                                                                hoverable={
-                                                                                    true
-                                                                                }
-                                                                            />
-                                                                        </div>
-                                                                    )
-                                                                }
-                                                            }
-                                                        )
+                                                                            >
+                                                                                <TokenDisplay
+                                                                                    data={
+                                                                                        data[
+                                                                                            index
+                                                                                        ]
+                                                                                    }
+                                                                                    clickable={
+                                                                                        false
+                                                                                    }
+                                                                                    active={
+                                                                                        false
+                                                                                    }
+                                                                                    hoverable={
+                                                                                        true
+                                                                                    }
+                                                                                    textSize="sm"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                    </List>
+                                                                )}
+                                                            </AutoSizer>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
-                                        </>
-                                    )}
-                                </>
-                            )}
+                                        )}
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -407,6 +440,7 @@ const CustomToken = (props: any) => {
         handleSubmit,
         errors,
         setError,
+        setValue,
     } = useForm<customTokenFormData>({
         resolver: yupResolver(customTokenSchema),
     })
@@ -430,6 +464,12 @@ const CustomToken = (props: any) => {
         }))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    useEffect(() => {
+        setValue("tokenAddress", result.address)
+        setValue("tokenDecimals", result.decimals)
+        setValue("tokenSymbol", result.symbol)
+    }, [result.address, result.decimals, result.symbol, setValue])
 
     const onSubmit = handleSubmit(async (data: customTokenFormData) => {
         try {
@@ -485,7 +525,7 @@ const CustomToken = (props: any) => {
             )
         } catch (event) {
             // Invalid form data
-            setError("form", event.toString())
+            setError("tokenAddress", event.toString())
         }
     })
 
@@ -519,7 +559,7 @@ const CustomToken = (props: any) => {
         } else {
             setIsCustomTokenEmpty(true)
             setResult({
-                address: "",
+                address: value,
                 decimals: undefined,
                 logo: "",
                 name: "",
@@ -573,7 +613,7 @@ const CustomToken = (props: any) => {
                         <TextInput
                             appearance="outline"
                             label="Token Contract Address"
-                            placeholder="Address"
+                            placeholder={result.address || "Address"}
                             name="tokenAddress"
                             register={register}
                             error={errors.tokenAddress?.message}
@@ -581,7 +621,6 @@ const CustomToken = (props: any) => {
                             maxLength={42}
                             defaultValue={result.address}
                             onChange={(e) => onAddressChange(e.target.value)}
-                            readOnly={true}
                         />
                     </div>
 
@@ -590,7 +629,7 @@ const CustomToken = (props: any) => {
                         <TextInput
                             appearance="outline"
                             label="Token Symbol"
-                            placeholder={result.symbol ? result.symbol : "ETH"}
+                            placeholder={result.symbol || "ETH"}
                             defaultValue={result.symbol}
                             name="tokenSymbol"
                             register={register}
@@ -609,9 +648,7 @@ const CustomToken = (props: any) => {
                                     ? result.decimals.toString()
                                     : "18"
                             }
-                            defaultValue={
-                                result.decimals ? result.decimals : ""
-                            }
+                            defaultValue={result.decimals || ""}
                             name="tokenDecimals"
                             register={register}
                             error={errors.tokenDecimals?.message}

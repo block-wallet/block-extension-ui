@@ -4,6 +4,7 @@ import {
     DappRequest,
     DappRequestParams,
 } from "@blank/background/utils/types/ethereum"
+import { TransactionCategories } from "../commTypes"
 import { DappReq } from "../hooks/useDappRequest"
 
 const getRequestRouteAndStatus = (
@@ -23,9 +24,16 @@ const getRequestRouteAndStatus = (
     ).map(([, { time }]) => ({ time, route: "/connect" }))
 
     // Filter tx requests
-    const transactionReqs = Object.entries(
-        unapprovedTransactions
-    ).map(([, { time }]) => ({ time, route: "/transaction/confirm" }))
+    const transactionReqs = Object.entries(unapprovedTransactions).map(
+        ([, { time, transactionCategory }]) => ({
+            time,
+            route:
+                transactionCategory ===
+                TransactionCategories.TOKEN_METHOD_APPROVE
+                    ? "/approveAsset"
+                    : "/transaction/confirm",
+        })
+    )
 
     // Filter DApp requests
     const dappReqs = Object.entries(dappRequests).map(([, { time, type }]) => ({

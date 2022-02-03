@@ -16,15 +16,17 @@ const WithdrawHistory = () => {
 
     useEffect(() => {
         if (state) {
-            setWithdrawals(state.previousWithdrawals.sort((a: any, b: any) => b.time - a.time))
+            setWithdrawals(
+                state.previousWithdrawals.sort(
+                    (a: any, b: any) => b.time - a.time
+                )
+            )
         }
     }, [state])
 
     // Render
     return (
-        <PopupLayout
-            header={<PopupHeader title="Withdrawals" close="/privacy" />}
-        >
+        <PopupLayout header={<PopupHeader title="Withdrawals" />}>
             {/* History */}
             <div className="flex flex-col w-full px-6 py-3">
                 {Array.isArray(withdrawals) && withdrawals.length > 0 ? (

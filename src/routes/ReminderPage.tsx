@@ -57,8 +57,8 @@ const ReminderPage = () => {
     })
 
     useEffect(() => {
-        setSeedPhrase(history.location.state.seedPhrase)
-        setPassword(history.location.state.password)
+        setSeedPhrase(history.location?.state?.seedPhrase)
+        setPassword(history.location?.state?.password)
     }, [])
 
     const shouldEnterPassword = !seedPhrase || !password
@@ -81,7 +81,10 @@ const ReminderPage = () => {
                         }
                         label={shouldEnterPassword ? "Next" : "Backup now"}
                         onClick={() => {
-                            if (shouldEnterPassword) return
+                            if (shouldEnterPassword) {
+                                onSubmit()
+                                return
+                            }
 
                             history.push({
                                 pathname: "/reminder/backup",
@@ -127,8 +130,8 @@ const ReminderPage = () => {
                             privacy deposits. It makes it possible to restore
                             your wallet after losing access. Import your seed
                             phrase to gain access to the funds held on your
-                            Blank Wallet. Backup your seed phrase and store it
-                            in a safe place.
+                            BlockWallet. Backup your seed phrase and store it in
+                            a safe place.
                         </span>
                         <span>
                             <b className="text-gray-900">Warning:</b> Never

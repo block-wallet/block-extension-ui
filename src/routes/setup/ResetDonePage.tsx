@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from "react"
 
-import Confetti from 'react-dom-confetti'
+import Confetti from "react-dom-confetti"
 
-import LogoHeader from '../../components/LogoHeader'
-import PageLayout from '../../components/PageLayout'
+import LogoHeader from "../../components/LogoHeader"
+import PageLayout from "../../components/PageLayout"
 
-import logo from '../../assets/images/logo.svg'
-import { completeSetup } from '../../context/commActions'
+import logo from "../../assets/images/logo.svg"
+import { completeSetup } from "../../context/commActions"
 
 const ResetDonePage = () => {
     const [confettiActive, setConfettiActive] = useState(false)
@@ -22,10 +22,10 @@ const ResetDonePage = () => {
         dragFriction: 0.12,
         duration: 3000,
         stagger: 3,
-        width: '10px',
-        height: '10px',
-        perspective: '500px',
-        colors: ['#000', '#333', '#666'],
+        width: "10px",
+        height: "10px",
+        perspective: "500px",
+        colors: ["#000", "#333", "#666"],
     }
     return (
         <>
@@ -41,11 +41,13 @@ const ResetDonePage = () => {
                         </span>
                         <div className="flex flex-col md:flex-row items-center space-x-1 w-52 md:w-full mx-auto text-gray-600 text-sm text-center leading-loose">
                             <span>
-                                You're ready to start using Blank Wallet again.
+                                You're ready to start using BlockWallet again.
                                 <br />
-                                The wallet has been reset with a new seed phrase.
+                                The wallet has been reset with a new seed
+                                phrase.
                                 <br />
-                                Access Blank Wallet via the extensions section of your browser.
+                                Access BlockWallet via the extensions section of
+                                your browser.
                             </span>
                         </div>
                     </div>
@@ -53,11 +55,11 @@ const ResetDonePage = () => {
                 <div
                     className="absolute w-64 h-64 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-5"
                     style={{
-                        color: 'blue',
+                        color: "blue",
                         background: `url(${logo})`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'center',
-                        backgroundSize: 'cover',
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "center",
+                        backgroundSize: "cover",
                     }}
                 />
             </PageLayout>

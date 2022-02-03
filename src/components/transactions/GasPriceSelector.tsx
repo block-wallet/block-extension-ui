@@ -1,34 +1,46 @@
 import React, { useState, useEffect, useRef } from "react"
 import { ImCheckmark } from "react-icons/im"
-
 import { BigNumber } from "ethers"
-
-import { capitalize } from "../../util/capitalize"
 import classnames from "classnames"
-import { Classes } from "../../styles/classes"
 import { parseUnits } from "@ethersproject/units"
 import { formatUnits } from "ethers/lib/utils"
-import { useBlankState } from "../../context/background/backgroundHooks"
-import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
-import { useOnClickOutside } from "../../util/useOnClickOutside"
-import CloseIcon from "../icons/CloseIcon"
-import HorizontalSelect from "../input/HorizontalSelect"
-import eth from "../../assets/images/icons/ETH.svg"
-import { formatRounded } from "../../util/formatRounded"
 import { GasPriceLevels } from "@blank/background/controllers/GasPricesController"
 import * as yup from "yup"
 import { InferType } from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { useForm } from "react-hook-form"
-import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
-import Tooltip from "../../components/label/Tooltip"
 import { AiFillInfoCircle } from "react-icons/ai"
-import ErrorMessage from "../error/ErrorMessage"
-import { useGasPriceData } from "../../context/hooks/useGasPriceData"
+import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
+
+// Components
+import HorizontalSelect from "../input/HorizontalSelect"
+import Tooltip from "../../components/label/Tooltip"
 import Spinner from "../Spinner"
 import Dialog from "../dialog/Dialog"
 import { ArrowUpDown } from "../icons/ArrowUpDown"
-import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
+import EndLabel from "../input/EndLabel"
+import WarningDialog from "../dialog/WarningDialog"
+
+// Assets
+import { Classes } from "../../styles/classes"
+import CloseIcon from "../icons/CloseIcon"
+
+// Utils
+import { capitalize } from "../../util/capitalize"
+import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
+import {
+    makeStringNumberFormField,
+    handleKeyDown,
+    handleChangeAmountGwei,
+    handleChangeAmountWei,
+} from "../../util/form"
+import { useOnClickOutside } from "../../util/useOnClickOutside"
+import { formatRounded } from "../../util/formatRounded"
+
+// Context
+import { useBlankState } from "../../context/background/backgroundHooks"
+import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
+import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 
 export type TransactionSpeed = {
     [key: string]: BigNumber
@@ -68,52 +80,10 @@ interface GasTabProps {
 }
 
 // Schema
-const GetAmountYupSchema = (gasLimit: BigNumber, gasPrice: BigNumber) => {
-    return yup.object({
-        gasLimit: yup
-            .string()
-            .required("Gas Limit is required")
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                return !isNaN(parseFloat(value))
-            })
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                const regexp = /^\d+(\.\d+)?$/
-                return regexp.test(value)
-            })
-            .test(
-                "is-correct",
-                "Gas Limit must be a positive number.",
-                (value) => {
-                    if (typeof value != "string") return false
-                    return parseFloat(value) > 0
-                }
-            ),
-        gasPrice: yup
-            .string()
-            .required("Gas price is required")
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                return !isNaN(parseFloat(value))
-            })
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                const regexp = /^\d+(\.\d+)?$/
-                return regexp.test(value)
-            })
-            .test(
-                "is-correct",
-                "Amount must be a positive number.",
-                (value) => {
-                    if (typeof value != "string") return false
-                    return parseFloat(value) >= 0
-                }
-            ),
-    })
-}
-
-const schema = GetAmountYupSchema(BigNumber.from("0"), BigNumber.from("0"))
+const schema = yup.object({
+    gasLimit: makeStringNumberFormField("Gas limit is required", false),
+    gasPrice: makeStringNumberFormField("Gas price is required", true),
+})
 type GasAdvancedForm = InferType<typeof schema>
 
 const GasSelectorAdvanced = (props: GasTabProps) => {
@@ -153,39 +123,6 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
         resolver: yupResolver(schema),
     })
 
-    const handleGasInputChange = (isPriceValue: boolean, event: any) => {
-        let value = event.target.value
-
-        if (isPriceValue) {
-            value = value
-                .replace(",", ".")
-                .replace(/[^0-9.]/g, "")
-                .replace(/(\..*?)\..*/g, "$1")
-
-            if (!value || value === ".") {
-                value = ""
-            }
-
-            setValue("gasPrice", value, {
-                shouldValidate: true,
-            })
-        } else {
-            value = value
-                .replace(",", ".")
-                .replace(/[^0-9]/g, "")
-                .replace(/(\..*?)\..*/g, "$1")
-
-            if (!value || value === "" || value === ".") {
-                value = defaultGasLimit.toString()
-            }
-
-            setValue("gasLimit", value, {
-                shouldValidate: true,
-            })
-        }
-        setUserChanged(true)
-    }
-
     const validateFees = (fees: TransactionFeeData) => {
         // Clean warnings
         setGasLimitWarning("")
@@ -209,8 +146,13 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
         const values = getValues()
 
         const fees: TransactionFeeData = {
-            gasLimit: BigNumber.from(values.gasLimit),
-            gasPrice: parseUnits(values.gasPrice, "gwei"),
+            gasLimit: BigNumber.from(
+                values.gasLimit === "" ? "0" : values.gasLimit
+            ),
+            gasPrice: parseUnits(
+                values.gasPrice === "" ? "0" : values.gasPrice,
+                "gwei"
+            ),
         }
 
         validateFees(fees)
@@ -230,18 +172,6 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
     const [gasPriceWarning, setGasPriceWarning] = useState("")
     const [gasLimitWarning, setGasLimitWarning] = useState("")
 
-    const handleKeyDown = (e: React.KeyboardEvent<any>) => {
-        const amt = Number(e.currentTarget.value)
-        if (
-            !isNaN(Number(e.key)) &&
-            !isNaN(amt) &&
-            amt >= Number.MAX_SAFE_INTEGER
-        ) {
-            e.preventDefault()
-            e.stopPropagation()
-        }
-    }
-
     const handleCustomChange = () => {
         setIsCustom(true)
         setValue("gasLimit", formatUnits(defaultGasLimit, "wei"))
@@ -260,37 +190,45 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
                                 !isCustom && "text-gray-400"
                             )}
                         >
-                            Gas Price (GWEI)
+                            Gas Price
                         </label>
-                        <input
-                            name="gasPrice"
-                            ref={register}
-                            autoComplete="off"
-                            className={classnames(
-                                Classes.inputBordered,
-                                !isCustom && "text-gray-400",
-                                errors.gasPrice
-                                    ? "border-red-400 focus:border-red-600"
-                                    : gasPriceWarning
-                                    ? "border-yellow-400 focus:border-yellow-600"
-                                    : ""
-                            )}
-                            type="text"
-                            onKeyDown={handleKeyDown}
-                            placeholder={formatUnits(
-                                isCustom
-                                    ? selectedGasPrice.gasPrice
-                                    : defaultGasPrice,
-                                "gwei"
-                            )}
-                            onInput={handleGasInputChange.bind(this, true)}
-                            onFocus={() => {
-                                !isCustom && handleCustomChange()
-                            }}
-                            onBlur={() => {
-                                handleBlur()
-                            }}
-                        />
+                        <EndLabel label="GWEI">
+                            <input
+                                name="gasPrice"
+                                ref={register}
+                                autoComplete="off"
+                                className={classnames(
+                                    Classes.inputBordered,
+                                    "w-full",
+                                    !isCustom && "text-gray-400",
+                                    errors.gasPrice
+                                        ? "border-red-400 focus:border-red-600"
+                                        : gasPriceWarning
+                                        ? "border-yellow-400 focus:border-yellow-600"
+                                        : ""
+                                )}
+                                type="text"
+                                onKeyDown={handleKeyDown}
+                                placeholder={formatUnits(
+                                    isCustom
+                                        ? selectedGasPrice.gasPrice
+                                        : defaultGasPrice,
+                                    "gwei"
+                                )}
+                                onInput={handleChangeAmountGwei((value) => {
+                                    setValue("gasPrice", value, {
+                                        shouldValidate: true,
+                                    })
+                                    setUserChanged(true)
+                                })}
+                                onFocus={() => {
+                                    !isCustom && handleCustomChange()
+                                }}
+                                onBlur={() => {
+                                    handleBlur()
+                                }}
+                            />
+                        </EndLabel>
                         {/* ERROR */}
                         <span
                             className={classnames(
@@ -315,35 +253,43 @@ const GasSelectorAdvanced = (props: GasTabProps) => {
                         >
                             Gas Limit
                         </label>
-                        <input
-                            name="gasLimit"
-                            autoComplete="off"
-                            ref={register}
-                            className={classnames(
-                                Classes.inputBordered,
-                                !isCustom && "text-gray-400",
-                                errors.gasLimit
-                                    ? "border-red-400 focus:border-red-600"
-                                    : gasLimitWarning
-                                    ? "border-yellow-400 focus:border-yellow-600"
-                                    : ""
-                            )}
-                            type="text"
-                            onKeyDown={handleKeyDown}
-                            placeholder={formatUnits(
-                                isCustom
-                                    ? selectedGasPrice.gasLimit
-                                    : defaultGasLimit,
-                                "wei"
-                            )}
-                            onInput={handleGasInputChange.bind(this, false)}
-                            onFocus={() => {
-                                !isCustom && handleCustomChange()
-                            }}
-                            onBlur={() => {
-                                handleBlur()
-                            }}
-                        />
+                        <EndLabel label="WEI">
+                            <input
+                                name="gasLimit"
+                                autoComplete="off"
+                                ref={register}
+                                className={classnames(
+                                    Classes.inputBordered,
+                                    "w-full",
+                                    !isCustom && "text-gray-400",
+                                    errors.gasLimit
+                                        ? "border-red-400 focus:border-red-600"
+                                        : gasLimitWarning
+                                        ? "border-yellow-400 focus:border-yellow-600"
+                                        : ""
+                                )}
+                                type="text"
+                                onKeyDown={handleKeyDown}
+                                placeholder={formatUnits(
+                                    isCustom
+                                        ? selectedGasPrice.gasLimit
+                                        : defaultGasLimit,
+                                    "wei"
+                                )}
+                                onInput={handleChangeAmountWei((value) => {
+                                    setValue("gasLimit", value, {
+                                        shouldValidate: true,
+                                    })
+                                    setUserChanged(true)
+                                }, defaultGasLimit.toString())}
+                                onFocus={() => {
+                                    !isCustom && handleCustomChange()
+                                }}
+                                onBlur={() => {
+                                    handleBlur()
+                                }}
+                            />
+                        </EndLabel>
                         {/* ERROR */}
                         <span
                             className={classnames(
@@ -424,7 +370,7 @@ const GasSelectorBasic = (props: GasTabProps) => {
                                         <img
                                             src={defaultNetworkLogo}
                                             alt={symbol}
-                                            width="11px"
+                                            width="20px"
                                             draggable={false}
                                         />
                                     </div>
@@ -494,9 +440,10 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
         isParentLoading = props.isParentLoading ?? false,
     } = props
 
-    const [estimationError, setEstimationError] = useState(
-        props.showEstimationError
+    const [showEstimationWarning, setShowEstimationWarning] = useState(
+        props.showEstimationError ?? false
     )
+
     // State variables
     const {
         nativeCurrency,
@@ -509,10 +456,9 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
 
     const {
         showGasLevels,
-        iconUrls,
+        defaultNetworkLogo,
         nativeCurrency: { decimals: nativeCurrencyDecimals },
     } = useSelectedNetwork()
-    const defaultNetworkLogo = iconUrls ? iconUrls[0] : eth
 
     const [
         transactionSpeeds,
@@ -609,7 +555,6 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
                 setGasPriceAndLimit(defaultGasPrice, defaultGasLimit)
                 setTab(tabs[1])
             }
-            setEstimationError(props.showEstimationError)
             setIsLoaded(true)
         } else {
             if (
@@ -636,6 +581,14 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
         setSelectedGasPrice(price)
         setGasPriceAndLimit(price.gasPrice, price.gasLimit)
     }
+
+    // Effect to check if estimation failed when switching to a new tx
+    useEffect(() => {
+        if (props.showEstimationError && !showEstimationWarning) {
+            setShowEstimationWarning(true)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.showEstimationError])
 
     return (
         <>
@@ -670,7 +623,7 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
                                         <img
                                             src={defaultNetworkLogo}
                                             alt={networkNativeCurrency.symbol}
-                                            width="11px"
+                                            width="20px"
                                             draggable={false}
                                         />
                                     </div>
@@ -692,20 +645,12 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
                     )}
                 </div>
             </div>
-            {estimationError && (
-                <div className="pl-1">
-                    <ErrorMessage error="Gas estimation failed, transaction might fail." />
-                </div>
-            )}
-            {/*{active && (
-                <div
-                    className="bg-white bg-opacity-80 fixed inset-0 w-full h-screen z-50 overflow-hidden flex flex-col items-center justify-center px-6"
-                    style={{ maxWidth: "390px", maxHeight: "600px" }}
-                >
-                    <div
-                        ref={ref}
-                        className="relative py-6 px-3 opacity-100 w-full bg-white shadow-md rounded-md flex-col flex"
-                    >*/}
+            <WarningDialog
+                open={showEstimationWarning}
+                onDone={() => setShowEstimationWarning(false)}
+                title="Gas estimation failed"
+                message="There was an error estimating fee values. This transaction might fail when confirmed."
+            />
             <Dialog open={active} onClickOutside={() => setActive(false)}>
                 <span className="absolute top-0 right-0 p-4 z-50">
                     <div
@@ -789,13 +734,11 @@ export const GasPriceSelector = (props: GasPriceSelectorProps) => {
                             ) => {
                                 handlePriceSelection(option)
                                 setActive(false)
-                                setEstimationError(false)
+                                setShowEstimationWarning(false)
                             }}
                         />
                     </div>
                 </div>
-                {/*</div>*/}
-                {/*</div>*/}
             </Dialog>
         </>
     )

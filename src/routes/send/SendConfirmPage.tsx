@@ -12,9 +12,6 @@ import ErrorMessage from "../../components/error/ErrorMessage"
 // Style
 import classnames from "classnames"
 
-// Assets
-import checkmarkCircle from "../../assets/images/icons/checkmark_circle.svg"
-
 // Utils
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
@@ -49,10 +46,14 @@ import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import { Classes } from "../../styles"
 import SuccessDialog from "../../components/dialog/SuccessDialog"
+import WarningDialog from "../../components/dialog/WarningDialog"
 import { AdvancedSettings } from "../../components/transactions/AdvancedSettings"
 import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
 import { TransactionAdvancedData } from "@blank/background/controllers/transactions/utils/types"
 import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
+import { AccountInfo } from "@blank/background/controllers/AccountTrackerController"
+import { useAddressBook } from "../../context/hooks/useAddressBook"
+import CheckmarkCircle from "../../components/icons/CheckmarkCircle"
 
 // Schema
 const GetAmountYupSchema = (
@@ -166,38 +167,49 @@ const AddressDisplay: FunctionComponent<{
     setShowingTheWholeAddress: React.Dispatch<React.SetStateAction<boolean>>
 }> = ({ showingTheWholeAddress, setShowingTheWholeAddress }) => {
     const history = useOnMountHistory()
-    const accountAddress = history.location.state.address
+    const receivingAddress = history.location.state.address
     const ensSelected: EnsResult = history.location.state.ens
 
+    const { accounts } = useBlankState()!
+    const addressBook = useAddressBook()
+
+    const account =
+        receivingAddress in accounts
+            ? (accounts[receivingAddress] as AccountInfo)
+            : receivingAddress in addressBook
+            ? ({
+                  name: addressBook[receivingAddress].name,
+                  address: addressBook[receivingAddress].address,
+              } as AccountInfo)
+            : undefined
     return (
         <>
             <div
                 className="flex flex-row items-center w-full px-6 py-3 space-x-3"
                 style={{ maxWidth: "100vw" }}
-                title={formatHash(accountAddress, accountAddress.length)}
+                title={formatHash(receivingAddress, receivingAddress.length)}
                 onClick={() =>
                     setShowingTheWholeAddress(!showingTheWholeAddress)
                 }
             >
-                <img
-                    src={checkmarkCircle}
-                    alt="checkmark"
-                    className="w-4 h-4"
-                />
-                {ensSelected ? (
+                <CheckmarkCircle classes="w-4 h-4" />
+                {ensSelected || account?.name ? (
                     <div>
                         <span className="font-bold text-green-500 mr-2">
-                            {ensSelected.name}
+                            {ensSelected ? ensSelected.name : account?.name}
                         </span>
                         <span className="text-gray truncate">
-                            {formatHash(accountAddress)}
+                            {formatHash(receivingAddress)}
                         </span>
                     </div>
                 ) : (
                     <span className="font-bold text-green-500 truncate cursor-pointer">
                         {showingTheWholeAddress
-                            ? formatHash(accountAddress, accountAddress.length)
-                            : formatHash(accountAddress)}
+                            ? formatHash(
+                                  receivingAddress,
+                                  receivingAddress.length
+                              )
+                            : formatHash(receivingAddress)}
                     </span>
                 )}
             </div>
@@ -268,7 +280,7 @@ const SendConfirmPage = () => {
     const { address } = useSelectedAccount()
 
     const isEIP1559Compatible = network.isEIP1559Compatible
-    const accountAddress = history.location.state.address
+    const receivingAddress = history.location.state.address
     const preSelectedAsset = history.location.state.asset
 
     // Tokens
@@ -277,6 +289,10 @@ const SendConfirmPage = () => {
 
     // State
     const [error, setError] = useState("")
+    const [
+        showSendingToTokenAddressWarning,
+        setShowSendingToTokenAddressWarning,
+    ] = useState(false)
     const [saved, setSaved] = useState(false)
     const [txHash, setTxHash] = useState<string>()
     const [isLoading, setIsLoading] = useState(false)
@@ -416,7 +432,7 @@ const SendConfirmPage = () => {
             let txHash: string = ""
             if (selectedToken.token.address === nativeToken.token.address) {
                 txHash = await sendEther(
-                    accountAddress,
+                    receivingAddress,
                     selectedGas as TransactionFeeData,
                     value,
                     transactionAdvancedData
@@ -424,7 +440,7 @@ const SendConfirmPage = () => {
             } else {
                 txHash = await sendToken(
                     selectedToken.token.address,
-                    accountAddress,
+                    receivingAddress,
                     selectedGas as TransactionFeeData,
                     value,
                     transactionAdvancedData
@@ -527,7 +543,7 @@ const SendConfirmPage = () => {
                     estimationSucceeded,
                 } = await getSendTransactionGasLimit(
                     selectedToken.token.address,
-                    accountAddress,
+                    receivingAddress,
                     constants.One
                 )
 
@@ -554,7 +570,18 @@ const SendConfirmPage = () => {
                 setIsGasLoading(false)
             }
         }
+
+        const checkIfSendingToTokenAddress = async () => {
+            if (
+                receivingAddress.toLowerCase() ===
+                selectedToken.token.address.toLowerCase()
+            ) {
+                setShowSendingToTokenAddressWarning(true)
+            }
+        }
+
         fetch()
+        checkIfSendingToTokenAddress()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedToken])
 
@@ -592,6 +619,12 @@ const SendConfirmPage = () => {
                 txHash={txHash}
                 timeout={1400}
                 onDone={() => history.push("/")}
+            />
+            <WarningDialog
+                open={showSendingToTokenAddressWarning}
+                onDone={() => setShowSendingToTokenAddressWarning(false)}
+                title="Sending to token contract address"
+                message="You are trying to send tokens to the selected token's contract address. This might lead to a loss of funds. Please make sure you selected the correct address!"
             />
             <div className="w-full h-full">
                 <div
@@ -655,6 +688,7 @@ const SendConfirmPage = () => {
                                 >
                                     <div className="flex flex-col items-start">
                                         <input
+                                            id="amount"
                                             name="amount"
                                             type="text"
                                             ref={register}
@@ -768,6 +802,7 @@ const SendConfirmPage = () => {
                                         })
                                     }}
                                     showEstimationError={gasEstimationFailed}
+                                    displayOnlyMaxValue
                                 />
                             )}
                             <div className={`${error ? "pl-1 my-2" : null}`}>

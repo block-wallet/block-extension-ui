@@ -15,7 +15,7 @@ import AppIcon from "../../components/icons/AppIcon"
 import { confirmPermission } from "../../context/commActions"
 import { usePendingPermissionRequest } from "../../context/hooks/usePendingPermissionRequest"
 import { Redirect } from "react-router-dom"
-import LoadingOverlay from "../../components/LoadingOverlay"
+import LoadingOverlay from "../../components/loading/LoadingOverlay"
 import { AiFillInfoCircle } from "react-icons/ai"
 import Tooltip from "../../components/label/Tooltip"
 import { useSortedAccounts } from "../../context/hooks/useSortedAccounts"
@@ -37,10 +37,13 @@ const ConnectSteps = () => {
     const { requestCount, requestId, site } = usePendingPermissionRequest()
 
     // State
-    const [selectedAccounts, setSelectedAccounts] = useState<AccountInfo[]>([])
-    const [filteredAccounts, setFilteredAccounts] = useState<AccountInfo[]>(
-        accountsList
-    )
+    const [selectedAccounts, setSelectedAccounts] = useState<AccountInfo[]>([
+        account,
+    ])
+    const [filteredAccounts, setFilteredAccounts] = useState<AccountInfo[]>([
+        account, // Place selected account at the top
+        ...accountsList.filter((a) => a.address !== account.address),
+    ])
 
     const [step, setStep] = useState(1)
     const [allowSite, setAllowSite] = useState(true)
@@ -89,7 +92,7 @@ const ConnectSteps = () => {
         <PopupLayout
             header={
                 <PopupHeader
-                    title="Connect With Blank"
+                    title="Connect With BlockWallet"
                     close={false}
                     disabled={isConfirming}
                     onBack={cancel}
@@ -158,11 +161,7 @@ const ConnectSteps = () => {
                                     )
                                 }}
                             />
-                            {/*<ActionButton
-                                icon={accountAdd}
-                                label="Create New Account"
-                                to="/accounts/create"
-                            />*/}
+
                             <div className="flex flex-row items-center justify-start w-full text-sm space-x-4 cursor-pointer">
                                 <input
                                     type="checkbox"

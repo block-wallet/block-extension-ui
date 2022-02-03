@@ -7,7 +7,7 @@ const Spinner: FunctionComponent<{
     iconTextSeparation?: string
     color?: string
 }> = ({ size = '1rem', text = '', iconTextSeparation = '4px', color = '' }) => (
-    <div style={{ display: 'inline' }}>
+    <div style={{ display: 'inline' }} role="alert" aria-busy="true" aria-label="loading">
         <CgSpinner
             size={size}
             className="animate-spin text-black opacity-50"

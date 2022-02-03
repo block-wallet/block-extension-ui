@@ -135,7 +135,7 @@ const DepositPage = () => {
                             )}
                             display={(option) => (
                                 <div
-                                    title={`Deposit ${option} ${selectedCurrency.toUpperCase()} to Blank`}
+                                    title={`Deposit ${option} ${selectedCurrency.toUpperCase()} to Privacy Pool`}
                                     className="w-full flex flex-row justify-between"
                                 >
                                     <span className="text-left w-22">

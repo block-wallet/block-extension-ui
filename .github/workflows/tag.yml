@@ -21,139 +21,139 @@ jobs:
             name: Testnet
 
         steps:
-          - run: echo "::set-output name=name::ui_${{ github.event.inputs.tag }}_$(date +"%FT%T").zip"
-            id: zip
+            - run: echo "::set-output name=name::ui_${{ github.event.inputs.tag }}_$(date +"%FT%T").zip"
+              id: zip
 
-          - name: Checkout monorepo
-            uses: actions/checkout@v2
-            with:
-              repository: Blank-Wallet/extension
-              ref: refs/heads/master
-              token: ${{ secrets.PAT }}
+            - name: Checkout monorepo
+              uses: actions/checkout@v2
+              with:
+                  repository: block-wallet/extension
+                  ref: refs/heads/master
+                  token: ${{ secrets.PAT }}
 
-          - name: Checkout background
-            uses: actions/checkout@v2
-            with:
-              repository: Blank-Wallet/extension-background
-              ref: refs/heads/master
-              path: packages/background/
-              token: ${{ secrets.PAT }}
+            - name: Checkout background
+              uses: actions/checkout@v2
+              with:
+                  repository: block-wallet/extension-background
+                  ref: refs/heads/master
+                  path: packages/background/
+                  token: ${{ secrets.PAT }}
 
-          - name: Checkout provider
-            uses: actions/checkout@v2
-            with:
-              repository: Blank-Wallet/extension-provider
-              ref: refs/heads/master
-              path: packages/provider/
-              token: ${{ secrets.PAT }}
+            - name: Checkout provider
+              uses: actions/checkout@v2
+              with:
+                  repository: block-wallet/extension-provider
+                  ref: refs/heads/master
+                  path: packages/provider/
+                  token: ${{ secrets.PAT }}
 
-          - name: Checkout make scripts
-            uses: actions/checkout@v2
-            with:
-              repository: Blank-Wallet/blank-make
-              ref: refs/heads/main
-              path: .make
-              token: ${{ secrets.PAT }}
+            - name: Checkout make scripts
+              uses: actions/checkout@v2
+              with:
+                  repository: block-wallet/block-make
+                  ref: refs/heads/main
+                  path: .make
+                  token: ${{ secrets.PAT }}
 
-          - name: Checkout ui commit
-            uses: actions/checkout@v2
-            if: ${{ (github.event.inputs.commit != '') }}
-            with:
-              ref: ${{ github.event.inputs.commit }}
-              path: packages/ui/
+            - name: Checkout ui commit
+              uses: actions/checkout@v2
+              if: ${{ (github.event.inputs.commit != '') }}
+              with:
+                  ref: ${{ github.event.inputs.commit }}
+                  path: packages/ui/
 
-          - name: Checkout ui latest
-            uses: actions/checkout@v2
-            if: ${{ (github.event.inputs.commit == '') }}
-            with:
-              path: packages/ui/
+            - name: Checkout ui latest
+              uses: actions/checkout@v2
+              if: ${{ (github.event.inputs.commit == '') }}
+              with:
+                  path: packages/ui/
 
-          - name: Dependency UI cache
-            uses: actions/cache@v2
-            id: cache-ui
-            with:
-              key: ui-ci-${{ runner.os }}-${{ hashFiles('packages/ui/package.json') }}
-              path: 'packages/ui/node_modules'
+            - name: Dependency UI cache
+              uses: actions/cache@v2
+              id: cache-ui
+              with:
+                  key: ui-ci-${{ runner.os }}-${{ hashFiles('packages/ui/package.json') }}
+                  path: "packages/ui/node_modules"
 
-          - name: Dependency provider cache
-            uses: actions/cache@v2
-            id: cache-provider
-            with:
-              key: ui-ci-${{ runner.os }}-${{ hashFiles('packages/provider/package.json') }}
-              path: 'packages/provider/node_modules'
+            - name: Dependency provider cache
+              uses: actions/cache@v2
+              id: cache-provider
+              with:
+                  key: ui-ci-${{ runner.os }}-${{ hashFiles('packages/provider/package.json') }}
+                  path: "packages/provider/node_modules"
 
-          - name: Dependency background cache
-            if: ${{ github.event.inputs.cache != 'true' }}
-            uses: actions/cache@v2
-            id: cache-background
-            with:
-              key: ui-ci-${{ runner.os }}-${{ hashFiles('packages/background/package.json') }}
-              path: 'packages/background/node_modules'
+            - name: Dependency background cache
+              if: ${{ github.event.inputs.cache != 'true' }}
+              uses: actions/cache@v2
+              id: cache-background
+              with:
+                  key: ui-ci-${{ runner.os }}-${{ hashFiles('packages/background/package.json') }}
+                  path: "packages/background/node_modules"
 
-          - name: Install UI dependencies
-            if: ${{ (steps.cache-ui.outputs.cache-hit != 'true') }} 
-            run: cd packages/ui/ && yarn install --cache-folder .ui-cache
+            - name: Install UI dependencies
+              if: ${{ (steps.cache-ui.outputs.cache-hit != 'true') }}
+              run: cd packages/ui/ && yarn install --cache-folder .ui-cache
 
-          - name: Install background dependencies
-            if: ${{ (steps.cache-background.outputs.cache-hit != 'true') }} 
-            run: cd packages/background/ && yarn install --cache-folder .background-cache
+            - name: Install background dependencies
+              if: ${{ (steps.cache-background.outputs.cache-hit != 'true') }}
+              run: cd packages/background/ && yarn install --cache-folder .background-cache
 
-          - name: Install provider dependencies
-            if: ${{ (steps.cache-provider.outputs.cache-hit != 'true') }} 
-            run: cd packages/provider/ && yarn install --cache-folder .provider-cache
+            - name: Install provider dependencies
+              if: ${{ (steps.cache-provider.outputs.cache-hit != 'true') }}
+              run: cd packages/provider/ && yarn install --cache-folder .provider-cache
 
-          - name: Build extension
-            run: make build
-            env:
-              CI: false
+            - name: Build extension
+              run: make build
+              env:
+                  CI: false
 
-          - name: Zip build
-            run: zip -r -D ${{ steps.zip.outputs.name }} dist/
+            - name: Zip build
+              run: zip -r -D ${{ steps.zip.outputs.name }} dist/
 
-          - name: Configure AWS credentials
-            uses: aws-actions/configure-aws-credentials@v1
-            with:
-              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_RELEASE_BUCKET }}
-              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_RELEASE_BUCKET }}
-              aws-region: us-east-2
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_RELEASE_BUCKET }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_RELEASE_BUCKET }}
+                  aws-region: us-east-2
 
-          - name: Upload zip to S3
-            run: aws s3 cp ${{ steps.zip.outputs.name }} s3://releases.goblank.io/ui/tags/
+            - name: Upload zip to S3
+              run: aws s3 cp ${{ steps.zip.outputs.name }} s3://releases.blockwallet.io/ui/tags/
 
-          - uses: fregante/setup-git-user@v1
+            - uses: fregante/setup-git-user@v1
 
-          - name: Tag commit
-            run: cd packages/ui && git tag -a ${{ github.event.inputs.tag }} ${{ github.event.inputs.commit }} -m "${{ github.event.inputs.message }}"
+            - name: Tag commit
+              run: cd packages/ui && git tag -a ${{ github.event.inputs.tag }} ${{ github.event.inputs.commit }} -m "${{ github.event.inputs.message }}"
 
-          - name: Push tags
-            run: cd packages/ui && git push --tags
+            - name: Push tags
+              run: cd packages/ui && git push --tags
 
-          - name: Slack notification - CI status
-            uses: 8398a7/action-slack@v3
-            with:
-              status: ${{ job.status }}
-              fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-            env:
-              SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-            if: always()
+            - name: Slack notification - CI status
+              uses: 8398a7/action-slack@v3
+              with:
+                  status: ${{ job.status }}
+                  fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+              if: always()
 
-          - name: Slack notification - CI status
-            if: success()
-            uses: 8398a7/action-slack@v3
-            with:
-              status: custom
-              fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-              custom_payload: |
-                {
-                  "attachments": [
-                    {
-                      "color": "#00F6FA",
-                      "pretext": "<http://releases.goblank.io/tags/{{ steps.zip.outputs.name }}|Download> ${{ github.event.inputs.tag }} tag release",
-                      "author_name": "UI ${{ github.event.inputs.tag }}",
-                      "author_link": "https://github.com/Blank-Wallet/extension-ui",
-                      "title": "Tag ${{ github.event.inputs.tag }} has been created in UI"
-                    }
-                  ]
-                }
-            env:
-              SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_RELEASES }}
+            - name: Slack notification - CI status
+              if: success()
+              uses: 8398a7/action-slack@v3
+              with:
+                  status: custom
+                  fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+                  custom_payload: |
+                      {
+                        "attachments": [
+                          {
+                            "color": "#00F6FA",
+                            "pretext": "<http://releases.blockwallet.io/tags/{{ steps.zip.outputs.name }}|Download> ${{ github.event.inputs.tag }} tag release",
+                            "author_name": "UI ${{ github.event.inputs.tag }}",
+                            "author_link": "https://github.com/block-wallet/extension-ui",
+                            "title": "Tag ${{ github.event.inputs.tag }} has been created in UI"
+                          }
+                        ]
+                      }
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_RELEASES }}

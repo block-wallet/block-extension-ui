@@ -39,7 +39,8 @@ const Warning: FunctionComponent<{
             <span className="w-64 text-sm text-center text-gray-500">
                 You are going to withdraw your {currency.toUpperCase()} to the
                 same address you have made a deposit from, which defeats the
-                purpose of Blank and makes your transactions visible.
+                purpose of the privacy pools and makes your transactions
+                visible.
             </span>
         </div>
     </PopupLayout>
@@ -85,7 +86,6 @@ const WithdrawBlankSelectAccount = () => {
             header={
                 <PopupHeader
                     title="Withdraw From Privacy Pool"
-                    close="/"
                     onBack={() => {
                         history.push({
                             pathname: "/privacy/withdraw/select",

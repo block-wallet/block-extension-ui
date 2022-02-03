@@ -132,6 +132,7 @@ export const PopupTransactions = () => (
                     optimism: { lastBlockQueried: 500, list: {} },
                     bsc: { lastBlockQueried: 500, list: {} },
                     polygon: { lastBlockQueried: 500, list: {} },
+                    avalancheC: { lastBlockQueried: 500, list: {} },
                     bsc_testnet: { lastBlockQueried: 500, list: {} },
                     kovan: { lastBlockQueried: 500, list: {} },
                     ropsten: { lastBlockQueried: 500, list: {} },
@@ -209,28 +210,17 @@ export const TransactionConfirm = () => (
                         name: "Swap Exact E T H For Tokens",
                     },
                     transactionParams: {
-                        value: {
-                            _hex: "0x2386f26fc10000",
-                            _isBigNumber: true,
-                        } as BigNumber,
+                        value: BigNumber.from("0x056bc75e2d63100000"),
                         from: "0xd7Fd7EDcb7376c490b0e45e391e8040928F73081",
                         to: "0xe592427a0aece92de3edee1f18e0157c05861564",
                         gasLimit: {
                             _hex: "0x024acb",
                             _isBigNumber: true,
                         } as BigNumber,
-                        // gasPrice: {
-                        //   _hex: '0xe8d4a51000',
-                        //   _isBigNumber: true,
-                        // } as BigNumber,
-                        maxPriorityFeePerGas: {
-                            _hex: "0x3b9aca00",
-                            _isBigNumber: true,
-                        } as BigNumber,
-                        maxFeePerGas: {
-                            _hex: "0x02540be400",
-                            _isBigNumber: true,
-                        } as BigNumber,
+                        gasPrice: BigNumber.from(111111111110),
+
+                        maxPriorityFeePerGas: BigNumber.from(111111111110),
+                        maxFeePerGas: BigNumber.from(111111111110),
                     },
                     loadingGasValues: false,
                     gasEstimationFailed: true,
@@ -271,10 +261,10 @@ export const TransactionConfirm = () => (
                             _hex: "0x024acb",
                             _isBigNumber: true,
                         } as BigNumber,
-                        // gasPrice: {
-                        //   _hex: '0xe8d4a51000',
-                        //   _isBigNumber: true,
-                        // } as BigNumber,
+                        gasPrice: {
+                            _hex: "0xe8d4a51000",
+                            _isBigNumber: true,
+                        } as BigNumber,
                         maxPriorityFeePerGas: {
                             _hex: "0x3b9aca00",
                             _isBigNumber: true,
@@ -304,10 +294,10 @@ export const SwitchEthereumChain = () => (
         assignBlankState={{
             dappRequests: {
                 "1": {
-                    origin: "http://app.goblank.io/",
+                    origin: "http://app.blockwallet.io/",
                     siteMetadata: {
-                        name: "GoBlank",
-                        iconURL: "http://app.goblank.io/icons/icon-128.png",
+                        name: "BlockWallet",
+                        iconURL: "http://app.blockwallet.io/icons/icon-128.png",
                     },
                     time: 1,
                     type: DappReq.SWITCH_NETWORK,

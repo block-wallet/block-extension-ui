@@ -15,7 +15,7 @@ import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import ErrorMessage from "../../components/error/ErrorMessage"
 import { Classes } from "../../styles"
 import SuccessDialog from "../../components/dialog/SuccessDialog"
-import LoadingOverlay from "../../components/LoadingOverlay"
+import LoadingOverlay from "../../components/loading/LoadingOverlay"
 import { DappRequest, DappRequestProps } from "./DappRequest"
 
 const SwitchEthereumChainPage = () => {
@@ -114,7 +114,6 @@ const SwitchEthereumChain: FunctionComponent<DappRequestProps> = ({
         try {
             setIsConfirming(true)
             await confirmDappRequest(requestId, true)
-            await new Promise((resolve) => setTimeout(resolve, 600))
         } catch (err) {
             setError(err.message)
         } finally {
@@ -125,8 +124,7 @@ const SwitchEthereumChain: FunctionComponent<DappRequestProps> = ({
     const reject = async () => {
         try {
             setIsConfirming(true)
-            confirmDappRequest(requestId, false)
-            await new Promise((resolve) => setTimeout(resolve, 600))
+            await confirmDappRequest(requestId, false)
         } catch (err) {
             setError(err.message)
         } finally {
@@ -181,8 +179,8 @@ const SwitchEthereumChain: FunctionComponent<DappRequestProps> = ({
                         Allow this site to switch the network?
                     </span>
                     <span className="text-gray-500">
-                        This will switch the selected network within Blank
-                        Wallet to a previously added network:
+                        This will switch the selected network within BlockWallet
+                        to a previously added network:
                     </span>
                 </div>
 

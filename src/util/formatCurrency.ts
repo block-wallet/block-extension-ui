@@ -7,8 +7,8 @@ const DEFAULT_LOCALE_INFO = "en-US"
 const DEFAULT_CURRENCY = "USD"
 const DEFAULT_DECIMAL_PRECISION = 2
 
-const CURRENCY_SYMBOLS: {[key:string]: string} = {
-    "USD": "$",
+const CURRENCY_SYMBOLS: { [key: string]: string } = {
+    USD: "$",
 }
 
 export type formatCurrencyOptions = {
@@ -34,12 +34,8 @@ export function formatCurrency(
     currencyAmount: number,
     options?: formatCurrencyOptions
 ): string {
-    if (options?.returnNonBreakingSpace && !currencyAmount) {
-        return "\u200b"
-    }
-
-    if (!currencyAmount) {
-        return ""
+    if (currencyAmount === null || currencyAmount === undefined) {
+        return options?.returnNonBreakingSpace ? "\u200b" : ""
     }
 
     const locale_info: string = options?.locale_info || DEFAULT_LOCALE_INFO
@@ -48,7 +44,10 @@ export function formatCurrency(
     const precision: number = options?.precision || DEFAULT_DECIMAL_PRECISION
 
     const showCurrency = options?.showCurrency ?? true
-    const symbol = options?.showSymbol && currency in CURRENCY_SYMBOLS ? CURRENCY_SYMBOLS[currency] : ""
+    const symbol =
+        options?.showSymbol && currency in CURRENCY_SYMBOLS
+            ? CURRENCY_SYMBOLS[currency]
+            : ""
 
     const formatter = new Intl.NumberFormat(locale_info, {
         style: "decimal",
@@ -57,5 +56,7 @@ export function formatCurrency(
         maximumFractionDigits: precision,
     })
 
-    return `${symbol}${formatter.format(currencyAmount)} ${showCurrency ? currency : ""}`
+    return `${symbol}${formatter.format(currencyAmount)} ${
+        showCurrency ? currency : ""
+    }`
 }

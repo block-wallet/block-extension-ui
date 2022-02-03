@@ -1,32 +1,47 @@
+import React, { FunctionComponent, useRef, useState, useEffect } from "react"
 import classnames from "classnames"
 import { BigNumber } from "ethers"
-import React, { FunctionComponent, useRef, useState } from "react"
-import { Classes } from "../../styles"
-import { capitalize } from "../../util/capitalize"
-import { useOnClickOutside } from "../../util/useOnClickOutside"
-import CloseIcon from "../icons/CloseIcon"
-import HorizontalSelect from "../input/HorizontalSelect"
-import eth from "../../assets/images/icons/ETH.svg"
-import { ImCheckmark } from "react-icons/im"
-import { useBlankState } from "../../context/background/backgroundHooks"
+
 import { formatUnits, parseUnits } from "ethers/lib/utils"
-import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
-import { formatRounded } from "../../util/formatRounded"
-import { useEffect } from "react"
-import { GasPriceLevels } from "@blank/background/controllers/GasPricesController"
 import * as yup from "yup"
 import { InferType } from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { useForm } from "react-hook-form"
-import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
+import { GasPriceLevels } from "@blank/background/controllers/GasPricesController"
+import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
+
+// Components
+import HorizontalSelect from "../input/HorizontalSelect"
 import Tooltip from "../../components/label/Tooltip"
 import { AiFillInfoCircle } from "react-icons/ai"
-import ErrorMessage from "../error/ErrorMessage"
-import { useGasPriceData } from "../../context/hooks/useGasPriceData"
+import { ImCheckmark } from "react-icons/im"
 import Spinner from "../Spinner"
-import { ArrowUpDown } from "../icons/ArrowUpDown"
 import Dialog from "../dialog/Dialog"
-import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
+import EndLabel from "../input/EndLabel"
+import { ButtonWithLoading as Button } from "../button/ButtonWithLoading"
+
+// Utils
+import { capitalize } from "../../util/capitalize"
+import {
+    handleKeyDown,
+    handleChangeAmountGwei,
+    handleChangeAmountWei,
+    makeStringNumberFormField,
+} from "../../util/form"
+import { useOnClickOutside } from "../../util/useOnClickOutside"
+import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
+import { formatRounded } from "../../util/formatRounded"
+
+// Assets
+import { Classes } from "../../styles"
+import { ArrowUpDown } from "../icons/ArrowUpDown"
+import CloseIcon from "../icons/CloseIcon"
+
+// Context
+import { useBlankState } from "../../context/background/backgroundHooks"
+import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
+import { useGasPriceData } from "../../context/hooks/useGasPriceData"
+import WarningDialog from "../dialog/WarningDialog"
 
 interface GasComponentProps {
     symbol: string
@@ -42,6 +57,8 @@ interface GasPriceOption {
     label: string
     gasFees: TransactionFeeData
     //EIP-1559: range
+    totalETHCostRange: string
+    totalNativeCurrencyCostRange: string
     totalETHCost: string
     totalNativeCurrencyCost: string
 }
@@ -82,10 +99,21 @@ const GasSelectorBasic = (props: GasComponentProps) => {
         symbol,
     } = props
 
+    const nativeCurrencyWidths = options.map((option) => {
+        const nativeIntLenght = option.totalNativeCurrencyCost
+            .replace("$", "")
+            .replace(/\.[0-9]+/, "")
+            .trim().length
+
+        return `w-${
+            nativeIntLenght === 1 ? 28 : nativeIntLenght === 2 ? 32 : 40
+        }`
+    })
+
     return (
         <div className="flex flex-col w-full">
             <div className="flex flex-col w-full space-y">
-                {options.map((option) => (
+                {options.map((option, i) => (
                     <div
                         key={option.label}
                         className="w-full flex flex-row items-center p-2 cursor-pointer rounded-md hover:bg-gray-100"
@@ -104,7 +132,7 @@ const GasSelectorBasic = (props: GasComponentProps) => {
                                 {option.label}
                             </label>{" "}
                             <div className="flex flex-row w-full items-center justify-start">
-                                <div className="w-36">
+                                <div className={nativeCurrencyWidths[i]}>
                                     <span
                                         className={classnames(
                                             "text-xs",
@@ -113,7 +141,7 @@ const GasSelectorBasic = (props: GasComponentProps) => {
                                                 "text-primary-300"
                                         )}
                                     >
-                                        {option.totalNativeCurrencyCost}
+                                        {option.totalNativeCurrencyCostRange}
                                     </span>
                                 </div>
                                 <div className="flex flex-row space-x-2 items-center justify-start w-44">
@@ -121,7 +149,7 @@ const GasSelectorBasic = (props: GasComponentProps) => {
                                         <img
                                             src={nativeCurrencyIcon}
                                             alt={symbol}
-                                            width="11px"
+                                            width="20px"
                                             draggable={false}
                                         />
                                     </div>
@@ -134,7 +162,7 @@ const GasSelectorBasic = (props: GasComponentProps) => {
                                                     "text-primary-300"
                                             )}
                                         >
-                                            {option.totalETHCost}
+                                            {option.totalETHCostRange}
                                         </span>
                                     </div>
                                 </div>
@@ -158,80 +186,14 @@ const GasSelectorBasic = (props: GasComponentProps) => {
 }
 
 // Schema
-const GetAmountYupSchema = (
-    gasLimit: BigNumber,
-    maxPriorityFeePerGas: BigNumber,
-    maxFeePerGas: BigNumber
-) => {
-    return yup.object({
-        gasLimit: yup
-            .string()
-            .required("Gas Limit is required")
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                return !isNaN(parseFloat(value))
-            })
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                const regexp = /^\d+(\.\d+)?$/
-                return regexp.test(value)
-            })
-            .test(
-                "is-correct",
-                "Gas Limit must be a positive number.",
-                (value) => {
-                    if (typeof value != "string") return false
-                    return parseFloat(value) > 0
-                }
-            ),
-        maxPriorityFeePerGas: yup
-            .string()
-            .required("Max tip is required")
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                return !isNaN(parseFloat(value))
-            })
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                const regexp = /^\d+(\.\d+)?$/
-                return regexp.test(value)
-            })
-            .test(
-                "is-correct",
-                "Amount must be a positive number.",
-                (value) => {
-                    if (typeof value != "string") return false
-                    return parseFloat(value) >= 0
-                }
-            ),
-        maxFeePerGas: yup
-            .string()
-            .required("Max fee is required")
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                return !isNaN(parseFloat(value))
-            })
-            .test("is-correct", "Please enter a number.", (value) => {
-                if (typeof value != "string") return false
-                const regexp = /^\d+(\.\d+)?$/
-                return regexp.test(value)
-            })
-            .test(
-                "is-correct",
-                "Amount must be a positive number.",
-                (value) => {
-                    if (typeof value != "string") return false
-                    return parseFloat(value) > 0
-                }
-            ),
-    })
-}
-
-const schema = GetAmountYupSchema(
-    BigNumber.from("0"),
-    BigNumber.from("0"),
-    BigNumber.from("0")
-)
+const schema = yup.object({
+    gasLimit: makeStringNumberFormField("Gas Limit is required", false),
+    maxPriorityFeePerGas: makeStringNumberFormField(
+        "Max tip is required",
+        true
+    ),
+    maxFeePerGas: makeStringNumberFormField("Max fee is required", false),
+})
 type GasAdvancedForm = InferType<typeof schema>
 
 // Advanced tab. Allows users to enter manual fee values.
@@ -265,6 +227,7 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
         errors,
         setValue,
         getValues,
+        setError,
     } = useForm<GasAdvancedForm>({
         defaultValues: {
             gasLimit: formatUnits(
@@ -317,7 +280,9 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
         }
 
         if (fees.maxFeePerGas?.lt(baseFee.add(fees.maxPriorityFeePerGas!))) {
-            setMaxFeeWarning("Max fee lower than base fee + tip")
+            setError("maxFeePerGas", {
+                message: "Max fee lower than base fee + tip",
+            })
         }
 
         if (
@@ -350,12 +315,19 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
         const values = getValues()
 
         const fees: TransactionFeeData = {
-            gasLimit: BigNumber.from(values.gasLimit),
+            gasLimit: BigNumber.from(
+                values.gasLimit === "" ? "0" : values.gasLimit
+            ),
             maxPriorityFeePerGas: parseUnits(
-                values.maxPriorityFeePerGas,
+                values.maxPriorityFeePerGas === ""
+                    ? "0"
+                    : values.maxPriorityFeePerGas,
                 "gwei"
             ),
-            maxFeePerGas: parseUnits(values.maxFeePerGas, "gwei"),
+            maxFeePerGas: parseUnits(
+                values.maxFeePerGas === "" ? "0" : values.maxFeePerGas,
+                "gwei"
+            ),
         }
 
         validateFees(fees)
@@ -379,55 +351,6 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
     const [tipWarning, setTipWarning] = useState("")
     const [maxFeeWarning, setMaxFeeWarning] = useState("")
 
-    const handleKeyDown = (e: React.KeyboardEvent<any>) => {
-        const amt = Number(e.currentTarget.value)
-        if (
-            !isNaN(Number(e.key)) &&
-            !isNaN(amt) &&
-            amt >= Number.MAX_SAFE_INTEGER
-        ) {
-            e.preventDefault()
-            e.stopPropagation()
-        }
-    }
-
-    const handleChangeGasLimit = (event: any) => {
-        let value = event.target.value
-
-        value = value
-            .replace(",", ".")
-            .replace(/[^0-9]/g, "")
-            .replace(/(\..*?)\..*/g, "$1")
-
-        if (!value || value === "" || value === ".") {
-            value = defaultFees.gasLimit!.toString()
-        }
-
-        setValue("gasLimit", value, {
-            shouldValidate: true,
-        })
-    }
-
-    const handleChangeAmount = (
-        field: "gasLimit" | "maxPriorityFeePerGas" | "maxFeePerGas",
-        event: any
-    ) => {
-        let value = event.target.value
-
-        value = value
-            .replace(",", ".")
-            .replace(/[^0-9.]/g, "")
-            .replace(/(\..*?)\..*/g, "$1")
-
-        if (!value || value === ".") {
-            value = ""
-        }
-
-        setValue(field, value, {
-            shouldValidate: true,
-        })
-    }
-
     return (
         <div className="flex flex-col w-full">
             <div className="flex flex-col w-full space-y-3 px-3 pb-3">
@@ -435,38 +358,42 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
                     <label className="leading-loose text-xs font-medium mb-1 text-gra">
                         Gas Limit
                     </label>
-                    <div className="flex flex-row relative w-full">
-                        <input
-                            type="text"
-                            name="gasLimit"
-                            ref={register}
-                            className={classnames(
-                                Classes.inputBordered,
-                                !isCustom && "text-gray-400",
-                                errors.gasLimit
-                                    ? "border-red-400 focus:border-red-600"
-                                    : gasLimitWarning
-                                    ? "border-yellow-400 focus:border-yellow-600"
-                                    : ""
-                            )}
-                            autoComplete="off"
-                            onKeyDown={handleKeyDown}
-                            onInput={handleChangeGasLimit}
-                            placeholder={formatUnits(
-                                isCustom
-                                    ? selectedOption.gasFees.gasLimit!
-                                    : defaultFees.gasLimit!,
-                                "wei"
-                            )}
-                            onFocus={() => {
-                                !isCustom && handleCustomChange()
-                            }}
-                            onBlur={() => {
-                                handleBlur()
-                            }}
-                            tabIndex={1}
-                        />
-                    </div>
+                    <input
+                        type="text"
+                        name="gasLimit"
+                        ref={register}
+                        className={classnames(
+                            Classes.inputBordered,
+                            "w-full",
+                            !isCustom && "text-gray-400",
+                            errors.gasLimit
+                                ? "border-red-400 focus:border-red-600"
+                                : gasLimitWarning
+                                ? "border-yellow-400 focus:border-yellow-600"
+                                : ""
+                        )}
+                        autoComplete="off"
+                        onKeyDown={handleKeyDown}
+                        onInput={handleChangeAmountWei((value) => {
+                            setValue("gasLimit", value, {
+                                shouldValidate: true,
+                            })
+                        })}
+                        placeholder={formatUnits(
+                            isCustom
+                                ? selectedOption.gasFees.gasLimit!
+                                : defaultFees.gasLimit!,
+                            "wei"
+                        )}
+                        onFocus={() => {
+                            !isCustom && handleCustomChange()
+                        }}
+                        onBlur={() => {
+                            handleBlur()
+                        }}
+                        tabIndex={1}
+                    />
+
                     {/* ERROR */}
                     <span
                         className={classnames(
@@ -485,7 +412,7 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
                     <label className="leading-loose text-xs font-medium  mb-1">
                         Max Tip (per gas)
                     </label>
-                    <div className="flex flex-row relative w-full">
+                    <EndLabel label="GWEI">
                         <input
                             type="text"
                             name="maxPriorityFeePerGas"
@@ -502,10 +429,11 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
                             )}
                             autoComplete="off"
                             onKeyDown={handleKeyDown}
-                            onInput={handleChangeAmount.bind(
-                                this,
-                                "maxPriorityFeePerGas"
-                            )}
+                            onInput={handleChangeAmountGwei((value) => {
+                                setValue("maxPriorityFeePerGas", value, {
+                                    shouldValidate: true,
+                                })
+                            })}
                             placeholder={formatUnits(
                                 isCustom
                                     ? selectedOption.gasFees
@@ -528,7 +456,7 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
                         >
                             <span className="text-gray-500 text-sm">GWEI</span>
                         </div>
-                    </div>
+                    </EndLabel>
                     {/* ERROR */}
                     <span
                         className={classnames(
@@ -547,7 +475,7 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
                 </div>
                 <div className="flex flex-col relative">
                     <label className="leading-loose text-xs font-medium  mb-1">
-                        Max Price (per gas)
+                        Max fee (per gas)
                     </label>
                     <div className="flex flex-row relative w-full">
                         <input
@@ -566,10 +494,11 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
                             )}
                             autoComplete="off"
                             onKeyDown={handleKeyDown}
-                            onInput={handleChangeAmount.bind(
-                                this,
-                                "maxFeePerGas"
-                            )}
+                            onInput={handleChangeAmountGwei((value) => {
+                                setValue("maxFeePerGas", value, {
+                                    shouldValidate: true,
+                                })
+                            })}
                             placeholder={formatUnits(
                                 isCustom
                                     ? selectedOption.gasFees.maxFeePerGas!
@@ -613,13 +542,17 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
             <div>
                 <hr className="absolute left-0 border-0.5 border-gray-200 w-full" />
                 <div className="flex flex-row w-full items-center pt-5 justify-between space-x-4 mt-auto px-4">
-                    <button
+                    <Button
+                        label="Save"
+                        buttonClass={Classes.button}
                         type="button"
-                        className={classnames(Classes.button)}
                         onClick={handleSave}
-                    >
-                        Save
-                    </button>
+                        disabled={
+                            Object.values(errors).filter(
+                                (v) => v.message !== ""
+                            ).length > 0
+                        }
+                    />
                 </div>
             </div>
         </div>
@@ -647,12 +580,14 @@ const GasPriceComponent: FunctionComponent<{
     disabled?: boolean
     isParentLoading?: boolean
     showEstimationError?: boolean
+    displayOnlyMaxValue?: boolean
 }> = ({
     defaultGas,
     setGas,
     isParentLoading,
     disabled,
     showEstimationError,
+    displayOnlyMaxValue = false,
 }) => {
     //Popup variables
     const ref = useRef(null)
@@ -673,16 +608,17 @@ const GasPriceComponent: FunctionComponent<{
     } = useGasPriceData()
 
     const {
-        iconUrls,
+        defaultNetworkLogo,
         nativeCurrency: { decimals: nativeCurrencyDecimals },
     } = useSelectedNetwork()
-    const defaultNetworkLogo = iconUrls ? iconUrls[0] : eth
 
     const [baseFee, setBaseFee] = useState<BigNumber>(
         BigNumber.from(baseFeePerGas)
     )
 
-    const [estimationError, setEstimationError] = useState(showEstimationError)
+    const [showEstimationWarning, setShowEstimationWarning] = useState(
+        showEstimationError ?? false
+    )
 
     const [
         transactionSpeeds,
@@ -698,7 +634,6 @@ const GasPriceComponent: FunctionComponent<{
             .mul(BigNumber.from(25))
             .div(BigNumber.from(100))
         const minBaseFee = baseFee.sub(percentage)
-
         const minValue = minBaseFee
             .add(gasFees.maxPriorityFeePerGas!)
             .mul(gasFees.gasLimit!)
@@ -708,6 +643,8 @@ const GasPriceComponent: FunctionComponent<{
 
         // When the user is applying a custom value, we check if the maxValue calculated is lower than the minValue, it means that the maxFee that the user is willing
         // to pay is lower than the min value calculated using baseFee + tip, so we will only display that value and not a range
+
+        // Flag to determinate if we should display only a max value
 
         const minValueNativeCurrency = formatCurrency(
             toCurrencyAmount(
@@ -720,6 +657,7 @@ const GasPriceComponent: FunctionComponent<{
                 locale_info: localeInfo,
                 showCurrency: false,
                 showSymbol: true,
+                precision: 2,
             }
         )
 
@@ -734,29 +672,50 @@ const GasPriceComponent: FunctionComponent<{
                 locale_info: localeInfo,
                 showCurrency: false,
                 showSymbol: true,
+                precision: 2,
             }
         )
 
-        const totalETHCost =
-            label !== "Custom" || minValue.lte(maxValue)
-                ? `${formatRounded(
-                      formatUnits(minValue.lt(maxValue) ? minValue : maxValue),
+        const minValueFormatted = formatRounded(
+            formatUnits(minValue.lt(maxValue) ? minValue : maxValue),
+            5
+        )
 
-                      5
-                  )} - ${formatRounded(
-                      formatUnits(minValue.gt(maxValue) ? minValue : maxValue),
-                      5
-                  )}`
+        const maxValueFormatted = formatRounded(
+            formatUnits(minValue.gt(maxValue) ? minValue : maxValue),
+            5
+        )
+
+        // For parent's label, apply displayOnlyMaxValue flag. Otherwise always display range
+        const totalETHCost =
+            (label !== "Custom" || minValue.lte(maxValue)) &&
+            !displayOnlyMaxValue
+                ? `${minValueFormatted} - ${maxValueFormatted}`
                 : `${formatRounded(formatUnits(maxValue), 5)}`
+
+        const totalNativeCurrencyCost =
+            (label !== "Custom" || minValue.lte(maxValue)) &&
+            !displayOnlyMaxValue
+                ? `${minValueNativeCurrency} - ${maxValueNativeCurrency}`
+                : maxValueNativeCurrency
+
+        const totalETHCostRange =
+            label !== "Custom" || minValue.lte(maxValue)
+                ? `${minValueFormatted} - ${maxValueFormatted}`
+                : `${formatRounded(formatUnits(maxValue), 5)}`
+
+        const totalNativeCurrencyCostRange =
+            label !== "Custom" || minValue.lte(maxValue)
+                ? `${minValueNativeCurrency} - ${maxValueNativeCurrency}`
+                : maxValueNativeCurrency
 
         return {
             label,
             gasFees,
             totalETHCost,
-            totalNativeCurrencyCost:
-                label !== "Custom" || minValue.lte(maxValue)
-                    ? `${minValueNativeCurrency} - ${maxValueNativeCurrency}`
-                    : maxValueNativeCurrency,
+            totalNativeCurrencyCost,
+            totalETHCostRange,
+            totalNativeCurrencyCostRange,
         } as GasPriceOption
     }
 
@@ -832,14 +791,19 @@ const GasPriceComponent: FunctionComponent<{
                 setGas(selectedGas!.gasFees!)
             }
         }
-
-        setEstimationError(showEstimationError)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isParentLoading, gasPricesLevels, defaultGas.feeData.gasLimit])
 
     useEffect(() => {
         setBaseFee(BigNumber.from(baseFeePerGas))
     }, [baseFeePerGas])
+
+    // Effect to check if estimation failed when switching to a new tx
+    useEffect(() => {
+        if (showEstimationError && !showEstimationWarning)
+            setShowEstimationWarning(true)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showEstimationError])
 
     return (
         <>
@@ -856,7 +820,12 @@ const GasPriceComponent: FunctionComponent<{
                     setActive(!active)
                 }
             >
-                <div className="flex justify-start w-full">
+                <div
+                    className={classnames(
+                        "flex justify-start w-full items-center",
+                        displayOnlyMaxValue && "space-x-4"
+                    )}
+                >
                     <div className={"text-xs font-semibold"}>
                         {isParentLoading || !isLoaded
                             ? "Loading prices..."
@@ -864,30 +833,49 @@ const GasPriceComponent: FunctionComponent<{
                     </div>
 
                     <div className="flex flex-row w-full items-center justify-around text-xs">
-                        <span className="text-xs text-gray-600">
-                            {!isParentLoading && isLoaded
-                                ? selectedGas!.totalNativeCurrencyCost
-                                : ""}
-                        </span>
-                        <div className="flex flex-row space-x-1 items-center justify-self-end">
-                            {!isParentLoading && isLoaded && (
-                                <>
-                                    <div className="justify-self-start">
+                        {!isParentLoading &&
+                            isLoaded &&
+                            (displayOnlyMaxValue ? (
+                                <div className="flex flex-row w-full items-center space-x-4">
+                                    <span className="text-xs text-gray-600">
+                                        {selectedGas!.totalNativeCurrencyCost}
+                                    </span>
+                                    <div className="flex flex-row space-x-1 items-center">
                                         <img
                                             src={defaultNetworkLogo}
                                             alt={networkNativeCurrency.symbol}
-                                            width="11px"
+                                            width="20px"
                                             draggable={false}
                                         />
-                                    </div>
-                                    <div className="w-full">
                                         <span className="text-xs">
                                             {selectedGas!.totalETHCost}
                                         </span>
                                     </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <span className="text-xs text-gray-600">
+                                        {selectedGas!.totalNativeCurrencyCost}
+                                    </span>
+                                    <div className="flex flex-row space-x-1 items-center justify-self-end">
+                                        <div className="justify-self-start">
+                                            <img
+                                                src={defaultNetworkLogo}
+                                                alt={
+                                                    networkNativeCurrency.symbol
+                                                }
+                                                width="20px"
+                                                draggable={false}
+                                            />
+                                        </div>
+                                        <div className="w-full">
+                                            <span className="text-xs">
+                                                {selectedGas!.totalETHCost}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </>
-                            )}
-                        </div>
+                            ))}
                     </div>
                 </div>
                 <div className="flex justify-end items-center w-4 h-full">
@@ -898,22 +886,15 @@ const GasPriceComponent: FunctionComponent<{
                     )}
                 </div>
             </div>
-            {estimationError && (
-                <div className="pl-1">
-                    <ErrorMessage error="Gas estimation failed, transaction might fail." />
-                </div>
-            )}
+            <WarningDialog
+                open={showEstimationWarning}
+                onDone={() => setShowEstimationWarning(false)}
+                title="Gas estimation failed"
+                message="There was an error estimating fee values. This transaction might fail when confirmed."
+            />
             {/* Modal */}
-            {/*{active && (
-                <div
-                    className="bg-white bg-opacity-80 fixed inset-0 w-full h-screen z-50 overflow-hidden flex flex-col items-center justify-center px-6"
-                    style={{ maxWidth: "390px", maxHeight: "600px" }}
-                >*/}
+
             <Dialog open={active} onClickOutside={() => setActive(false)}>
-                {/*<div
-                    ref={ref}
-                    className="relative py-6 px-3 opacity-100 w-full bg-white shadow-md rounded-md flex-col flex"
-                >*/}
                 <span className="absolute top-0 right-0 p-4 z-50">
                     <div
                         onClick={() => setActive(false)}
@@ -985,7 +966,7 @@ const GasPriceComponent: FunctionComponent<{
                             setSelectedGas={(option: GasPriceOption) => {
                                 setSelectedGas(option)
                                 setGas(option.gasFees)
-                                setEstimationError(false)
+                                setShowEstimationWarning(false)
                                 setActive(false)
                             }}
                             getGasOption={getGasOption}

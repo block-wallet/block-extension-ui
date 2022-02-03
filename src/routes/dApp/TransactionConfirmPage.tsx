@@ -1,52 +1,70 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
+import { Redirect } from "react-router-dom"
+import { BsFileEarmarkText } from "react-icons/bs"
+import { AiFillInfoCircle } from "react-icons/ai"
+import { formatUnits, getAddress } from "ethers/lib/utils"
+import { HiOutlineExclamationCircle } from "react-icons/hi"
+
+import { BigNumber } from "ethers"
+
+// Styles
+import { Classes, classnames } from "../../styles"
+
+// Components
 import PopupFooter from "../../components/popup/PopupFooter"
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
-import { Classes, classnames } from "../../styles"
-import arrowRight from "../../assets/images/icons/arrow_right_black.svg"
 import AccountIcon from "../../components/icons/AccountIcon"
-import eth from "../../assets/images/icons/ETH.svg"
-import { useUnapprovedTransaction } from "../../context/hooks/useUnapprovedTransaction"
-import { formatUnits, getAddress } from "ethers/lib/utils"
 import CopyTooltip from "../../components/label/СopyToClipboardTooltip"
-import { formatName } from "../../util/formatAccount"
+import Tooltip from "../../components/label/Tooltip"
+import LoadingOverlay from "../../components/loading/LoadingOverlay"
+import LoadingDots from "../../components/loading/LoadingDots"
+import GasPriceComponent from "../../components/transactions/GasPriceComponent"
+import CheckBoxDialog from "../../components/dialog/CheckboxDialog"
+import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import SuccessDialog from "../../components/dialog/SuccessDialog"
+import { AdvancedSettings } from "../../components/transactions/AdvancedSettings"
+import { GasPriceSelector } from "../../components/transactions/GasPriceSelector"
+import GenericTooltip from "../../components/label/GenericTooltip"
+
+// Asset
+import arrowRight from "../../assets/images/icons/arrow_right_black.svg"
+
+// Context
+import { useSelectedAccountBalance } from "../../context/hooks/useSelectedAccountBalance"
 import { useBlankState } from "../../context/background/backgroundHooks"
-import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
-import { BigNumber } from "ethers"
+import { useUnapprovedTransaction } from "../../context/hooks/useUnapprovedTransaction"
+import useNextRequestRoute from "../../context/hooks/useNextRequestRoute"
+import { useUserSettings } from "../../context/hooks/useUserSettings"
+import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
+import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
+import { TransactionAdvancedData } from "@blank/background/controllers/transactions/utils/types"
 import {
     confirmTransaction,
     rejectTransaction,
     setUserSettings,
 } from "../../context/commActions"
-import { useSelectedAccountBalance } from "../../context/hooks/useSelectedAccountBalance"
-import { useEffect } from "react"
-import { HiOutlineExclamationCircle } from "react-icons/hi"
+
+// Utils
+import { formatName } from "../../util/formatAccount"
+import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
 import { getAccountColor } from "../../util/getAccountColor"
 import { formatNumberLength } from "../../util/formatNumberLength"
-import { Redirect } from "react-router-dom"
-import { GasPriceSelector } from "../../components/transactions/GasPriceSelector"
-import { BsFileEarmarkText } from "react-icons/bs"
-import { AiFillInfoCircle } from "react-icons/ai"
-import Tooltip from "../../components/label/Tooltip"
-import LoadingOverlay from "../../components/LoadingOverlay"
-import GasPriceComponent from "../../components/transactions/GasPriceComponent"
-
-import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
-
-import useNextRequestRoute from "../../context/hooks/useNextRequestRoute"
-import { useUserSettings } from "../../context/hooks/useUserSettings"
-import CheckBoxDialog from "../../components/dialog/CheckboxDialog"
-import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
-import SuccessDialog from "../../components/dialog/SuccessDialog"
-import { AdvancedSettings } from "../../components/transactions/AdvancedSettings"
-import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
-import { TransactionAdvancedData } from "@blank/background/controllers/transactions/utils/types"
+import { TransactionCategories } from "../../context/commTypes"
 
 const TransactionConfirmPage = () => {
     const { transaction } = useUnapprovedTransaction()
     const route = useNextRequestRoute()
 
-    return transaction ? <TransactionConfirm /> : <Redirect to={route} />
+    if (
+        !transaction ||
+        transaction.transactionCategory ===
+            TransactionCategories.TOKEN_METHOD_APPROVE
+    ) {
+        return <Redirect to={route} />
+    } else {
+        return <TransactionConfirm />
+    }
 }
 
 const TransactionConfirm = () => {
@@ -60,12 +78,11 @@ const TransactionConfirm = () => {
         selectedAddress,
         settings,
     } = useBlankState()!
-    const { isEIP1559Compatible } = useSelectedNetwork()
+    const { isEIP1559Compatible, defaultNetworkLogo } = useSelectedNetwork()
 
     const { hideAddressWarning } = useUserSettings()
 
     const network = useSelectedNetwork()
-    const defaultNetworkLogo = network.iconUrls ? network.iconUrls[0] : eth
 
     const {
         transactionCount,
@@ -89,7 +106,7 @@ const TransactionConfirm = () => {
 
     // State variables
     const ethExchangeRate = exchangeRates[networkNativeCurrency.symbol]
-    const [isLoading, setIsLoading] = useState(transaction.loadingGasValues)
+    const [isLoading, setIsLoading] = useState(true)
     const [showDialog, setShowDialog] = useState(false)
 
     const [hasBalance, setHasBalance] = useState(true)
@@ -132,7 +149,7 @@ const TransactionConfirm = () => {
         transaction.methodSignature?.name ??
         transaction.transactionCategory?.toString()
     const account = accounts[getAddress(params.from!)]
-    const accountName = account ? account.name : "Blank"
+    const accountName = account ? account.name : "BlockWallet"
 
     const calcTranTotals = () => {
         const gas = BigNumber.from(
@@ -155,14 +172,9 @@ const TransactionConfirm = () => {
     }
 
     // To prevent calculations on every render, force dependency array to only check state value that impacts
+    // Recalculate gas values when switching between transactions too.
     useEffect(() => {
-        calcTranTotals()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionGas, transactionId])
-
-    // Effect to check if background finishes loading default values
-    useEffect(() => {
-        if (isLoading && !transaction.loadingGasValues) {
+        if (isLoading) {
             setDefaultGas({
                 gasLimit: params.gasLimit,
                 gasPrice: params.gasPrice,
@@ -172,8 +184,9 @@ const TransactionConfirm = () => {
             setGasEstimationFailed(transaction.gasEstimationFailed ?? false)
             setIsLoading(false)
         }
+        calcTranTotals()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transaction.loadingGasValues])
+    }, [transactionGas, transactionId])
 
     // Functions
     const confirm = async () => {
@@ -214,6 +227,73 @@ const TransactionConfirm = () => {
                 setIsConfirming(false)
             }
         } catch {}
+    }
+
+    const transactionValues = () => {
+        const formattedValue = formatNumberLength(
+            formatUnits(params.value!, network.nativeCurrency.decimals),
+            networkNativeCurrency.symbol.length > 3 ? 9 : 10
+        )
+
+        const valueWidth =
+            formattedValue.length + networkNativeCurrency.symbol.length >= 5
+                ? "w-7/12"
+                : "w-4/12"
+        const originWidth =
+            formattedValue.length + networkNativeCurrency.symbol.length >= 5
+                ? "w-5/12"
+                : "w-8/12"
+        return (
+            <GenericTooltip
+                top
+                className="w-60 p-2 ml-8"
+                content={
+                    <div>
+                        <p>
+                            <span className="font-bold">Total value: </span>
+                            {formatUnits(
+                                params.value!,
+                                network.nativeCurrency.decimals
+                            )}{" "}
+                            {networkNativeCurrency.symbol}
+                        </p>
+                        <p>
+                            <span className="font-bold">Origin: </span>
+                            {transaction.origin}
+                        </p>
+                    </div>
+                }
+            >
+                <div className="flex items-center p-4 rounded-md bg-primary-100 justify-between  hover:bg-primary-200">
+                    <div
+                        className={classnames(
+                            "flex flex-row items-center pointer-events-none",
+                            valueWidth
+                        )}
+                    >
+                        <img
+                            src={defaultNetworkLogo}
+                            alt={network.nativeCurrency.symbol}
+                            width="20px"
+                            height="18px"
+                            draggable={false}
+                        />
+                        <span className="font-black pl-1 text-sm">
+                            {formattedValue} {networkNativeCurrency.symbol}
+                        </span>
+                    </div>
+
+                    <span
+                        className={classnames(
+                            "text-xxs text-right truncate justify-self-end pointer-events-none",
+                            originWidth
+                        )}
+                    >
+                        {transaction.origin}
+                    </span>
+                </div>
+            </GenericTooltip>
+        )
     }
 
     return (
@@ -339,7 +419,7 @@ const TransactionConfirm = () => {
                     >
                         <AccountIcon className="h-6 w-6" fill="black" />
                         <span className="pl-2 font-bold text-sm">
-                            ...{params.to!.substr(-6)}
+                            ...{params.to!.slice(-6)}
                         </span>
                         <CopyTooltip copied={copied} />
                     </div>
@@ -354,50 +434,20 @@ const TransactionConfirm = () => {
             </div>
 
             <div className="flex flex-col px-6 py-3 space-y-3 w-full">
-                {description && (
-                    <div className="flex flex-row w-full items-center justify-start py-0.5 ">
-                        <HiOutlineExclamationCircle
-                            size={20}
-                            className="text-gray-600 font-bold"
-                        />
-                        <span className="text-xs text-gray-600 pl-2 font-medium capitalize">
-                            {description}
-                        </span>
+                <div className="flex flex-row w-full items-center justify-start py-0.5 ">
+                    <HiOutlineExclamationCircle
+                        size={20}
+                        className="text-gray-600 font-bold"
+                    />
+                    <div className="text-xs text-gray-600 pl-2 font-medium capitalize">
+                        {description ? (
+                            <span>{description}</span>
+                        ) : (
+                            <span>Loading{<LoadingDots />}</span>
+                        )}
                     </div>
-                )}
-
-                <div className="flex items-center p-4 rounded-md bg-primary-100 justify-between">
-                    <div className="w-full flex flex-row items-center">
-                        <img
-                            src={defaultNetworkLogo}
-                            alt={network.nativeCurrency.symbol}
-                            width="12px"
-                            height="18px"
-                            draggable={false}
-                        />
-                        <span
-                            className="font-black pl-1 text-base"
-                            title={
-                                formatUnits(
-                                    params.value!,
-                                    network.nativeCurrency.decimals
-                                ) + ` ${network.nativeCurrency.symbol}`
-                            }
-                        >
-                            {formatNumberLength(
-                                formatUnits(
-                                    params.value!,
-                                    network.nativeCurrency.decimals
-                                ),
-                                20
-                            )}{" "}
-                            {network.nativeCurrency.symbol}
-                        </span>
-                    </div>
-                    <span title={transaction.origin} className="w-full text-xs">
-                        {transaction.origin}
-                    </span>
                 </div>
+                {transactionValues()}
 
                 <div className="flex flex-col">
                     <label
@@ -435,6 +485,7 @@ const TransactionConfirm = () => {
                             }}
                             showEstimationError={gasEstimationFailed}
                             isParentLoading={isLoading}
+                            displayOnlyMaxValue
                         />
                     )}
                 </div>
@@ -467,7 +518,7 @@ const TransactionConfirm = () => {
                                     <img
                                         src={defaultNetworkLogo}
                                         alt={network.nativeCurrency.symbol}
-                                        width="12px"
+                                        width="20px"
                                         height="18px"
                                         draggable={false}
                                     />
@@ -486,7 +537,10 @@ const TransactionConfirm = () => {
                                                 total,
                                                 network.nativeCurrency.decimals
                                             ),
-                                            14
+                                            networkNativeCurrency.symbol
+                                                .length > 3
+                                                ? 12
+                                                : 14
                                         )}{" "}
                                         {network.nativeCurrency.symbol}
                                     </span>

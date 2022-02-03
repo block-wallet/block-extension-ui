@@ -1,24 +1,24 @@
-import React, { useRef } from 'react'
+import React, { useRef } from "react"
 
 // Style
-import { classnames } from '../../styles/classes'
+import { classnames } from "../../styles/classes"
 
 // Assets
-import copy from '../../assets/images/icons/copy.svg'
-import openIcon from '../../assets/images/icons/open_external.svg'
+import copy from "../../assets/images/icons/copy.svg"
+import openIcon from "../../assets/images/icons/open_external.svg"
 
 // Context
-import { getDepositFormattedNote } from '../../context/commActions'
+import { getDepositFormattedNote } from "../../context/commActions"
 
 // Utils
-import { useOnClickOutside } from '../../util/useOnClickOutside'
+import { useOnClickOutside } from "../../util/useOnClickOutside"
 
 // Types
 type ComplianceMenuType = {
-    withdrawId: string,
-    active?: boolean,
-    setActive?: (value: boolean) => void,
-    position?: string,
+    withdrawId: string
+    active?: boolean
+    setActive?: (value: boolean) => void
+    position?: string
 }
 
 /**
@@ -53,8 +53,8 @@ const ComplianceMenu = (props: ComplianceMenuType) => {
         <div
             className={classnames(
                 "flex flex-col w-48 mt-2 absolute right-4 z-50 rounded-md bg-white shadow-md",
-                active ? '' : 'hidden select-none pointer-events-none',
-                position ? position : '',
+                active ? "" : "hidden select-none pointer-events-none",
+                position ? position : ""
             )}
             ref={ref}
         >
@@ -64,17 +64,22 @@ const ComplianceMenu = (props: ComplianceMenuType) => {
                 onClick={() => handleCopyNote(withdrawId)}
                 ref={ref}
             >
-                <img src={copy} alt="visit" className="w-5 h-5 mr-3"/>
-                <span className="text-sm font-bold text-gray-900 inline-flex">Copy note</span>
+                <img src={copy} alt="visit" className="w-5 h-5 mr-3" />
+                <span className="text-sm font-bold text-gray-900 inline-flex">
+                    Copy note
+                </span>
             </div>
             {/* Fetch */}
             <a
-                href="https://app.tornado.cash/compliance/" // TODO: Change to a custom URL when new website is ready.
+                href="https://blockwallet.io/compliance.html"
                 target="_blank" // 😎
-                className="flex w-full justify-start p-5 pt-4 cursor-pointer text-red-500 p-2 items-center hover:bg-gray-100" rel="noreferrer"
+                className="flex w-full justify-start p-5 pt-4 cursor-pointer text-red-500 p-2 items-center hover:bg-gray-100"
+                rel="noreferrer"
             >
-                <img src={openIcon} alt="visit" className="w-5 h-5 mr-3"/>
-                <span className="text-sm font-bold text-gray-900 inline-flex">Fetch report</span>
+                <img src={openIcon} alt="visit" className="w-5 h-5 mr-3" />
+                <span className="text-sm font-bold text-gray-900 inline-flex">
+                    Fetch report
+                </span>
             </a>
         </div>
     )

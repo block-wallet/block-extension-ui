@@ -23,6 +23,8 @@ import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import classNames from "classnames"
 
+// declare const VERSION: string
+
 const SettingsPage = () => {
     const { isSeedPhraseBackedUp } = useBlankState()!
     const handleError = useErrorHandler()
@@ -141,6 +143,13 @@ const SettingsPage = () => {
                     </div>
                 </div>
             </div>
+            {process.env.VERSION && (
+                <div className="mb-1 mx-auto mt-auto">
+                    <span className="text-xxs text-gray-500">
+                        Version: v{process.env.VERSION}
+                    </span>
+                </div>
+            )}
         </PopupLayout>
     )
 }

@@ -38,11 +38,7 @@ const PrivacyPage = () => {
     return (
         <PopupLayout
             header={
-                <PopupHeader
-                    title="Privacy"
-                    close="/"
-                    onBack={() => history.push("/")}
-                />
+                <PopupHeader title="Privacy" onBack={() => history.push("/")} />
             }
         >
             <div className="flex flex-col space-y-7 p-6">

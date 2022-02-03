@@ -18,7 +18,7 @@ const AccountsPage = () => {
     }
 
     return (
-        <PopupLayout header={<PopupHeader title="My Accounts" close="/" />}>
+        <PopupLayout header={<PopupHeader title="My Accounts" />}>
             <AccountSelect
                 accounts={accounts}
                 selectedAccount={selectedAccount!}

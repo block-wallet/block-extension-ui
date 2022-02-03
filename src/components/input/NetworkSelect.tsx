@@ -5,7 +5,7 @@ import { useBlankState } from "../../context/background/backgroundHooks"
 import classnames from "classnames"
 import { useOnClickOutside } from "../../util/useOnClickOutside"
 import { changeNetwork, setShowTestNetworks } from "../../context/commActions"
-import LoadingOverlay from "../LoadingOverlay"
+import LoadingOverlay from "../loading/LoadingOverlay"
 import { Network } from "@blank/background/utils/constants/networks"
 import classNames from "classnames"
 
@@ -71,7 +71,7 @@ const NetworkSelect: FunctionComponent<{
     }
 
     return (
-        <div className={`relative ${className}`} ref={ref}>
+        <div className={`relative ${className}`} ref={ref} role="menu" data-testid="network-selector">
             {(networkChanging ||
                 isAccountTrackerLoading ||
                 isNetworkChanging) && <LoadingOverlay />}
@@ -89,7 +89,7 @@ const NetworkSelect: FunctionComponent<{
                     networkList && "border-primary-300"
                 )}
             >
-                <span className="select-none">{getNetworkDesc()}</span>
+                <span data-testid="selected-network" className="select-none">{getNetworkDesc()}</span>
                 {networkList ? (
                     <RiArrowUpSLine size={16} />
                 ) : (

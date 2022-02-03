@@ -37,10 +37,7 @@ const WarningTip: FunctionComponent<{
             style={warningBgStyle}
         >
             <div>
-                <ExclamationCircleIconFull
-                    size={20}
-                    className="text-yellow-400 font-bold"
-                />
+                <ExclamationCircleIconFull size="20" profile="outlined" />
             </div>
             <p
                 className={classnames(

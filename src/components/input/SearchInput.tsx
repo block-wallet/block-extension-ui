@@ -25,6 +25,7 @@ type SearchInputProps = {
     autoComplete?: boolean
     isValid?: boolean
     onChange?: (event: any) => void
+    onPaste?: (event: any) => void
     debounced?: boolean
     debounceTime?: number
     minSearchChar?: number
@@ -46,6 +47,7 @@ type SearchInputProps = {
  * @param autoComplete - Enable browser autocomplete suggestions if true.
  * @param isValid - Display a green outline & checkmark if true.
  * @param onChange - Function to execute on input change.
+ * @param onPaste - Function to execute when user paste into the input.
  * @param debounced - If set to true, onChange will only be triggered after the user didn't change the input for `debounceTime`.
  * @param debounceTime - Set the debouncing time.
  * @param minSearchChar - Set a minimum char before triggering `onChange`. Note that this has the priority over `onChange` and `debounce`.
@@ -63,11 +65,13 @@ const SearchInput = forwardRef<SearchInputProps, any>(
             autoComplete,
             isValid,
             onChange,
+            onPaste,
             debounced = false,
             debounceTime = 300,
             minSearchChar = 0,
+            register,
         }: SearchInputProps,
-        register
+        ref
     ) => {
         const inputRef = useRef(null)
         const timeoutIdRef = useRef<ReturnType<typeof setTimeout>>()
@@ -78,8 +82,8 @@ const SearchInput = forwardRef<SearchInputProps, any>(
 
         // Hooks
         useEffect(() => {
-            setForwardedRef(register)
-        }, [register])
+            setForwardedRef(ref)
+        }, [ref])
 
         useOnClickOutside(inputRef, () => {
             if (search === "") setIsFocus(false)
@@ -121,7 +125,8 @@ const SearchInput = forwardRef<SearchInputProps, any>(
                         type="text"
                         ref={useMergeRefs(
                             inputRef,
-                            forwardedRef ? forwardedRef : null
+                            forwardedRef ? forwardedRef : null,
+                            register ? register : null
                         )}
                         className={classnames(
                             Classes.inputBordered,
@@ -152,6 +157,7 @@ const SearchInput = forwardRef<SearchInputProps, any>(
                                 onValueChanged(e)
                             }
                         }}
+                        onPaste={onPaste}
                         onFocus={() => setIsFocus(true)}
                     />
 

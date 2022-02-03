@@ -33,7 +33,9 @@ body {
 }
 
 html::-webkit-scrollbar,
-body::-webkit-scrollbar {
+body::-webkit-scrollbar,
+/* Class to implement in those views where we want to be able to scroll but without showing the scrollbar */
+.hide-scroll::-webkit-scrollbar {
     display: none;
     -ms-overflow-style: none; /* Internet Explorer 10+ */
     scrollbar-width: none; /* Firefox */

@@ -16,6 +16,8 @@ import { isValidMnemonic } from "ethers/lib/utils"
 import { resetWallet } from "../../context/commActions"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 
+import log from "loglevel"
+
 const schema = yup.object().shape({
     seedPhrase: yup
         .string()
@@ -67,12 +69,24 @@ const ResetPage = () => {
 
         setIsLoading(true)
         const { password, seedPhrase } = data
-        const result = await resetWallet(password, seedPhrase)
-        if (result) {
-            history.push({ pathname: "/reset/done" })
-        } else {
-            console.error("cant import the wallet")
+
+        try {
+            const result = await resetWallet(password, seedPhrase)
+
+            if (result) {
+                history.push({ pathname: "/reset/done" })
+            } else {
+                throw new Error("Import Wallet failed")
+            }
+        } catch (error) {
+            log.error(error.message || error)
+
+            setError("seedPhrase", {
+                message: "Error importing seed phrase",
+                shouldFocus: true,
+            })
         }
+
         setIsLoading(false)
     })
 
@@ -162,7 +176,7 @@ const ResetPage = () => {
                             <label htmlFor="acceptTOU" className="text-xs">
                                 I have read and agree to the{" "}
                                 <a
-                                    href="https://www.goblank.io/terms-of-use-of-blank-wallet.html"
+                                    href="https://www.blockwallet.io/terms-of-use-of-block-wallet.html"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-primary-300"

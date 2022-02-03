@@ -16,27 +16,21 @@
 
 @font-face {
     font-family: "Sequel Sans";
-    /*src: url("../assets/fonts/Sequel\ Sans\ Light\ Disp.ttf") format("truetype");*/
     src: url("../assets/fonts/SequelSansLight.woff2") format("woff2");
     font-weight: 100;
 }
 @font-face {
     font-family: "Sequel Sans";
-    /*src: url("../assets/fonts/Sequel\ Sans\ Medium\ Disp.ttf")
-        format("truetype");*/
     src: url("../assets/fonts/SequelSansMedium.woff2") format("woff2");
     font-weight: 400;
 }
 @font-face {
     font-family: "Sequel Sans";
-    /*src: url("../assets/fonts/Sequel\ Sans\ Semi\ Bold\ Disp.ttf")
-        format("truetype");*/
     src: url("../assets/fonts/SequelSansSemi.woff2") format("woff2");
     font-weight: 600;
 }
 @font-face {
     font-family: "Sequel Sans";
-    /*src: url("../assets/fonts/Sequel\ Sans\ Bold\ Disp.ttf") format("truetype");*/
     src: url("../assets/fonts/SequelSansBold.woff2") format("woff2");
     font-weight: 700;
 }
@@ -46,7 +40,8 @@
 }
 
 .font-text,
-html {
+html,
+body {
     font-family: "Inter", sans-serif;
 }
 

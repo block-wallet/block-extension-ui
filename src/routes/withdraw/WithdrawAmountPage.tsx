@@ -86,12 +86,7 @@ const CanWithdrawView: FunctionComponent<{
 const CannotWithdrawView = () => {
     return (
         <PopupLayout
-            header={
-                <PopupHeader
-                    title="Withdraw From Privacy Pool"
-                    close="/privacy"
-                />
-            }
+            header={<PopupHeader title="Withdraw From Privacy Pool" />}
             footer={
                 <PopupFooter>
                     <LinkButton
@@ -108,8 +103,8 @@ const CannotWithdrawView = () => {
                     Sorry...
                 </span>
                 <span className="w-64 text-sm text-center text-gray-700">
-                    You don't have any deposits on Blank in this wallet. To see
-                    your funds here, make a deposit to the privacy pool.
+                    You don't have any deposits in this wallet. To see your
+                    funds here, make a deposit to the privacy pool.
                 </span>
             </div>
         </PopupLayout>
@@ -119,12 +114,7 @@ const CannotWithdrawView = () => {
 const UpdatingNotesStateView = () => {
     return (
         <PopupLayout
-            header={
-                <PopupHeader
-                    title="Withdraw From Privacy Pool"
-                    close="/privacy"
-                />
-            }
+            header={<PopupHeader title="Withdraw From Privacy Pool" />}
         >
             <div className="flex flex-row items-center justify-center w-full h-full">
                 <Spinner size="2rem" />

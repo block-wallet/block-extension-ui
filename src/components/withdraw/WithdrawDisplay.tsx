@@ -4,9 +4,6 @@ import React, { useEffect, useState, useRef } from "react"
 import ComplianceMenu from "../../components/withdraw/ComplianceMenu"
 import MenuIcon from "../../components/icons/MenuIcon"
 
-// Assets
-import eth from "../../assets/images/icons/ETH.svg"
-
 // Context
 import { useTokensList } from "../../context/hooks/useTokensList"
 
@@ -30,8 +27,7 @@ type CurrentAsset = {
 const WithdrawDisplay = (props: WithdrawDisplayType) => {
     const { withdraw } = props
     const { currentNetworkTokens } = useTokensList()
-    const { nativeCurrency, iconUrls } = useSelectedNetwork()
-    const defaultNetworkLogo = iconUrls ? iconUrls[0] : eth
+    const { nativeCurrency, defaultNetworkLogo } = useSelectedNetwork()
 
     const [currentAsset, setCurrentAsset] = useState<CurrentAsset>()
     const [active, setActive] = useState<boolean>(false)

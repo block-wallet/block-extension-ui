@@ -85,7 +85,7 @@ const LockTimeout = () => {
 
     return (
         <PopupLayout
-            header={<PopupHeader title="Lock Timeout" close="/" />}
+            header={<PopupHeader title="Lock Timeout" />}
             footer={
                 <PopupFooter>
                     <ButtonWithLoading
@@ -105,7 +105,7 @@ const LockTimeout = () => {
             />
             <div className="flex flex-col p-6 space-y-6 w-full">
                 <span className="text-sm text-gray-500">
-                    Blank Wallet will automatically lock and require an
+                    BlockWallet will automatically lock and require an
                     additional login after the selected period.
                 </span>
                 <ToggleButton

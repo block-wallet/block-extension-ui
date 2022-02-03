@@ -8,3 +8,9 @@ export const APPROVE_GAS_COST = BigNumber.from("0xcb34") // Hex for 52020, defau
  * Decimal places to default in case an error looking up for them occurred
  */
 export const DEFAULT_DECIMALS = 18
+
+export const LINKS = {
+    TELEGRAM: "https://t.me/blockwallet",
+    GITHUB: "https://github.com/block-wallet/",
+    TWITTER: "https://twitter.com/BlockWallet",
+}

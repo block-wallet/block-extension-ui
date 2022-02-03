@@ -35,7 +35,7 @@ const AddressBookPage: FunctionComponent<{
 
     return (
         <PopupLayout
-            header={<PopupHeader title="Address Book" close="/" />}
+            header={<PopupHeader title="Address Book" />}
             footer={
                 <PopupFooter>
                     <ButtonWithLoading
@@ -58,7 +58,7 @@ const AddressBookPage: FunctionComponent<{
                     <div className="flex flex-col space-y-4">
                         <span className="text-xs">CURRENT CONTACTS</span>
                         <VerticalSelect
-                            containerClassName="flex flex-col space-y-6"
+                            containerClassName="flex flex-col space-y-4"
                             options={Object.values(addressBook)}
                             value={Object.values(addressBook)[0]}
                             onChange={() => {}}
@@ -88,7 +88,7 @@ const AddressBookPage: FunctionComponent<{
                     <div className="flex flex-col space-y-4">
                         <span className="text-xs">RECENT CONTACTS</span>
                         <VerticalSelect
-                            containerClassName="flex flex-col space-y-6"
+                            containerClassName="flex flex-col space-y-4"
                             options={Object.values(recentAddresses)}
                             value={Object.values(recentAddresses)[0]}
                             onChange={() => {}}
@@ -103,7 +103,7 @@ const AddressBookPage: FunctionComponent<{
                                         } as AccountInfo
                                     }
                                     selected={false}
-                                    showAddress={false}
+                                    showAddress={true}
                                     canCopy={true}
                                 />
                             )}

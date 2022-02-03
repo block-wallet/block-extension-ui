@@ -187,7 +187,7 @@ const ConnectedSiteAccount: FunctionComponent<{
 
 const ConnectedSiteAccountsPage = () => {
     const { accounts, selectedAddress, permissions } = useBlankState()!
-    const { origin, fromRoot } =
+    const { origin } =
         useOnMountLocation<ConnectedSiteAccountsLocationState>().state || {}
     const history = useOnMountHistory()
     const permission = permissions[origin]
