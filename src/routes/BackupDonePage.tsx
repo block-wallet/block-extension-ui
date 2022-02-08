@@ -22,7 +22,7 @@ const BackupDonePage = () => {
                 </span>
                 <img src={logo} alt="logo" className="w-12 h-12 mx-auto" />
                 <span className="font-base text-center text-sm">
-                    You can now continue using Blank Wallet.
+                    You can now continue using BlockWallet.
                 </span>
             </div>
         </PopupLayout>

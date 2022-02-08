@@ -81,7 +81,7 @@ const BackupNoticePage = () => {
                         Your seed phrase is the key to your wallet and your
                         privacy deposits. It makes it possible to restore your
                         wallet after losing access. Import your seed phrase to
-                        gain access to the funds held on your Blank Wallet.
+                        gain access to the funds held on your BlockWallet.
                         Backup your seed phrase and store it in a safe place.
                     </span>
                     <div className="md:hidden">

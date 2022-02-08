@@ -92,7 +92,7 @@ const getPendingTransactionMessage = (
 const transactionIcons = {
     [TransactionCategories.BLANK_DEPOSIT]: <img src={blankLogo} alt="blank" />,
     [TransactionCategories.BLANK_WITHDRAWAL]: (
-        <img src={blankLogo} alt="blank" />
+        <img src={blankLogo} alt="BlockWallet" />
     ),
     [TransactionCategories.INCOMING]: <img src={eth} alt="ETH" />,
     [TransactionCategories.SENT_ETHER]: <img src={eth} alt="ETH" />,
@@ -349,7 +349,7 @@ const Transaction: FunctionComponent<{
                                 {status === TransactionStatus.DROPPED && (
                                     <div className="group relative self-start">
                                         <a
-                                            href="https://help.goblank.io/hc/en-us/articles/4410031249553"
+                                            href="https://help.blockwallet.io/hc/en-us/articles/4410031249553"
                                             target="_blank"
                                             rel="noreferrer"
                                         >
@@ -564,7 +564,10 @@ const ActivityList = () => {
     }, [confirmed, chainId, oldNetworkIdRef, address, oldAccountAddressRef])
 
     return (
-        <div className="flex flex-col flex-1 w-full space-y-0" data-testid="activity-list">
+        <div
+            className="flex flex-col flex-1 w-full space-y-0"
+            data-testid="activity-list"
+        >
             {getTransactions().map((t, i) => (
                 <React.Fragment key={i}>
                     {i > 0 ? <hr /> : null}
@@ -576,7 +579,7 @@ const ActivityList = () => {
                 src={dotLoading}
                 alt="Loader"
                 aria-label="loading"
-                role="alert" 
+                role="alert"
                 aria-busy="true"
                 className={classnames(
                     "m-auto w-8 mt-4",

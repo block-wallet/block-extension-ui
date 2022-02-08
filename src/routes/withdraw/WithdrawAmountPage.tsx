@@ -103,8 +103,8 @@ const CannotWithdrawView = () => {
                     Sorry...
                 </span>
                 <span className="w-64 text-sm text-center text-gray-700">
-                    You don't have any deposits on Blank in this wallet. To see
-                    your funds here, make a deposit to the privacy pool.
+                    You don't have any deposits in this wallet. To see your
+                    funds here, make a deposit to the privacy pool.
                 </span>
             </div>
         </PopupLayout>

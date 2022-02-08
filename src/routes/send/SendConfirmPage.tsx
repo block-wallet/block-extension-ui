@@ -46,6 +46,7 @@ import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import { Classes } from "../../styles"
 import SuccessDialog from "../../components/dialog/SuccessDialog"
+import WarningDialog from "../../components/dialog/WarningDialog"
 import { AdvancedSettings } from "../../components/transactions/AdvancedSettings"
 import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
 import { TransactionAdvancedData } from "@blank/background/controllers/transactions/utils/types"
@@ -166,19 +167,19 @@ const AddressDisplay: FunctionComponent<{
     setShowingTheWholeAddress: React.Dispatch<React.SetStateAction<boolean>>
 }> = ({ showingTheWholeAddress, setShowingTheWholeAddress }) => {
     const history = useOnMountHistory()
-    const accountAddress = history.location.state.address
+    const receivingAddress = history.location.state.address
     const ensSelected: EnsResult = history.location.state.ens
 
     const { accounts } = useBlankState()!
     const addressBook = useAddressBook()
 
     const account =
-        accountAddress in accounts
-            ? (accounts[accountAddress] as AccountInfo)
-            : accountAddress in addressBook
+        receivingAddress in accounts
+            ? (accounts[receivingAddress] as AccountInfo)
+            : receivingAddress in addressBook
             ? ({
-                  name: addressBook[accountAddress].name,
-                  address: addressBook[accountAddress].address,
+                  name: addressBook[receivingAddress].name,
+                  address: addressBook[receivingAddress].address,
               } as AccountInfo)
             : undefined
     return (
@@ -186,7 +187,7 @@ const AddressDisplay: FunctionComponent<{
             <div
                 className="flex flex-row items-center w-full px-6 py-3 space-x-3"
                 style={{ maxWidth: "100vw" }}
-                title={formatHash(accountAddress, accountAddress.length)}
+                title={formatHash(receivingAddress, receivingAddress.length)}
                 onClick={() =>
                     setShowingTheWholeAddress(!showingTheWholeAddress)
                 }
@@ -198,14 +199,17 @@ const AddressDisplay: FunctionComponent<{
                             {ensSelected ? ensSelected.name : account?.name}
                         </span>
                         <span className="text-gray truncate">
-                            {formatHash(accountAddress)}
+                            {formatHash(receivingAddress)}
                         </span>
                     </div>
                 ) : (
                     <span className="font-bold text-green-500 truncate cursor-pointer">
                         {showingTheWholeAddress
-                            ? formatHash(accountAddress, accountAddress.length)
-                            : formatHash(accountAddress)}
+                            ? formatHash(
+                                  receivingAddress,
+                                  receivingAddress.length
+                              )
+                            : formatHash(receivingAddress)}
                     </span>
                 )}
             </div>
@@ -276,7 +280,7 @@ const SendConfirmPage = () => {
     const { address } = useSelectedAccount()
 
     const isEIP1559Compatible = network.isEIP1559Compatible
-    const accountAddress = history.location.state.address
+    const receivingAddress = history.location.state.address
     const preSelectedAsset = history.location.state.asset
 
     // Tokens
@@ -285,6 +289,10 @@ const SendConfirmPage = () => {
 
     // State
     const [error, setError] = useState("")
+    const [
+        showSendingToTokenAddressWarning,
+        setShowSendingToTokenAddressWarning,
+    ] = useState(false)
     const [saved, setSaved] = useState(false)
     const [txHash, setTxHash] = useState<string>()
     const [isLoading, setIsLoading] = useState(false)
@@ -424,7 +432,7 @@ const SendConfirmPage = () => {
             let txHash: string = ""
             if (selectedToken.token.address === nativeToken.token.address) {
                 txHash = await sendEther(
-                    accountAddress,
+                    receivingAddress,
                     selectedGas as TransactionFeeData,
                     value,
                     transactionAdvancedData
@@ -432,7 +440,7 @@ const SendConfirmPage = () => {
             } else {
                 txHash = await sendToken(
                     selectedToken.token.address,
-                    accountAddress,
+                    receivingAddress,
                     selectedGas as TransactionFeeData,
                     value,
                     transactionAdvancedData
@@ -535,7 +543,7 @@ const SendConfirmPage = () => {
                     estimationSucceeded,
                 } = await getSendTransactionGasLimit(
                     selectedToken.token.address,
-                    accountAddress,
+                    receivingAddress,
                     constants.One
                 )
 
@@ -562,7 +570,18 @@ const SendConfirmPage = () => {
                 setIsGasLoading(false)
             }
         }
+
+        const checkIfSendingToTokenAddress = async () => {
+            if (
+                receivingAddress.toLowerCase() ===
+                selectedToken.token.address.toLowerCase()
+            ) {
+                setShowSendingToTokenAddressWarning(true)
+            }
+        }
+
         fetch()
+        checkIfSendingToTokenAddress()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedToken])
 
@@ -600,6 +619,12 @@ const SendConfirmPage = () => {
                 txHash={txHash}
                 timeout={1400}
                 onDone={() => history.push("/")}
+            />
+            <WarningDialog
+                open={showSendingToTokenAddressWarning}
+                onDone={() => setShowSendingToTokenAddressWarning(false)}
+                title="Sending to token contract address"
+                message="You are trying to send tokens to the selected token's contract address. This might lead to a loss of funds. Please make sure you selected the correct address!"
             />
             <div className="w-full h-full">
                 <div

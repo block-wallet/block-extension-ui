@@ -65,7 +65,7 @@ const searchTokenSchema = yup.object().shape({
 })
 type searchTokenFormData = InferType<typeof searchTokenSchema>
 
-const customTokenSchema = yup.object().shape({
+const customTokenSchema = yup.object({
     tokenAddress: yup
         .string()
         .test("is-empty", "Token contract address is empty", (s) => {
@@ -252,7 +252,7 @@ const SearchToken = () => {
                                                 </div>
                                                 <span className="text-sm text-gray-600 text-center">
                                                     Add the tokens that you've
-                                                    acquired using Blank Wallet.
+                                                    acquired using BlockWallet.
                                                     <br />
                                                     Enter an address for adding
                                                     a custom token.
@@ -440,6 +440,7 @@ const CustomToken = (props: any) => {
         handleSubmit,
         errors,
         setError,
+        setValue,
     } = useForm<customTokenFormData>({
         resolver: yupResolver(customTokenSchema),
     })
@@ -463,6 +464,12 @@ const CustomToken = (props: any) => {
         }))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    useEffect(() => {
+        setValue("tokenAddress", result.address)
+        setValue("tokenDecimals", result.decimals)
+        setValue("tokenSymbol", result.symbol)
+    }, [result.address, result.decimals, result.symbol, setValue])
 
     const onSubmit = handleSubmit(async (data: customTokenFormData) => {
         try {
@@ -518,7 +525,7 @@ const CustomToken = (props: any) => {
             )
         } catch (event) {
             // Invalid form data
-            setError("form", event.toString())
+            setError("tokenAddress", event.toString())
         }
     })
 
@@ -552,7 +559,7 @@ const CustomToken = (props: any) => {
         } else {
             setIsCustomTokenEmpty(true)
             setResult({
-                address: "",
+                address: value,
                 decimals: undefined,
                 logo: "",
                 name: "",
@@ -606,7 +613,7 @@ const CustomToken = (props: any) => {
                         <TextInput
                             appearance="outline"
                             label="Token Contract Address"
-                            placeholder="Address"
+                            placeholder={result.address || "Address"}
                             name="tokenAddress"
                             register={register}
                             error={errors.tokenAddress?.message}
@@ -614,7 +621,6 @@ const CustomToken = (props: any) => {
                             maxLength={42}
                             defaultValue={result.address}
                             onChange={(e) => onAddressChange(e.target.value)}
-                            readOnly={true}
                         />
                     </div>
 
@@ -623,7 +629,7 @@ const CustomToken = (props: any) => {
                         <TextInput
                             appearance="outline"
                             label="Token Symbol"
-                            placeholder={result.symbol ? result.symbol : "ETH"}
+                            placeholder={result.symbol || "ETH"}
                             defaultValue={result.symbol}
                             name="tokenSymbol"
                             register={register}
@@ -642,9 +648,7 @@ const CustomToken = (props: any) => {
                                     ? result.decimals.toString()
                                     : "18"
                             }
-                            defaultValue={
-                                result.decimals ? result.decimals : ""
-                            }
+                            defaultValue={result.decimals || ""}
                             name="tokenDecimals"
                             register={register}
                             error={errors.tokenDecimals?.message}

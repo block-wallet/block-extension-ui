@@ -100,14 +100,9 @@ const GasSelectorBasic = (props: GasComponentProps) => {
     } = props
 
     const nativeCurrencyWidths = options.map((option) => {
-        const nativeIntLenght = option.totalNativeCurrencyCost
-            .replace("$", "")
-            .replace(/\.[0-9]+/, "")
-            .trim().length
+        const length = option.totalNativeCurrencyCost.trim().length
 
-        return `w-${
-            nativeIntLenght === 1 ? 28 : nativeIntLenght === 2 ? 32 : 40
-        }`
+        return `w-${length < 4 ? 28 : length < 6 ? 32 : 40}`
     })
 
     return (

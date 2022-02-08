@@ -82,7 +82,7 @@ const ExportDonePage = () => {
                             href={`data:text/json;charset=utf-8,${encodeURIComponent(
                                 exportData
                             )}`}
-                            download="blank.json"
+                            download="blockwallet.json"
                         >
                             <span className="flex-grow px-4 py-4 text-sm ">
                                 Download JSON file

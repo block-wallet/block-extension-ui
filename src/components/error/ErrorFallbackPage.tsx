@@ -35,7 +35,7 @@ const ErrorFallbackPage: FunctionComponent<{
                 <div className="flex flex-col space-y-6 p-4 items-center justify-center bg-primary-100 rounded-md">
                     <div className="text-sm">
                         <p>
-                            An error ocurred while using <b>Blank Wallet</b>.
+                            An error ocurred while using <b>BlockWallet</b>.
                             <br />
                             <br />
                             Please collect the information and report back to

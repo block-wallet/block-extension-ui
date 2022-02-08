@@ -22,11 +22,11 @@ const WelcomeInfo: FC<WelcomeInfoProps> = ({ onDismiss }) => {
         >
             <div className="w-full p-6 bg-white bg-opacity-75">
                 <Info>
-                    <Info.Title>Welcome to Block Wallet!</Info.Title>
+                    <Info.Title>Welcome to BlockWallet!</Info.Title>
                     <div className="p-1 pt-6">
                         <Info.List>
                             <Info.Item type="warn">
-                                Be sure to set Block Wallet as your default
+                                Be sure to set BlockWallet as your default
                                 browser wallet to interact with DApps.
                             </Info.Item>
                             <Info.Item type="warn">

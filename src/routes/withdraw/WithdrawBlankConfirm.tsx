@@ -186,7 +186,7 @@ const WithdrawBlankConfirm = () => {
             onConfirm={() => setRecentlyDeposited(false)}
             onCancel={() => {
                 history.push({
-                    pathname: "/privacy/withdraw/blank/accounts",
+                    pathname: "/privacy/withdraw/block/accounts",
                     state: { pair },
                 })
             }}
@@ -202,7 +202,7 @@ const WithdrawBlankConfirm = () => {
                         history.push({
                             pathname: external
                                 ? "/privacy/withdraw/external"
-                                : "/privacy/withdraw/blank/accounts",
+                                : "/privacy/withdraw/block/accounts",
                             state: { pair },
                         })
                     }}
@@ -210,7 +210,7 @@ const WithdrawBlankConfirm = () => {
                     <>
                         <div className="group relative">
                             <a
-                                href="https://help.goblank.io"
+                                href="https://help.blockwallet.io"
                                 target="_blank"
                                 rel="noreferrer"
                             >

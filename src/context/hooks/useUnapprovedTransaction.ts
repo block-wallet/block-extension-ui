@@ -1,9 +1,20 @@
+import {
+    TransactionMeta,
+    uiTransactionParams,
+} from "@blank/background/controllers/transactions/utils/types"
 import { BigNumber } from "ethers"
 import { useBlankState } from "../background/backgroundHooks"
 import { useGasPriceData } from "./useGasPriceData"
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
-export const useUnapprovedTransaction = () => {
+export interface UnapprovedTransaction {
+    transactionCount: number
+    transactionId: string
+    transaction: TransactionMeta
+    params: uiTransactionParams
+}
+
+export const useUnapprovedTransaction = (): UnapprovedTransaction => {
     const { unapprovedTransactions } = useBlankState()!
     const { isEIP1559Compatible } = useSelectedNetwork()
     const { gasPricesLevels } = useGasPriceData()

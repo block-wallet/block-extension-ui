@@ -11,7 +11,7 @@ import PopupFooter from "../../components/popup/PopupFooter"
 import LinkButton from "../../components/button/LinkButton"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 
-const WithdrawBlankSelectOrCreateAccount = ({}) => {
+const WithdrawBlankSelectOrCreateAccount = () => {
     const history: any = useOnMountHistory()
     const { pair } = history.location.state
     return (
@@ -40,7 +40,7 @@ const WithdrawBlankSelectOrCreateAccount = ({}) => {
                                 label: "Select Account",
                                 to: {
                                     pathname:
-                                        "/privacy/withdraw/blank/accounts",
+                                        "/privacy/withdraw/block/accounts",
                                     state: { pair },
                                 },
                             },
@@ -49,7 +49,7 @@ const WithdrawBlankSelectOrCreateAccount = ({}) => {
                                 label: "Create an Account",
                                 to: {
                                     pathname:
-                                        "/privacy/withdraw/blank/accounts/create",
+                                        "/privacy/withdraw/block/accounts/create",
                                     state: { pair },
                                 },
                             },

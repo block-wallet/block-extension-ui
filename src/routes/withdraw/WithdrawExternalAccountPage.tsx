@@ -109,7 +109,7 @@ const WithdrawExternalPage = () => {
 
     const onSubmit = handleSubmit(async (data: AddressFormData) => {
         history.push({
-            pathname: "/privacy/withdraw/blank/accounts/step/confirm",
+            pathname: "/privacy/withdraw/block/accounts/step/confirm",
             state: {
                 address: data.address,
                 pair,

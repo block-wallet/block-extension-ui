@@ -687,7 +687,7 @@ export const populateTokenData = async (
 }
 
 /**
- * Creates a new blank wallet
+ * Creates a new BlockWallet
  *
  * @param password user password
  * @returns vault seed phrase
@@ -1190,4 +1190,8 @@ export const getNextNonce = async (address: string) => {
  */
 export const dismissWelcomeMessage = async (): Promise<boolean> => {
     return sendMessage(Messages.WALLET.DISMISS_WELCOME_MESSAGE, {})
+}
+
+export const dismissReleaseNotes = async (): Promise<boolean> => {
+    return sendMessage(Messages.WALLET.DISMISS_RELEASE_NOTES, {})
 }

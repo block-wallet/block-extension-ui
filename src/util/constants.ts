@@ -11,6 +11,6 @@ export const DEFAULT_DECIMALS = 18
 
 export const LINKS = {
     TELEGRAM: "https://t.me/blockwallet",
-    GITHUB: "https://github.com/Block-Wallet/",
+    GITHUB: "https://github.com/block-wallet/",
     TWITTER: "https://twitter.com/BlockWallet",
 }

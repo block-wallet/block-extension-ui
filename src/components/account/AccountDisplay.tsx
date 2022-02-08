@@ -72,7 +72,7 @@ const AccountDisplay: FunctionComponent<{
     return (
         <div
             className={classnames(
-                "flex flex-row items-center justify-between w-full rounded-md cursor-default",
+                "flex flex-row items-center justify-between w-full rounded-md",
                 defaultAccount && "pr-2",
                 hover && "hover:bg-primary-100 cursor-pointer"
             )}

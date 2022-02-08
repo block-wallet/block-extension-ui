@@ -50,12 +50,21 @@ import { formatName } from "../../util/formatAccount"
 import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
 import { getAccountColor } from "../../util/getAccountColor"
 import { formatNumberLength } from "../../util/formatNumberLength"
+import { TransactionCategories } from "../../context/commTypes"
 
 const TransactionConfirmPage = () => {
     const { transaction } = useUnapprovedTransaction()
     const route = useNextRequestRoute()
 
-    return transaction ? <TransactionConfirm /> : <Redirect to={route} />
+    if (
+        !transaction ||
+        transaction.transactionCategory ===
+            TransactionCategories.TOKEN_METHOD_APPROVE
+    ) {
+        return <Redirect to={route} />
+    } else {
+        return <TransactionConfirm />
+    }
 }
 
 const TransactionConfirm = () => {
@@ -140,7 +149,7 @@ const TransactionConfirm = () => {
         transaction.methodSignature?.name ??
         transaction.transactionCategory?.toString()
     const account = accounts[getAddress(params.from!)]
-    const accountName = account ? account.name : "Blank"
+    const accountName = account ? account.name : "BlockWallet"
 
     const calcTranTotals = () => {
         const gas = BigNumber.from(
@@ -226,8 +235,14 @@ const TransactionConfirm = () => {
             networkNativeCurrency.symbol.length > 3 ? 9 : 10
         )
 
-        const valueWidth = formattedValue.length >= 5 ? "w-7/12" : "w-4/12"
-        const originWidth = formattedValue.length >= 5 ? "w-5/12" : "w-8/12"
+        const valueWidth =
+            formattedValue.length + networkNativeCurrency.symbol.length >= 5
+                ? "w-7/12"
+                : "w-4/12"
+        const originWidth =
+            formattedValue.length + networkNativeCurrency.symbol.length >= 5
+                ? "w-5/12"
+                : "w-8/12"
         return (
             <GenericTooltip
                 top

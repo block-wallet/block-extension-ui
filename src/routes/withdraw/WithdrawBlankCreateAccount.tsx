@@ -47,7 +47,7 @@ const WithdrawBlankCreateAccount = () => {
                 data.accountName ? data.accountName : placeholderAccountName
             )
             history.push({
-                pathname: "/privacy/withdraw/blank/accounts/step/confirm",
+                pathname: "/privacy/withdraw/block/accounts/step/confirm",
                 state: { address: newAccount.address, pair },
             })
         } catch {
@@ -65,7 +65,7 @@ const WithdrawBlankCreateAccount = () => {
                 footer={
                     <PopupFooter>
                         <LinkButton
-                            location="/privacy/withdraw/blank/accounts"
+                            location="/privacy/withdraw/block/accounts"
                             state={{ pair }}
                             text="Back"
                             lite

@@ -294,10 +294,10 @@ export const SwitchEthereumChain = () => (
         assignBlankState={{
             dappRequests: {
                 "1": {
-                    origin: "http://app.goblank.io/",
+                    origin: "http://app.blockwallet.io/",
                     siteMetadata: {
-                        name: "GoBlank",
-                        iconURL: "http://app.goblank.io/icons/icon-128.png",
+                        name: "BlockWallet",
+                        iconURL: "http://app.blockwallet.io/icons/icon-128.png",
                     },
                     time: 1,
                     type: DappReq.SWITCH_NETWORK,

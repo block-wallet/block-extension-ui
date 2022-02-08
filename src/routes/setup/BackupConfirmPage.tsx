@@ -249,7 +249,7 @@ const BackupConfirmPage = () => {
                     <Divider />
 
                     <div className="flex flex-row p-6 space-x-4">
-                            <Link
+                        <Link
                                 to={{
                                     pathname: backLink,
                                     state: { seedPhrase, password },
@@ -257,9 +257,9 @@ const BackupConfirmPage = () => {
                                 className={Classes.liteButton}
                                 draggable={false}
                             >
-                                Back
-                            </Link>
-                            <button
+                            Back
+                        </Link>
+                        <button
                                     type="button"
                                     className={classnames(
                                         Classes.button,
@@ -270,13 +270,13 @@ const BackupConfirmPage = () => {
                                     )}
                                     onClick={confirmSeedPhrase}
                             >
-                                {!isVerificationInProgress ? (
+                            {!isVerificationInProgress ? (
                                     "Confirm"
                                 ) : (
                                     <Spinner />
                                 )}
-                            </button>
-                        </div>
+                        </button>
+                    </div>
                 </PageLayout>
             )}
             

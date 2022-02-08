@@ -3,15 +3,18 @@ import CheckmarkCircle from "../icons/CheckmarkCircle"
 import ExclamationCircleIconFull from "../icons/ExclamationCircleIconFull"
 import classnames from "classnames"
 
-interface InfoItemProps {
-    type: "success" | "warn"
+interface ClassNameProp {
     className?: string
+}
+
+interface InfoItemProps extends ClassNameProp {
+    type: "success" | "warn"
 }
 
 interface InfoComponents {
     Item: FunctionComponent<InfoItemProps>
     Title: FunctionComponent
-    List: FunctionComponent
+    List: FunctionComponent<ClassNameProp>
 }
 
 const Info: FunctionComponent & InfoComponents = ({ children }) => {
@@ -26,8 +29,13 @@ const Title: FunctionComponent = ({ children }) => {
     )
 }
 
-const InfoList: FunctionComponent = ({ children }) => {
-    return <ul className="list-none">{children}</ul>
+const InfoList: FunctionComponent<ClassNameProp> = ({
+    children,
+    className,
+}) => {
+    return (
+        <ul className={classnames("list-none", className || "")}>{children}</ul>
+    )
 }
 
 const BulletType = {
@@ -43,10 +51,10 @@ const Item: FunctionComponent<InfoItemProps> = ({
     const Bullet = BulletType[type]
     return (
         <li className={classnames("mb-5 flex items-start", className || "")}>
-            <div className="flex-none mr-3 mt-0.5">
+            <div className="flex-none mr-3">
                 <Bullet />
             </div>
-            <span className="flex-1 text-sm text-slate-600 leading-6">
+            <span className="flex-1 text-sm text-slate-600 leading-6 align-middle">
                 {children}
             </span>
         </li>

@@ -1,4 +1,4 @@
-# Blank Wallet Extension
+# BlockWallet Extension
 
 ### Node Version
 

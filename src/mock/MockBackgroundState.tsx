@@ -404,6 +404,11 @@ export const initBackgroundState: BackgroundStateType = {
         popupTab: "activity",
         settings: {
             hideAddressWarning: false,
+            subscribedToReleaseaNotes: false,
+        },
+        releaseNotesSettings: {
+            lastVersionUserSawNews: "0.1.1",
+            latestReleaseNotes: [],
         },
         availableNetworks: {
             MAINNET: {
@@ -429,7 +434,7 @@ export const initBackgroundState: BackgroundStateType = {
             },
             ARBITRUM: {
                 name: "arbitrum",
-                desc: "Abitrum Mainnet",
+                desc: "Arbitrum Mainnet",
                 chainId: 42161,
                 networkVersion: "42161",
                 nativeCurrency: {
@@ -614,10 +619,10 @@ export const initBackgroundState: BackgroundStateType = {
         },
         dappRequests: {
             //"1": {
-            //    origin: "http://app.goblank.io/",
+            //    origin: "http://app.blockwallet.io/",
             //    siteMetadata: {
-            //        name: "GoBlank",
-            //        iconURL: "http://app.goblank.io/icons/icon-128.png",
+            //        name: "blockwallet",
+            //        iconURL: "http://app.blockwallet.io/icons/icon-128.png",
             //    },
             //    time: 1,
             //    type: DappReq.SIGNING,

@@ -36,7 +36,7 @@ export const WithdrawTimeFrameWarning: React.FunctionComponent<{
                 read more about on{" "}
                 <a
                     className="underline text-blue-600 hover:text-blue-800"
-                    href="https://help.goblank.io/hc/en-us/articles/4408778013969-Optimal-Online-Privacy-With-Blank"
+                    href="https://help.blockwallet.io/hc/en-us/articles/4408778013969-Optimal-Online-Privacy-With-BlockWallet"
                     target="_blank"
                     rel="noreferrer"
                 >

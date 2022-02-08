@@ -289,7 +289,7 @@ const PopupPage = () => {
                                         <img
                                             alt="Privacy"
                                             src={eye}
-                                            className="w-full h-3 group-hover:animate-privacy-rotate"
+                                            className="w-full h-3 group-hover:animate-privacy-rotate select-none"
                                         />
                                     </div>
                                     <span className="text-xs font-medium">

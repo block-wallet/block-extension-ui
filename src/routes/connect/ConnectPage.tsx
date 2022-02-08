@@ -92,7 +92,7 @@ const ConnectSteps = () => {
         <PopupLayout
             header={
                 <PopupHeader
-                    title="Connect With Blank"
+                    title="Connect With BlockWallet"
                     close={false}
                     disabled={isConfirming}
                     onBack={cancel}

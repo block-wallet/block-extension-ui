@@ -26,6 +26,7 @@ import { useOnClickOutside } from "../../util/useOnClickOutside"
 import { getAccountColor } from "../../util/getAccountColor"
 import WarningTip from "../../components/label/WarningTip"
 import { useTokensList } from "../../context/hooks/useTokensList"
+import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 
 export type ConnectedSiteAccountsLocationState = {
     origin: string
@@ -51,7 +52,7 @@ const ConnectedSiteAccount: FunctionComponent<{
     const [hasDialog, setHasDialog] = useState(false)
 
     const { selectedAddress, networkNativeCurrency } = useBlankState()!
-    const { nativeToken } = useTokensList()
+    const { chainId } = useSelectedNetwork()
 
     const ref = useRef(null)
     useOnClickOutside(ref, () => setShowOptions(false))
@@ -83,7 +84,10 @@ const ConnectedSiteAccount: FunctionComponent<{
                             </span>
                             <span className="text-xs text-gray-400">
                                 {formatNumberLength(
-                                    formatUnits(nativeToken.balance || "0"),
+                                    formatUnits(
+                                        account.balances[chainId]
+                                            .nativeTokenBalance || "0"
+                                    ),
                                     10
                                 )}{" "}
                                 {networkNativeCurrency.symbol}

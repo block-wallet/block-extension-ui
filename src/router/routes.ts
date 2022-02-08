@@ -39,6 +39,7 @@ import WithdrawBlankConfirm from "../routes/withdraw/WithdrawBlankConfirm"
 import AccountMenu from "../components/account/AccountMenu"
 import EditAccountPage from "../routes/account/EditAccountPage"
 import WatchAssetPage from "../routes/dApp/WatchAsset"
+import ApproveAssetPage from "../routes/dApp/ApproveAsset"
 
 export const appRoutes = makeRoutes([
     /* Root */
@@ -85,17 +86,17 @@ export const appRoutes = makeRoutes([
         component: WithdrawTypeSelectPage,
     },
     {
-        path: "/privacy/withdraw/blank/accounts",
+        path: "/privacy/withdraw/block/accounts",
         exact: true,
         component: WithdrawBlankSelectAccount,
     },
     {
-        path: "/privacy/withdraw/blank/accounts/create",
+        path: "/privacy/withdraw/block/accounts/create",
         exact: true,
         component: WithdrawBlankCreateAccount,
     },
     {
-        path: "/privacy/withdraw/blank/accounts/step/confirm",
+        path: "/privacy/withdraw/block/accounts/step/confirm",
         exact: true,
         component: WithdrawBlankConfirm,
     },
@@ -165,6 +166,9 @@ export const appRoutes = makeRoutes([
     { path: "/asset", exact: true, component: WatchAssetPage },
     /* Connect */
     { path: "/connect", exact: true, component: ConnectPage },
+    /* Token approval */
+    { path: "/approveAsset", exact: true, component: ApproveAssetPage },
+    /* Transaction */
     {
         path: "/transaction/confirm",
         exact: true,

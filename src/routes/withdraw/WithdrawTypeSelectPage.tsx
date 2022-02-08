@@ -46,10 +46,10 @@ const WithdrawTypeSelectPage = () => {
                             },
                             {
                                 icon: blankBlueIcon,
-                                label: "Blank Wallet",
+                                label: "BlockWallet",
                                 to: {
                                     pathname:
-                                        "/privacy/withdraw/blank/accounts",
+                                        "/privacy/withdraw/block/accounts",
                                     state: { pair },
                                 },
                             },
@@ -75,7 +75,7 @@ const WithdrawTypeSelectPage = () => {
                 <div className="flex flex-row items-start space-x-4 text-xs">
                     <img src={infoIcon} alt="info" className="w-3 h-3 mt-1" />
                     <span>
-                        Withdraw to a Blank Wallet if you want to continue
+                        Withdraw to BlockWallet if you want to continue
                         operating privately with these funds.
                     </span>
                 </div>
