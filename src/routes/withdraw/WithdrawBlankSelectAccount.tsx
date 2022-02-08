@@ -85,7 +85,6 @@ const WithdrawBlankSelectAccount = () => {
             header={
                 <PopupHeader
                     title="Withdraw From Privacy Pool"
-                    close="/"
                     onBack={() => {
                         history.push({
                             pathname: "/privacy/withdraw/select",

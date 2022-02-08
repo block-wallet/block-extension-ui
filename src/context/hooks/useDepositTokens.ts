@@ -7,7 +7,6 @@ import { TokenList } from "./useTokensList"
 import { ITokens } from "@blank/background/controllers/erc-20/Token"
 import { BigNumber } from "@ethersproject/bignumber"
 import { useSelectedAccount } from "./useSelectedAccount"
-import eth from "../../assets/images/icons/ETH.svg"
 import { AccountBalanceTokens } from "@blank/background/controllers/AccountTrackerController"
 
 export const useDepositTokens = () => {
@@ -15,8 +14,7 @@ export const useDepositTokens = () => {
     const [depositTokens, setDepositTokens] = useState<TokenList>([])
 
     const { balances } = useSelectedAccount()
-    const { name, chainId, nativeCurrency, iconUrls } = useSelectedNetwork()
-    const defaultNetworkLogo = iconUrls ? iconUrls[0] : eth
+    const { name, chainId, nativeCurrency, defaultNetworkLogo } = useSelectedNetwork()
 
     let networkBalances: AccountBalanceTokens = {}
 

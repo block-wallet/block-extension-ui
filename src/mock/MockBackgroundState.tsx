@@ -20,6 +20,18 @@ export const initBackgroundState: BackgroundStateType = {
                     note: "",
                     isEns: false,
                 },
+                "0x5621C68f21852811E1fd6208fDDD0FC13A844fD2": {
+                    address: "0x5621C68f21852811E1fd6208fDDD0FC13A844fD2",
+                    name: "Test Contact 2",
+                    note: "",
+                    isEns: false,
+                },
+                "0x5621C68f21852811E1fd6208fDDD0FC13A844fD3": {
+                    address: "0x5621C68f21852811E1fd6208fDDD0FC13A844fD3",
+                    name: "Test Contact 3",
+                    note: "",
+                    isEns: false,
+                },
             },
             ARBITRUM: {
                 "0x5621C68f21852811E1fd6208fDDD0FC13A844fD1": {
@@ -62,6 +74,14 @@ export const initBackgroundState: BackgroundStateType = {
                 },
             },
             POLYGON: {
+                "0x5621C68f21852811E1fd6208fDDD0FC13A844fD1": {
+                    address: "0x5621C68f21852811E1fd6208fDDD0FC13A844fD1",
+                    name: "Test Contact ",
+                    note: "",
+                    isEns: false,
+                },
+            },
+            AVALANCHEC: {
                 "0x5621C68f21852811E1fd6208fDDD0FC13A844fD1": {
                     address: "0x5621C68f21852811E1fd6208fDDD0FC13A844fD1",
                     name: "Test Contact ",
@@ -357,6 +377,7 @@ export const initBackgroundState: BackgroundStateType = {
         gasPriceData: {
             5: {
                 blockGasLimit: BigNumber.from(0),
+                estimatedBaseFee: BigNumber.from(0),
                 gasPricesLevels: {
                     slow: {
                         gasPrice: BigNumber.from(111111111110),
@@ -379,6 +400,7 @@ export const initBackgroundState: BackgroundStateType = {
         },
         incomingTransactions: {},
         showTestNetworks: true,
+        showWelcomeMessage: false,
         popupTab: "activity",
         settings: {
             hideAddressWarning: false,

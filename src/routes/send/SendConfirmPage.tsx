@@ -12,9 +12,6 @@ import ErrorMessage from "../../components/error/ErrorMessage"
 // Style
 import classnames from "classnames"
 
-// Assets
-import checkmarkCircle from "../../assets/images/icons/checkmark_circle.svg"
-
 // Utils
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
@@ -53,6 +50,9 @@ import { AdvancedSettings } from "../../components/transactions/AdvancedSettings
 import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
 import { TransactionAdvancedData } from "@blank/background/controllers/transactions/utils/types"
 import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
+import { AccountInfo } from "@blank/background/controllers/AccountTrackerController"
+import { useAddressBook } from "../../context/hooks/useAddressBook"
+import CheckmarkCircle from "../../components/icons/CheckmarkCircle"
 
 // Schema
 const GetAmountYupSchema = (
@@ -169,6 +169,18 @@ const AddressDisplay: FunctionComponent<{
     const accountAddress = history.location.state.address
     const ensSelected: EnsResult = history.location.state.ens
 
+    const { accounts } = useBlankState()!
+    const addressBook = useAddressBook()
+
+    const account =
+        accountAddress in accounts
+            ? (accounts[accountAddress] as AccountInfo)
+            : accountAddress in addressBook
+            ? ({
+                  name: addressBook[accountAddress].name,
+                  address: addressBook[accountAddress].address,
+              } as AccountInfo)
+            : undefined
     return (
         <>
             <div
@@ -179,15 +191,11 @@ const AddressDisplay: FunctionComponent<{
                     setShowingTheWholeAddress(!showingTheWholeAddress)
                 }
             >
-                <img
-                    src={checkmarkCircle}
-                    alt="checkmark"
-                    className="w-4 h-4"
-                />
-                {ensSelected ? (
+                <CheckmarkCircle classes="w-4 h-4" />
+                {ensSelected || account?.name ? (
                     <div>
                         <span className="font-bold text-green-500 mr-2">
-                            {ensSelected.name}
+                            {ensSelected ? ensSelected.name : account?.name}
                         </span>
                         <span className="text-gray truncate">
                             {formatHash(accountAddress)}
@@ -655,6 +663,7 @@ const SendConfirmPage = () => {
                                 >
                                     <div className="flex flex-col items-start">
                                         <input
+                                            id="amount"
                                             name="amount"
                                             type="text"
                                             ref={register}
@@ -768,6 +777,7 @@ const SendConfirmPage = () => {
                                         })
                                     }}
                                     showEstimationError={gasEstimationFailed}
+                                    displayOnlyMaxValue
                                 />
                             )}
                             <div className={`${error ? "pl-1 my-2" : null}`}>

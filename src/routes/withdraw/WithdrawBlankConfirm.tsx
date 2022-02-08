@@ -42,6 +42,7 @@ import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import SuccessDialog from "../../components/dialog/SuccessDialog"
 import GenericTooltip from "../../components/label/GenericTooltip"
+import { useAddressBook } from "../../context/hooks/useAddressBook"
 
 const WithdrawBlankConfirm = () => {
     const history: any = useOnMountHistory()
@@ -86,9 +87,16 @@ const WithdrawBlankConfirm = () => {
     )
 
     const { accounts } = state
+    const addressBook = useAddressBook()
+
     const account =
         accountAddress in accounts
             ? (accounts[accountAddress] as AccountInfo)
+            : accountAddress in addressBook
+            ? ({
+                  name: addressBook[accountAddress].name,
+                  address: addressBook[accountAddress].address,
+              } as AccountInfo)
             : undefined
 
     // If we have gasPrice, this mean it's a non EIP-1559 network
@@ -281,7 +289,7 @@ const WithdrawBlankConfirm = () => {
                                 className="w-10 h-10"
                             />
                             <span className="w-20 whitespace-nowrap">
-                                Blank
+                                Privacy Pool
                             </span>
                         </div>
                         <img src={arrow} alt="arrow" className="w-4 h-4 mt-3" />
@@ -315,7 +323,7 @@ const WithdrawBlankConfirm = () => {
                         <span>From:</span>
                         <div className="flex flex-row items-center justify-start w-32 space-x-2">
                             <img src={blankIcon} className="w-7 h-7" alt="" />
-                            <span>Blank</span>
+                            <span>Privacy Pool</span>
                         </div>
                     </div>
                     <hr />

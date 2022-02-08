@@ -34,7 +34,7 @@ import { useTokensList } from "../../context/hooks/useTokensList"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import { DappRequestProps, DappRequest } from "./DappRequest"
 import SuccessDialog from "../../components/dialog/SuccessDialog"
-import LoadingOverlay from "../../components/LoadingOverlay"
+import LoadingOverlay from "../../components/loading/LoadingOverlay"
 
 const SignPage = () => {
     return (
@@ -75,7 +75,6 @@ const Sign: FunctionComponent<DappRequestProps> = ({
         try {
             setIsConfirming(true)
             await confirmDappRequest(requestId, true)
-            await new Promise((resolve) => setTimeout(resolve, 600))
         } finally {
             setIsConfirming(false)
         }
@@ -85,7 +84,6 @@ const Sign: FunctionComponent<DappRequestProps> = ({
         try {
             setIsConfirming(true)
             await confirmDappRequest(requestId, false)
-            await new Promise((resolve) => setTimeout(resolve, 600))
         } finally {
             setIsConfirming(false)
         }

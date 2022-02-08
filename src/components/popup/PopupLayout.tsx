@@ -1,16 +1,24 @@
-import React, { FunctionComponent } from "react"
+import React, { FunctionComponent, useLayoutEffect } from "react"
+import usePreventWindowResize from "../../context/hooks/usePreventWindowResize"
 import PageLayout from "../PageLayout"
 
 const PopupLayout: FunctionComponent<{
     header?: React.ReactNode
     footer?: React.ReactNode
 }> = ({ header, children, footer }) => {
+    const { preventResize, cancelPreventResize } = usePreventWindowResize()
     const fullHeader = (
         <>
             {header}
             <hr className="border-0.5 border-gray-200 w-full" />
         </>
     )
+
+    useLayoutEffect(() => {
+        preventResize()
+        return () => cancelPreventResize()
+    }, [preventResize, cancelPreventResize])
+
     return (
         <PageLayout screen className="max-h-screen popup-layout">
             <div className="absolute top-0 left-0 w-full">{fullHeader}</div>

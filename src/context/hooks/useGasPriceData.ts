@@ -5,7 +5,6 @@ import { useSelectedNetwork } from "./useSelectedNetwork"
 export const useGasPriceData = () => {
     const { gasPriceData } = useBlankState()!
     const { chainId } = useSelectedNetwork()
-
     if (chainId in gasPriceData) {
         return gasPriceData[chainId]
     }

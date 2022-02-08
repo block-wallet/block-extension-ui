@@ -20,7 +20,10 @@ import { Messages, Origin, BackgroundActions } from "./commTypes"
 import { ITokens, Token } from "@blank/background/controllers/erc-20/Token"
 import { IBlankDeposit } from "@blank/background/controllers/blank-deposit/BlankDeposit"
 import { SiteMetadata } from "@blank/provider/types"
-import { TransactionAdvancedData, TransactionMeta } from "@blank/background/controllers/transactions/utils/types"
+import {
+    TransactionAdvancedData,
+    TransactionMeta,
+} from "@blank/background/controllers/transactions/utils/types"
 import { checkRedraw } from "./util/platform"
 import log from "loglevel"
 import { TransactionGasEstimation } from "@blank/background/controllers/transactions/TransactionController"
@@ -94,7 +97,7 @@ const initPort = () => {
             }
 
             if (data.subscription) {
-                ; (handler.subscriber as Function)(data.subscription)
+                ;(handler.subscriber as Function)(data.subscription)
             } else if ("error" in data) {
                 handler.reject(new Error(data.error))
             } else {
@@ -440,7 +443,12 @@ export const sendEther = async (
     value: BigNumber,
     advancedData: TransactionAdvancedData
 ): Promise<string> => {
-    return sendMessage(Messages.TRANSACTION.SEND_ETHER, { to, feeData, value, advancedData })
+    return sendMessage(Messages.TRANSACTION.SEND_ETHER, {
+        to,
+        feeData,
+        value,
+        advancedData,
+    })
 }
 
 /**
@@ -646,7 +654,7 @@ export const sendToken = async (
         to,
         value,
         feeData,
-        advancedData
+        advancedData,
     })
 }
 
@@ -1082,7 +1090,7 @@ export const confirmTransaction = async (
     return sendMessage(Messages.TRANSACTION.CONFIRM, {
         id: transactionId,
         feeData,
-        advancedData
+        advancedData,
     })
 }
 
@@ -1166,7 +1174,6 @@ export const setUserSettings = async (settings: UserSettings) => {
     return sendMessage(Messages.APP.SET_USER_SETTINGS, { settings })
 }
 
-
 /**
  * Get the contacts
  *
@@ -1176,4 +1183,11 @@ export const setUserSettings = async (settings: UserSettings) => {
  */
 export const getNextNonce = async (address: string) => {
     return sendMessage(Messages.TRANSACTION.GET_NEXT_NONCE, { address })
+}
+
+/**
+ * Dismisses the welcome to the wallet message
+ */
+export const dismissWelcomeMessage = async (): Promise<boolean> => {
+    return sendMessage(Messages.WALLET.DISMISS_WELCOME_MESSAGE, {})
 }

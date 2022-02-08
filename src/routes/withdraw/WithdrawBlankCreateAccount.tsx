@@ -61,12 +61,7 @@ const WithdrawBlankCreateAccount = () => {
     return (
         <form className="w-full h-full" onSubmit={onSubmit}>
             <PopupLayout
-                header={
-                    <PopupHeader
-                        title="Withdraw From Privacy Pool"
-                        close="/privacy"
-                    />
-                }
+                header={<PopupHeader title="Withdraw From Privacy Pool" />}
                 footer={
                     <PopupFooter>
                         <LinkButton

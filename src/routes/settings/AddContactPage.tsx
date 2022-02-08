@@ -18,6 +18,7 @@ import {
 import { utils } from "ethers"
 import { addressBookSet } from "../../context/commActions"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import SuccessDialog from "../../components/dialog/SuccessDialog"
 
 // new contact schema
 const contactSchema = yup.object().shape({
@@ -38,6 +39,7 @@ type contactFormData = InferType<typeof contactSchema>
 
 const AddContactPage = (props: any) => {
     const history = useOnMountHistory()
+    const [saved, setSaved] = useState<boolean>(false);
     const addressBook = useAddressBook()
     const recentAddresses = useAddressBookRecentAddresses()
     const {
@@ -82,10 +84,7 @@ const AddContactPage = (props: any) => {
                 data.contactName ? data.contactName : placeholderСontactName,
                 ""
             )
-            history.push({
-                pathname: "/settings/addressBook",
-                state: { fromAction: true },
-            })
+            setSaved(true);
         } catch {
             setError("contactName", {
                 message: "Error saving the new contact.",
@@ -93,6 +92,13 @@ const AddContactPage = (props: any) => {
             })
         }
     })
+
+    const onSuccessDialogIsDone = () => {
+        history.push({
+            pathname: "/settings/addressBook",
+            state: { fromAction: true },
+        })
+    }
 
     return (
         <PopupLayout
@@ -141,6 +147,13 @@ const AddContactPage = (props: any) => {
                 </div>
                 <hr className="border-0.5 border-gray-200 w-full" />
             </div>
+            <SuccessDialog
+                open={saved}
+                title="Congratulations"
+                timeout={800}
+                message="Your changes have been succesfully saved!"
+                onDone={onSuccessDialogIsDone}
+            />
         </PopupLayout>
     )
 }

@@ -1,5 +1,5 @@
 module.exports = {
-    purge: ["./src/**/*.tsx", "./src/styles/classes.ts"],
+    content: ["./src/**/*.tsx", "./src/styles/classes.ts"],
     theme: {
         extend: {
             colors: {
@@ -30,15 +30,6 @@ module.exports = {
             fontSize: {
                 'xxs': '.625rem'
             },
-        },
-    },
-    variants: {
-        extend: {
-            visibility: ["group-hover"],
-            scale: ["active"],
-            backgroundColor: ["active"],
-            fontWeight: ["hover"],
-            animation: ["group-hover"],
         },
     },
     plugins: [

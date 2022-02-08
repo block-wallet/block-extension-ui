@@ -7,22 +7,23 @@ import { classnames } from "../../styles"
 const Dialog: FunctionComponent<{
     children: React.ReactNode
     open: boolean
+    horizontalPadding?: string
     onClickOutside?: () => void
-}> = ({ onClickOutside, open, children }) => {
+}> = ({ open, children, horizontalPadding = "px-3", onClickOutside }) => {
+    const nodeRef = useRef(null)
     const ref = useRef(null)
     useOnClickOutside(ref, () => onClickOutside?.())
 
-    //return open ? (
-
-    //) : null
     return (
         <CSSTransition
             in={open}
             timeout={200}
             unmountOnExit
             classNames={"appear"}
+            nodeRef={nodeRef}
         >
             <div
+                ref={nodeRef}
                 className={classnames(
                     "bg-gray-100 bg-opacity-50 fixed inset-0 w-full h-screen z-50 overflow-hidden flex flex-col items-center justify-center px-6"
                 )}
@@ -34,7 +35,10 @@ const Dialog: FunctionComponent<{
             >
                 <div
                     ref={ref}
-                    className="relative py-6 px-3 opacity-100 w-full bg-white shadow-md rounded-md flex-col flex"
+                    className={classnames(
+                        "relative py-6 opacity-100 w-full bg-white shadow-md rounded-md flex-col flex",
+                        horizontalPadding
+                    )}
                 >
                     {children}
                 </div>

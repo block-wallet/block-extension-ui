@@ -2,7 +2,6 @@ import _classnames from "classnames"
 
 export const classnames = _classnames
 
-
 const primaryButton =
     "text-white bg-primary-300 hover:bg-blue-600 border-primary-300 hover:border-blue-600"
 
@@ -106,5 +105,9 @@ export class Classes {
 
     static roundedIcon = classnames(
         "flex items-center justify-center w-9 h-9 p-1.5 bg-white border border-gray-200 rounded-full"
+    )
+
+    static clickableText = classnames(
+        "rounded border-none bg-transparent text-primary-300 hover:underline"
     )
 }
