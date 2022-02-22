@@ -5,7 +5,7 @@ import { Classes, classnames } from "../../styles/classes"
 import PageLayout from "../../components/PageLayout"
 import Divider from "../../components/Divider"
 import LinkButton from "../../components/button/LinkButton"
-import Spinner from "../../components/Spinner"
+import Spinner from "../../components/spinner/Spinner"
 import PasswordInput from "../../components/input/PasswordInput"
 
 import * as yup from "yup"
@@ -135,7 +135,7 @@ const SeedImportPage = () => {
                                 name="seedPhrase"
                                 type={showSeedPhrase ? "text" : "password"}
                                 ref={register}
-                                placeholder="Enter Seed Phrase"
+                                placeholder="Enter Seed Phrase separated by spaces"
                                 className={Classes.input}
                             />
                             <span className="text-xs text-red-500">
@@ -201,7 +201,12 @@ const SeedImportPage = () => {
                 </div>
                 <Divider />
                 <div className="flex flex-row p-6 space-x-4">
-                    <LinkButton location="/setup/" text="Back" lite />
+                    <LinkButton
+                        location="/setup/"
+                        text="Back"
+                        lite
+                        disabled={isLoading}
+                    />
                     <button
                         type="submit"
                         className={classnames(

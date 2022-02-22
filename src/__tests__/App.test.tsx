@@ -18,8 +18,9 @@ global.IntersectionObserver = class MockIntersection {
     unobserve() {}
 }
 test("Tab renders", () => {
-    render(<MockTab location="/intro" />)
-
+    render(
+        <MockTab location="/intro" assignBlankState={{ isOnboarded: false }} />
+    )
     const blockWallet = screen.queryAllByText(/BlockWallet/i).length !== 0
     expect(blockWallet).toBeTruthy()
 })
@@ -27,7 +28,7 @@ test("Tab renders", () => {
 test("PopUp renders", () => {
     render(
         <MockPopup
-            location="/"
+            location="/home"
             assignBlankState={initBackgroundState.blankState}
         />
     )

@@ -1,8 +1,9 @@
-import { Messages } from '../commTypes'
-import BackgroundReducer from './backgroundReducer'
-import React, { useReducer, useEffect } from 'react'
-import { isPortConnected, subscribeState, getState } from '../commActions'
-import BackgroundContext, { initBackgroundState } from './backgroundContext'
+import { Messages } from "../commTypes"
+import BackgroundReducer from "./backgroundReducer"
+import React, { useReducer, useEffect } from "react"
+import { subscribeState, getState } from "../commActions"
+import BackgroundContext, { initBackgroundState } from "./backgroundContext"
+import { isPortConnected } from "../setup"
 
 let isContextInit = false
 
@@ -11,6 +12,7 @@ const BackgroundState = (props: any) => {
 
     useEffect(() => {
         initContext()
+        // eslint-disable-next-line
     }, [])
 
     const initContext = async () => {

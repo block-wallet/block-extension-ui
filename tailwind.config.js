@@ -20,15 +20,34 @@ module.exports = {
                     "0%": { transform: "rotateX(0deg)" },
                     "100%": { transform: "rotateX(360deg)" },
                 },
+                "spinner-dash": {
+                    "0%": {
+                        "stroke-dasharray": "1, 150",
+                        "stroke-dashoffset": "0",
+                    },
+                    "50%": {
+                        "stroke-dasharray": "90, 150",
+                        "stroke-dashoffset": "-35",
+                    },
+                    "100%": {
+                        "stroke-dasharray": "90, 150",
+                        "stroke-dashoffset": "-124",
+                    },
+                },
+                "spinner-rotate": {
+                    "100%": { transform: "rotate(360deg)" },
+                },
             },
             animation: {
                 "privacy-rotate": "privacy-rotate 0.5s ease-in-out",
+                "spinner-dash": "spinner-dash 1.5s ease-in-out infinite",
+                "spinner-rotate": "spinner-rotate 2s linear infinite",
             },
             transitionProperty: {
-                "width": "width"
+                width: "width",
             },
             fontSize: {
-                'xxs': '.625rem'
+                xxs: ".625rem",
             },
         },
     },

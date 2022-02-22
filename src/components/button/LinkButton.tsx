@@ -12,6 +12,7 @@ const LinkButton = ({
     state = {},
     passState = false,
     lite = false,
+    disabled = false,
 }) => {
     const history = useOnMountHistory()
     const currentState = useOnMountLocation().state
@@ -34,9 +35,11 @@ const LinkButton = ({
             onClick={handleTo}
             className={classnames(
                 lite ? Classes.liteButton : Classes.darkButton,
+                disabled ? "opacity-50" : "",
                 classes
             )}
             type="button"
+            disabled={disabled}
         >
             {text}
         </button>

@@ -25,7 +25,7 @@ const ErrorDialog: FunctionComponent<ErrorDialogProps> = ({
             open={open}
             onClickOutside={onClickOutside}
             header={
-                <CgDanger className="text-red-500 w-20 h-20 mb-2 block m-auto" />
+                <CgDanger className="text-red-500 w-20 h-20 block m-auto" />
             }
             footer={
                 <>

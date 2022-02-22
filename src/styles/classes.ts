@@ -54,6 +54,10 @@ export class Classes {
         Classes.iconButton,
         "text-red-500 bg-red-100 border border-opacity-0 hover:border-red-600 hover:border-opacity-100"
     )
+    static disabledLogoutButton = classnames(
+        Classes.iconButton,
+        "text-red-300 bg-red-50 border border-opacity-0 hover:border-red-400 hover:border-opacity-50"
+    )
 
     static redButton = classnames(
         Classes.centered,

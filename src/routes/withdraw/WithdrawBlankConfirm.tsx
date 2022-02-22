@@ -17,7 +17,7 @@ import {
 import { CurrencyAmountPair } from "@blank/background/controllers/blank-deposit/types"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import { AccountInfo } from "@blank/background/controllers/AccountTrackerController"
-import Spinner from "../../components/Spinner"
+import Spinner from "../../components/spinner/Spinner"
 import { utils } from "ethers"
 import { formatHash, formatName } from "../../util/formatAccount"
 import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
@@ -40,7 +40,9 @@ import { DEFAULT_DECIMALS } from "../../util/constants"
 import { BigNumber } from "ethers"
 import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
-import SuccessDialog from "../../components/dialog/SuccessDialog"
+import WaitingDialog, {
+    useWaitingDialog,
+} from "../../components/dialog/WaitingDialog"
 import GenericTooltip from "../../components/label/GenericTooltip"
 import { useAddressBook } from "../../context/hooks/useAddressBook"
 
@@ -54,9 +56,7 @@ const WithdrawBlankConfirm = () => {
         external: boolean | undefined
     }
 
-    const [isWithdrawing, setisWithdrawing] = useState(false)
     const [hasHigherFee, setHasHigherFee] = useState(false)
-    const [saved, setSaved] = useState(false)
     const [error, setError] = useState("")
     const [tokenDecimals, setTokenDecimals] = useState<number | undefined>()
 
@@ -88,6 +88,10 @@ const WithdrawBlankConfirm = () => {
 
     const { accounts } = state
     const addressBook = useAddressBook()
+
+    const { status, isOpen, dispatch } = useWaitingDialog()
+
+    const isWithdrawing = status === "loading" && isOpen
 
     const account =
         accountAddress in accounts
@@ -150,13 +154,13 @@ const WithdrawBlankConfirm = () => {
         if (hasHigherFee) return
 
         try {
-            setisWithdrawing(true)
+            dispatch({ type: "open", payload: { status: "loading" } })
             // Send amount to address
             await makeBlankWithdrawal(pair, accountAddress)
-            setSaved(true)
+            dispatch({ type: "setStatus", payload: { status: "success" } })
         } catch {
             setError("Error withdrawing")
-            setisWithdrawing(false)
+            dispatch({ type: "setStatus", payload: { status: "error" } })
         }
     }
 
@@ -272,12 +276,28 @@ const WithdrawBlankConfirm = () => {
                 </PopupFooter>
             }
         >
-            <SuccessDialog
-                open={saved}
-                title="Success"
-                message="You've initiated the withdrawal."
+            <WaitingDialog
+                open={isOpen}
+                status={status}
+                titles={{
+                    loading: "Loading",
+                    success: "Congratulations",
+                    error: "Error",
+                }}
+                texts={{
+                    loading: "Initiating the withdrawal...",
+                    success: "You've initiated the withdrawal.",
+                    error:
+                        "There was an error Could not initiate the withdrawal.",
+                }}
                 timeout={1400}
-                onDone={() => history.push("/")}
+                onDone={() => {
+                    if (status === "error") {
+                        dispatch({ type: "close" })
+                        return
+                    }
+                    history.push("/")
+                }}
             />
             <div className="flex flex-col p-6 space-y-4">
                 <div className="flex flex-col items-center w-full p-6 space-y-8 text-sm text-center rounded-md bg-primary-100">

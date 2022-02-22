@@ -40,6 +40,10 @@ import AccountMenu from "../components/account/AccountMenu"
 import EditAccountPage from "../routes/account/EditAccountPage"
 import WatchAssetPage from "../routes/dApp/WatchAsset"
 import ApproveAssetPage from "../routes/dApp/ApproveAsset"
+import PhishingProtectionPreferencesPage from "../routes/preferences/PhishingProtectionPreferencesPage"
+import ReleaseNotesPreferencesPage from "../routes/preferences/ReleaseNotesPreferencesPage"
+import LocalePreferencesPage from "../routes/preferences/LocalePreferencesPage"
+import PreferencesPage from "../routes/settings/PreferencesPage"
 
 export const appRoutes = makeRoutes([
     /* Root */
@@ -115,6 +119,30 @@ export const appRoutes = makeRoutes([
     /* Settings */
     { path: "/settings", exact: true, component: SettingsPage },
 
+    { path: "/settings/preferences", exact: true, component: PreferencesPage },
+    {
+        path: "/settings/preferences/phishing",
+        exact: true,
+        component: PhishingProtectionPreferencesPage,
+    },
+    {
+        path: "/settings/preferences/locale",
+        exact: true,
+        component: LocalePreferencesPage,
+    },
+
+    {
+        path: "/settings/preferences/releaseNotes",
+        exact: true,
+        component: ReleaseNotesPreferencesPage,
+    },
+
+    {
+        path: "/settings/preferences/lockTimeout",
+        exact: true,
+        component: LockTimeout,
+    },
+
     { path: "/settings/tokens/add", exact: true, component: AddTokensPage },
     {
         path: "/settings/tokens/add/confirm",
@@ -142,11 +170,7 @@ export const appRoutes = makeRoutes([
         exact: true,
         component: WithdrawHistory,
     },
-    {
-        path: "/settings/lockTimeout",
-        exact: true,
-        component: LockTimeout,
-    },
+
     /* Address Book */
     {
         path: "/settings/addressBook",

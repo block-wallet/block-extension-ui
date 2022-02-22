@@ -35,7 +35,9 @@ import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 import { formatNumberLength } from "../../util/formatNumberLength"
 import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
-import SuccessDialog from "../../components/dialog/SuccessDialog"
+import WaitingDialog, {
+    useWaitingDialog,
+} from "../../components/dialog/WaitingDialog"
 import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
 
 let freezedAmounts = {
@@ -57,11 +59,12 @@ const DepositConfirmPage = () => {
             },
         [history.location.state]
     )
-    const [saved, setSaved] = useState(false)
+    // const [saved, setSaved] = useState(false)
     const [txHash, setTxHash] = useState<string>()
-    const [isDepositing, setIsDepositing] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
+    // const [isDepositing, setIsDepositing] = useState(false)
+    const [isUpdating, setIsUpdating] = useState(false)
     const [error, setError] = useState("")
+    const { isOpen, status, dispatch } = useWaitingDialog()
 
     const [hasAllowance, setHasAllowance] = useState(true)
 
@@ -102,13 +105,14 @@ const DepositConfirmPage = () => {
 
     const [approveGasLimit, setApproveGasLimit] = useState(APPROVE_GAS_COST)
 
+    const isDepositing = status === "loading" && isOpen
     // If it's EIP multiply by max fee instead
     const feePerGas = !isEIP1559Compatible
         ? selectedGasPrice
         : selectedFees.maxFeePerGas
     const fee = selectedGasLimit.mul(feePerGas)
     const approveFee =
-        !hasAllowance && !isLoading
+        !hasAllowance && !isUpdating
             ? approveGasLimit.mul(feePerGas)
             : BigNumber.from(0)
 
@@ -137,7 +141,7 @@ const DepositConfirmPage = () => {
 
     const confirm = async () => {
         try {
-            setIsDepositing(true)
+            dispatch({ type: "open", payload: { status: "loading" } })
             const txHash = await makeBlankDeposit(
                 { currency: selectedCurrency, amount: amount as any },
                 {
@@ -155,10 +159,13 @@ const DepositConfirmPage = () => {
                 true
             )
             setTxHash(txHash)
-            setSaved(true)
+            dispatch({
+                type: "setStatus",
+                payload: { status: "success" },
+            })
         } catch {
             setError("Error making the deposit.")
-            setIsDepositing(false)
+            dispatch({ type: "setStatus", payload: { status: "error" } })
         }
     }
 
@@ -181,7 +188,7 @@ const DepositConfirmPage = () => {
         ethExchangeRate,
         network.nativeCurrency.decimals
     )
-    const canDeposit = hasBalance && !isDepositing && !isLoading
+    const canDeposit = hasBalance && !isDepositing && !isUpdating
 
     if (!isDepositing) {
         freezedAmounts = {
@@ -196,7 +203,8 @@ const DepositConfirmPage = () => {
     useEffect(() => {
         const fetch = async () => {
             try {
-                setIsLoading(true)
+                setIsUpdating(true)
+
                 const pair = {
                     currency: selectedCurrency,
                     amount: amount as any,
@@ -243,7 +251,7 @@ const DepositConfirmPage = () => {
                 })
             } catch {
             } finally {
-                setIsLoading(false)
+                setIsUpdating(false)
             }
         }
         fetch()
@@ -270,13 +278,29 @@ const DepositConfirmPage = () => {
                 </PopupFooter>
             }
         >
-            <SuccessDialog
-                open={saved}
-                title="Success"
-                message="You've initiated the deposit."
+            <WaitingDialog
+                open={isOpen}
+                status={status}
+                titles={{
+                    loading: "Depositing...",
+                    success: "Success",
+                    error: "Error",
+                }}
+                texts={{
+                    loading: "Initiating the deposit...",
+                    success: "You've initiated the deposit.",
+                    error: "There was an error while making the deposit.",
+                }}
                 txHash={txHash}
                 timeout={1400}
-                onDone={() => history.push("/")}
+                onDone={() => {
+                    if (status === "error") {
+                        dispatch({ type: "close" })
+                        return
+                    }
+
+                    history.push("/")
+                }}
             />
             <div className="flex flex-col p-6 space-y-6">
                 <div className="flex flex-col space-y-2">
@@ -308,8 +332,8 @@ const DepositConfirmPage = () => {
                                 setSelectedGasPrice(gasPrice)
                                 setSelectedGasLimit(gasLimit)
                             }}
-                            isParentLoading={isLoading}
-                            disabled={isLoading}
+                            isParentLoading={isUpdating}
+                            disabled={isUpdating}
                         />
                     ) : (
                         <GasPriceComponent
@@ -326,8 +350,8 @@ const DepositConfirmPage = () => {
                                     maxPriorityFeePerGas: gasFees.maxPriorityFeePerGas!,
                                 })
                             }}
-                            isParentLoading={isLoading}
-                            disabled={isLoading}
+                            isParentLoading={isUpdating}
+                            disabled={isUpdating}
                         />
                     )}
                 </div>

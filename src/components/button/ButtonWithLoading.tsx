@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react"
 import { Classes, classnames } from "../../styles"
-import Spinner from "../Spinner"
+import Spinner from "../spinner/Spinner"
 
 export const ButtonWithLoading: FunctionComponent<{
     type?: "submit" | "reset" | "button"

@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react"
+import React, { FunctionComponent } from "react"
 
 import { Link } from "react-router-dom"
 import Divider from "../../components/Divider"
@@ -8,7 +8,6 @@ import crossIcon from "../../assets/images/icons/cross.svg"
 
 import checkmarkIcon from "../../assets/images/icons/checkmark.svg"
 import PageLayout from "../../components/PageLayout"
-import WarningTip from "../../components/label/WarningTip"
 
 const SetupOption: FunctionComponent<{
     title: string
@@ -61,45 +60,7 @@ const SetupPage = () => (
                 />
             </div>
         </PageLayout>
-        <WarningModal />
     </>
 )
-
-const WarningModal = () => {
-    const [isOpen, setIsOpen] = useState(true)
-
-    return (
-        <div
-            className={classnames(
-                "modal absolute w-full h-full top-0 left-0 flex items-center justify-center",
-                isOpen ? "opacity-1" : "opacity-0 hidden"
-            )}
-        >
-            <div className="modal-overlay absolute w-full h-full bg-blue-100 opacity-50"></div>
-            <div className="modal-container  bg-white w-11/12 md:max-w-lg mx-auto rounded shadow-lg z-50 overflow-y-auto">
-                <div className="modal-content p-8 text-left">
-                    <WarningTip
-                        withCloseIcon={false}
-                        text="Warning! Private Beta version."
-                    />
-                    <p className="text-xs text-gray-600 leading-6 p-8 mb-6 text-center">
-                        This version is an experimental private beta version. Do
-                        not import your main wallet's seed phrase and proceed
-                        with caution. Use on your own risk.
-                    </p>
-                    <div className="flex items-center w-1/2 m-auto">
-                        <button
-                            type="button"
-                            className={classnames(Classes.liteButton)}
-                            onClick={() => setIsOpen(false)}
-                        >
-                            I understand
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
 
 export default SetupPage

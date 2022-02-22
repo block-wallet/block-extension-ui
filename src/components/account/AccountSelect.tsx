@@ -78,26 +78,28 @@ const AccountSelect: FunctionComponent<{
                             />
                         </div>
                     </div>
-                    <div className="flex flex-col space-y-4">
-                        <span className="text-xs">OTHER ACCOUNTS</span>
-                        <VerticalSelect
-                            containerClassName="flex flex-col space-y-3"
-                            options={otherAccounts}
-                            value={selectedAccount}
-                            onChange={onAccountChange}
-                            disableStyles
-                            display={(account, i) => (
-                                <AccountDisplay
-                                    networkNativeCurrency={nativeCurrency}
-                                    account={account}
-                                    selected={
-                                        selectedAccount.address ===
-                                        account.address
-                                    }
-                                />
-                            )}
-                        />
-                    </div>
+                    {otherAccounts.length > 0 && (
+                        <div className="flex flex-col space-y-4">
+                            <span className="text-xs">OTHER ACCOUNTS</span>
+                            <VerticalSelect
+                                containerClassName="flex flex-col space-y-3"
+                                options={otherAccounts}
+                                value={selectedAccount}
+                                onChange={onAccountChange}
+                                disableStyles
+                                display={(account, i) => (
+                                    <AccountDisplay
+                                        networkNativeCurrency={nativeCurrency}
+                                        account={account}
+                                        selected={
+                                            selectedAccount.address ===
+                                            account.address
+                                        }
+                                    />
+                                )}
+                            />
+                        </div>
+                    )}
                 </>
             ) : (
                 <div className="flex flex-col space-y-4">

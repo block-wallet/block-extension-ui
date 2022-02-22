@@ -4,17 +4,10 @@ import { Link } from "react-router-dom"
 import { Classes } from "../styles/classes"
 import LogoHeader from "../components/LogoHeader"
 import PageLayout from "../components/PageLayout"
-import WarningTip from "../components/label/WarningTip"
 import logo from "../assets/images/logo.svg"
 
 const IntroductionPage = () => (
     <PageLayout centered className="relative overflow-hidden">
-        <div className="w-full p-5 absolute z-20">
-            <WarningTip
-                withCloseIcon={true}
-                text="Warning! Private Beta version."
-            />
-        </div>
         <div className="flex flex-col items-center relative mt-20 pt-10 mb-14 z-10">
             <LogoHeader />
             <div className="flex flex-col items-center my-12 space-y-6">

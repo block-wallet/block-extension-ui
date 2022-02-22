@@ -18,7 +18,9 @@ import {
 import { utils } from "ethers"
 import { addressBookSet } from "../../context/commActions"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
-import SuccessDialog from "../../components/dialog/SuccessDialog"
+import WaitingDialog, {
+    useWaitingDialog,
+} from "../../components/dialog/WaitingDialog"
 
 // new contact schema
 const contactSchema = yup.object().shape({
@@ -39,7 +41,6 @@ type contactFormData = InferType<typeof contactSchema>
 
 const AddContactPage = (props: any) => {
     const history = useOnMountHistory()
-    const [saved, setSaved] = useState<boolean>(false);
     const addressBook = useAddressBook()
     const recentAddresses = useAddressBookRecentAddresses()
     const {
@@ -50,6 +51,7 @@ const AddContactPage = (props: any) => {
     } = useForm<contactFormData>({
         resolver: yupResolver(contactSchema),
     })
+    const { status, isOpen, dispatch } = useWaitingDialog()
 
     const { editMode, contact } = history.location.state
 
@@ -70,6 +72,8 @@ const AddContactPage = (props: any) => {
     }
     const onSubmit = handleSubmit(async (data: contactFormData) => {
         try {
+            dispatch({ type: "open", payload: { status: "loading" } })
+
             if (contactNameExists(data.contactName || "")) {
                 setError("contactName", {
                     message: "Contact Name already in use",
@@ -84,21 +88,16 @@ const AddContactPage = (props: any) => {
                 data.contactName ? data.contactName : placeholderСontactName,
                 ""
             )
-            setSaved(true);
+
+            dispatch({ type: "setStatus", payload: { status: "success" } })
         } catch {
             setError("contactName", {
                 message: "Error saving the new contact.",
                 shouldFocus: true,
             })
+            dispatch({ type: "setStatus", payload: { status: "error" } })
         }
     })
-
-    const onSuccessDialogIsDone = () => {
-        history.push({
-            pathname: "/settings/addressBook",
-            state: { fromAction: true },
-        })
-    }
 
     return (
         <PopupLayout
@@ -147,12 +146,33 @@ const AddContactPage = (props: any) => {
                 </div>
                 <hr className="border-0.5 border-gray-200 w-full" />
             </div>
-            <SuccessDialog
-                open={saved}
-                title="Congratulations"
+            <WaitingDialog
+                open={isOpen}
+                status={status}
+                titles={{
+                    loading: "Loading",
+                    success: "Congratulations",
+                    error: "Error",
+                }}
+                texts={{
+                    loading: "Saving your changes...",
+                    success: "Your changes have been succesfully saved!",
+                    error:
+                        errors.contactName?.message ??
+                        "There was an error while saving your changes.",
+                }}
                 timeout={800}
-                message="Your changes have been succesfully saved!"
-                onDone={onSuccessDialogIsDone}
+                onDone={() => {
+                    if (status === "error") {
+                        dispatch({ type: "close" })
+                        return
+                    }
+
+                    history.push({
+                        pathname: "/settings/addressBook",
+                        state: { fromAction: true },
+                    })
+                }}
             />
         </PopupLayout>
     )

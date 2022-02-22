@@ -15,7 +15,7 @@ import { forceDepositsImport } from "../context/commActions"
 import AccountIcon from "../components/icons/AccountIcon"
 import { useBlankState } from "../context/background/backgroundHooks"
 import classnames from "classnames"
-import Spinner from "../components/Spinner"
+import Spinner from "../components/spinner/Spinner"
 
 /**
  * PrivacyPage:

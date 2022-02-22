@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form"
 // Components
 import PopupFooter from "../../components/popup/PopupFooter"
 import PopupHeader from "../../components/popup/PopupHeader"
-import Spinner from "../../components/Spinner"
+import Spinner from "../../components/spinner/Spinner"
 import { AssetSelection } from "../../components/assets/tokens/AssetSelection"
 import { GasPriceSelector } from "../../components/transactions/GasPriceSelector"
 import ErrorMessage from "../../components/error/ErrorMessage"
@@ -45,7 +45,9 @@ import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import { Classes } from "../../styles"
-import SuccessDialog from "../../components/dialog/SuccessDialog"
+import WaitingDialog, {
+    useWaitingDialog,
+} from "../../components/dialog/WaitingDialog"
 import WarningDialog from "../../components/dialog/WarningDialog"
 import { AdvancedSettings } from "../../components/transactions/AdvancedSettings"
 import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
@@ -293,9 +295,9 @@ const SendConfirmPage = () => {
         showSendingToTokenAddressWarning,
         setShowSendingToTokenAddressWarning,
     ] = useState(false)
-    const [saved, setSaved] = useState(false)
+    // const [saved, setSaved] = useState(false)
     const [txHash, setTxHash] = useState<string>()
-    const [isLoading, setIsLoading] = useState(false)
+    // const [isLoading, setIsLoading] = useState(false)
     const [isGasLoading, setIsGasLoading] = useState(true)
     const [showingTheWholeAddress, setShowingTheWholeAddress] = useState(false)
     const [usingMax, setUsingMax] = useState(false)
@@ -325,6 +327,10 @@ const SendConfirmPage = () => {
         transactionAdvancedData,
         setTransactionAdvancedData,
     ] = useState<TransactionAdvancedData>({})
+
+    const { isOpen, status, dispatch } = useWaitingDialog()
+
+    const isLoading = status === "loading" && isOpen
 
     const calcNativeCurrency = () => {
         if (!selectedToken) return
@@ -380,7 +386,7 @@ const SendConfirmPage = () => {
                   selectedToken!.token.decimals || DEFAULT_DECIMALS // Default to eth decimals
               )
 
-        setIsLoading(true)
+        dispatch({ type: "open", payload: { status: "loading" } })
 
         // Validation
         let balanceValidation: boolean = false
@@ -423,7 +429,7 @@ const SendConfirmPage = () => {
 
         if (!balanceValidation) {
             setError(errorMessage)
-            setIsLoading(false)
+            dispatch({ type: "setStatus", payload: { status: "error" } })
             return
         }
 
@@ -447,7 +453,7 @@ const SendConfirmPage = () => {
                 )
             }
             setTxHash(txHash)
-            setSaved(true)
+            dispatch({ type: "setStatus", payload: { status: "success" } })
         } catch (error: any) {
             let errorMessage = "Error while sending"
             if (error.message.length > 50) {
@@ -459,7 +465,7 @@ const SendConfirmPage = () => {
                 errorMessage = error.message
             }
             setError(errorMessage)
-            setIsLoading(false)
+            dispatch({ type: "setStatus", payload: { status: "error" } })
         }
     })
 
@@ -612,13 +618,29 @@ const SendConfirmPage = () => {
                 </PopupFooter>
             }
         >
-            <SuccessDialog
-                open={saved}
-                title="Success"
-                message="You've initiated the transfer."
+            <WaitingDialog
+                open={isOpen}
+                status={status}
+                titles={{
+                    loading: "Loading",
+                    success: "Success",
+                    error: "Error",
+                }}
+                texts={{
+                    loading: "Initiating the transfer...",
+                    success: "You've initiated the transfer.",
+                    error: error,
+                }}
                 txHash={txHash}
                 timeout={1400}
-                onDone={() => history.push("/")}
+                onDone={() => {
+                    if (status === "error") {
+                        dispatch({ type: "close" })
+                        return
+                    }
+
+                    history.push("/")
+                }}
             />
             <WarningDialog
                 open={showSendingToTokenAddressWarning}
@@ -636,198 +658,182 @@ const SendConfirmPage = () => {
                         setShowingTheWholeAddress={setShowingTheWholeAddress}
                     />
 
-                    {isLoading ? (
-                        <LoadingSendEther />
-                    ) : (
-                        <div
-                            className="flex flex-col px-6"
-                            style={{ maxWidth: "100vw" }}
-                        >
-                            {/* Asset */}
-                            <AssetSelection
-                                register={register}
-                                error={errors.asset?.message}
-                                setValue={setValue}
-                                assets={tokensList}
-                                defaultAsset={selectedToken}
-                                onAssetChange={(asset: TokenWithBalance) => {
-                                    setUsingMax(false)
-                                    setValue("amount", null)
-                                    calcNativeCurrency()
-                                    clearErrors("amount")
-                                    setSelectedToken(asset)
-                                }}
-                                topMargin={76}
-                                bottomMargin={88}
-                            />
+                    <div
+                        className="flex flex-col px-6"
+                        style={{ maxWidth: "100vw" }}
+                    >
+                        {/* Asset */}
+                        <AssetSelection
+                            register={register}
+                            error={errors.asset?.message}
+                            setValue={setValue}
+                            assets={tokensList}
+                            defaultAsset={selectedToken}
+                            onAssetChange={(asset: TokenWithBalance) => {
+                                setUsingMax(false)
+                                setValue("amount", null)
+                                calcNativeCurrency()
+                                clearErrors("amount")
+                                setSelectedToken(asset)
+                            }}
+                            topMargin={76}
+                            bottomMargin={88}
+                        />
 
-                            {/* Amount */}
+                        {/* Amount */}
+                        <div
+                            className={classnames(
+                                "flex flex-col",
+                                !errors.amount && "mb-3"
+                            )}
+                        >
+                            <div className="flex flex-row">
+                                <div className="flex items-start w-1/3">
+                                    <label
+                                        htmlFor="amount"
+                                        className="ml-1 mb-2 text-sm text-gray-600"
+                                    >
+                                        Amount
+                                    </label>
+                                </div>
+                            </div>
+
                             <div
                                 className={classnames(
-                                    "flex flex-col",
-                                    !errors.amount && "mb-3"
+                                    Classes.blueSection,
+                                    inputFocus && "bg-primary-200",
+                                    errors.amount && "border-red-400"
                                 )}
                             >
-                                <div className="flex flex-row">
-                                    <div className="flex items-start w-1/3">
-                                        <label
-                                            htmlFor="amount"
-                                            className="ml-1 mb-2 text-sm text-gray-600"
-                                        >
-                                            Amount
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div
-                                    className={classnames(
-                                        Classes.blueSection,
-                                        inputFocus && "bg-primary-200",
-                                        errors.amount && "border-red-400"
-                                    )}
-                                >
-                                    <div className="flex flex-col items-start">
-                                        <input
-                                            id="amount"
-                                            name="amount"
-                                            type="text"
-                                            ref={register}
-                                            className={classnames(
-                                                Classes.blueSectionInput
-                                            )}
-                                            placeholder={`0 ${
-                                                selectedToken
-                                                    ? selectedToken.token.symbol
-                                                    : ""
-                                            }`}
-                                            autoComplete="off"
-                                            autoFocus={true}
-                                            onFocus={() => setInputFocus(true)}
-                                            onBlur={() => setInputFocus(false)}
-                                            onKeyDown={(e) => {
-                                                setUsingMax(false)
-                                                const amt = Number(
-                                                    e.currentTarget.value
-                                                )
-                                                if (
-                                                    !isNaN(Number(e.key)) &&
-                                                    !isNaN(amt) &&
-                                                    amt >=
-                                                        Number.MAX_SAFE_INTEGER
-                                                ) {
-                                                    e.preventDefault()
-                                                    e.stopPropagation()
-                                                }
-                                            }}
-                                            onInput={handleChangeAmount.bind(
-                                                this
-                                            )}
-                                        />
-                                        <span className="text-xs text-gray-600">
-                                            {formatCurrency(nativeCurrencyAmt, {
-                                                currency:
-                                                    blankState.nativeCurrency,
-                                                locale_info:
-                                                    blankState.localeInfo,
-                                                showSymbol: true,
-                                            })}
-                                        </span>
-                                    </div>
-                                    <div className="w-1/5">
-                                        <span
-                                            className={classnames(
-                                                "float-right rounded-md cursor-pointer border p-1",
-                                                usingMax
-                                                    ? "bg-primary-300 border-primary-300 text-white hover:bg-blue-600 hover:border-blue-600"
-                                                    : "bg-blue-200 border-blue-200 hover:bg-blue-300 hover:border-blue-300",
-                                                !HasBalance(selectedToken) &&
-                                                    "pointer-events-none text-gray-600"
-                                            )}
-                                            title="Use all the available funds"
-                                            onClick={() => {
-                                                if (HasBalance(selectedToken)) {
-                                                    setMaxTransactionAmount(
-                                                        !usingMax
-                                                    )
-                                                }
-                                            }}
-                                        >
-                                            max
-                                        </span>
-                                    </div>
-                                </div>
-                                <div
-                                    className={`${
-                                        errors.amount?.message
-                                            ? "pl-1 my-2"
-                                            : null
-                                    }`}
-                                >
-                                    <ErrorMessage
-                                        error={errors.amount?.message}
+                                <div className="flex flex-col items-start">
+                                    <input
+                                        id="amount"
+                                        name="amount"
+                                        type="text"
+                                        ref={register}
+                                        className={classnames(
+                                            Classes.blueSectionInput
+                                        )}
+                                        placeholder={`0 ${
+                                            selectedToken
+                                                ? selectedToken.token.symbol
+                                                : ""
+                                        }`}
+                                        autoComplete="off"
+                                        autoFocus={true}
+                                        onFocus={() => setInputFocus(true)}
+                                        onBlur={() => setInputFocus(false)}
+                                        onKeyDown={(e) => {
+                                            setUsingMax(false)
+                                            const amt = Number(
+                                                e.currentTarget.value
+                                            )
+                                            if (
+                                                !isNaN(Number(e.key)) &&
+                                                !isNaN(amt) &&
+                                                amt >= Number.MAX_SAFE_INTEGER
+                                            ) {
+                                                e.preventDefault()
+                                                e.stopPropagation()
+                                            }
+                                        }}
+                                        onInput={handleChangeAmount.bind(this)}
                                     />
+                                    <span className="text-xs text-gray-600">
+                                        {formatCurrency(nativeCurrencyAmt, {
+                                            currency: blankState.nativeCurrency,
+                                            locale_info: blankState.localeInfo,
+                                            showSymbol: true,
+                                        })}
+                                    </span>
+                                </div>
+                                <div className="w-1/5">
+                                    <span
+                                        className={classnames(
+                                            "float-right rounded-md cursor-pointer border p-1",
+                                            usingMax
+                                                ? "bg-primary-300 border-primary-300 text-white hover:bg-blue-600 hover:border-blue-600"
+                                                : "bg-blue-200 border-blue-200 hover:bg-blue-300 hover:border-blue-300",
+                                            !HasBalance(selectedToken) &&
+                                                "pointer-events-none text-gray-600"
+                                        )}
+                                        title="Use all the available funds"
+                                        onClick={() => {
+                                            if (HasBalance(selectedToken)) {
+                                                setMaxTransactionAmount(
+                                                    !usingMax
+                                                )
+                                            }
+                                        }}
+                                    >
+                                        max
+                                    </span>
                                 </div>
                             </div>
-
-                            {/* Speed */}
-                            <label className="ml-1 mb-2 text-sm text-gray-600">
-                                Gas Price
-                            </label>
-
-                            {!isEIP1559Compatible ? (
-                                <GasPriceSelector
-                                    defaultGasLimit={defaultGas.gasLimit!}
-                                    defaultGasPrice={defaultGas.gasPrice!}
-                                    setGasPriceAndLimit={(
-                                        gasPrice,
-                                        gasLimit
-                                    ) => {
-                                        setSelectedGas({ gasPrice, gasLimit })
-                                    }}
-                                    isParentLoading={isGasLoading}
-                                    showEstimationError={gasEstimationFailed}
-                                />
-                            ) : (
-                                <GasPriceComponent
-                                    defaultGas={{
-                                        defaultLevel: "medium",
-                                        feeData: {
-                                            gasLimit: defaultGas.gasLimit!,
-                                        },
-                                    }}
-                                    isParentLoading={isGasLoading}
-                                    setGas={(gasFees) => {
-                                        setSelectedGas({
-                                            ...gasFees,
-                                        })
-                                    }}
-                                    showEstimationError={gasEstimationFailed}
-                                    displayOnlyMaxValue
-                                />
-                            )}
-                            <div className={`${error ? "pl-1 my-2" : null}`}>
-                                <ErrorMessage error={error} />
-                            </div>
-
-                            <div className="mt-3">
-                                <AdvancedSettings
-                                    config={{
-                                        showCustomNonce: true,
-                                        showFlashbots: false,
-                                        address,
-                                    }}
-                                    data={{}}
-                                    setData={function (
-                                        data: TransactionAdvancedData
-                                    ): void {
-                                        setTransactionAdvancedData({
-                                            customNonce: data.customNonce,
-                                        })
-                                    }}
-                                />
+                            <div
+                                className={`${
+                                    errors.amount?.message ? "pl-1 my-2" : null
+                                }`}
+                            >
+                                <ErrorMessage error={errors.amount?.message} />
                             </div>
                         </div>
-                    )}
+
+                        {/* Speed */}
+                        <label className="ml-1 mb-2 text-sm text-gray-600">
+                            Gas Price
+                        </label>
+
+                        {!isEIP1559Compatible ? (
+                            <GasPriceSelector
+                                defaultGasLimit={defaultGas.gasLimit!}
+                                defaultGasPrice={defaultGas.gasPrice!}
+                                setGasPriceAndLimit={(gasPrice, gasLimit) => {
+                                    setSelectedGas({ gasPrice, gasLimit })
+                                }}
+                                isParentLoading={isGasLoading}
+                                showEstimationError={gasEstimationFailed}
+                            />
+                        ) : (
+                            <GasPriceComponent
+                                defaultGas={{
+                                    defaultLevel: "medium",
+                                    feeData: {
+                                        gasLimit: defaultGas.gasLimit!,
+                                    },
+                                }}
+                                isParentLoading={isGasLoading}
+                                setGas={(gasFees) => {
+                                    setSelectedGas({
+                                        ...gasFees,
+                                    })
+                                }}
+                                showEstimationError={gasEstimationFailed}
+                                displayOnlyMaxValue
+                            />
+                        )}
+                        <div className={`${error ? "pl-1 my-2" : null}`}>
+                            <ErrorMessage error={error} />
+                        </div>
+
+                        <div className="mt-3">
+                            <AdvancedSettings
+                                config={{
+                                    showCustomNonce: true,
+                                    showFlashbots: false,
+                                    address,
+                                }}
+                                data={{}}
+                                setData={function (
+                                    data: TransactionAdvancedData
+                                ): void {
+                                    setTransactionAdvancedData({
+                                        customNonce: data.customNonce,
+                                    })
+                                }}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         </PopupLayout>

@@ -15,7 +15,7 @@ import { TransactionFeeData } from "@blank/background/controllers/erc-20/transac
 // Components
 import HorizontalSelect from "../input/HorizontalSelect"
 import Tooltip from "../../components/label/Tooltip"
-import Spinner from "../Spinner"
+import Spinner from "../spinner/Spinner"
 import Dialog from "../dialog/Dialog"
 import { ArrowUpDown } from "../icons/ArrowUpDown"
 import EndLabel from "../input/EndLabel"

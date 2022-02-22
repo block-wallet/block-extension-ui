@@ -103,7 +103,7 @@ jobs:
               run: cd packages/provider/ && yarn install --cache-folder .provider-cache
 
             - name: Build extension
-              run: make build
+              run: ENVIRONMENT=prod make build
               env:
                   CI: false
 

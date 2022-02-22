@@ -7,11 +7,12 @@ export const ActionButton: FunctionComponent<{
     icon: string
     label: string
     to: string
-}> = ({ icon, label, to }) => {
+    state?: any
+}> = ({ icon, label, to, state }) => {
     return (
         <Link
             className={classnames(Classes.actionButton)}
-            to={to}
+            to={{ pathname: to, state: state }}
             draggable={false}
         >
             <img

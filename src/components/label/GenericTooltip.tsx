@@ -24,6 +24,7 @@ const GenericTooltip: FunctionComponent<{
     centerX?: boolean
     centerY?: boolean
     className?: string
+    divFull?: boolean
 }> = ({
     children,
     content,
@@ -35,11 +36,12 @@ const GenericTooltip: FunctionComponent<{
     centerX,
     centerY,
     className,
+    divFull,
 }) => {
     return disabled ? (
         <>{children}</>
     ) : (
-        <div className="group relative">
+        <div className={classnames("group relative", divFull && "w-full")}>
             {children}
             <div
                 className={classnames(

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React from "react"
 import { InferType } from "yup"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import PopupHeader from "../../components/popup/PopupHeader"
@@ -12,7 +12,9 @@ import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
 import TextInput from "../../components/input/TextInput"
 import PopupFooter from "../../components/popup/PopupFooter"
 import { renameAccount } from "../../context/commActions"
-import SuccessDialog from "../../components/dialog/SuccessDialog"
+import WaitingDialog, {
+    useWaitingDialog,
+} from "../../components/dialog/WaitingDialog"
 
 // Schema
 const editAccountSchema = yup.object().shape({
@@ -27,8 +29,7 @@ const EditAccountPage = () => {
     const { accounts } = useBlankState()!
     const account = useSelectedAccount()
     const history = useOnMountHistory()
-    const [isSaving, setIsSaving] = useState(false)
-    const [saved, setSaved] = useState(false)
+    const { status, isOpen, dispatch } = useWaitingDialog()
 
     const {
         register,
@@ -56,46 +57,62 @@ const EditAccountPage = () => {
                 return false
             }
 
-            setIsSaving(true)
+            dispatch({
+                type: "open",
+                payload: { status: "loading" },
+            })
 
             await renameAccount(account.address, data.accountName)
 
-            setIsSaving(false)
-            setSaved(true)
+            dispatch({ type: "setStatus", payload: { status: "success" } })
         } catch {
             setError("accountName", {
-                message: "Error creating the account",
+                message: "Error renaming the account",
                 shouldFocus: true,
             })
 
-            setIsSaving(false)
+            dispatch({ type: "setStatus", payload: { status: "error" } })
         }
     })
     return (
         <PopupLayout
-            header={<PopupHeader title="Edit Account" disabled={isSaving} />}
+            header={<PopupHeader title="Edit Account" disabled={isOpen} />}
             footer={
                 <PopupFooter>
                     <ButtonWithLoading
                         type="button"
-                        isLoading={isSaving}
+                        isLoading={isOpen && status === "loading"}
                         label={"Save"}
                         onClick={onSubmit}
                     />
                 </PopupFooter>
             }
         >
-            <SuccessDialog
-                open={saved}
-                title="Congratulations"
+            <WaitingDialog
+                status={status}
+                open={isOpen}
+                titles={{
+                    loading: "Renaming...",
+                    success: "Congratulations",
+                    error: "Error",
+                }}
                 timeout={1400}
-                message="Your changes have been succesfully saved!"
-                onDone={() =>
+                texts={{
+                    loading: "Account is being renamed...",
+                    success: "Your changes have been succesfully saved!",
+                    error: errors.accountName?.message ?? "",
+                }}
+                onDone={() => {
+                    if (status === "error") {
+                        dispatch({ type: "close" })
+                        return
+                    }
+
                     history.push({
                         pathname: "/accounts/menu",
                         state: { fromAction: true },
                     })
-                }
+                }}
             />
             <div className="flex flex-col justify-between flex-1 h-full">
                 <div className="flex flex-col flex-1 p-6 space-y-1">

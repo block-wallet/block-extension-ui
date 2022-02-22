@@ -6,9 +6,11 @@ import BackgroundContext, {
 import BackgroundReducer from "../context/background/backgroundReducer"
 import { CurrencyAmountPair } from "@blank/background/controllers/blank-deposit/types"
 import { AddressBook } from "@blank/background/controllers/AddressBookController"
+import { ActionsTimeInterval } from "@blank/background/utils/constants/networks"
 
 export const initBackgroundState: BackgroundStateType = {
     blankState: {
+        antiPhishingImage: "",
         userTokens: {},
         deletedUserTokens: {},
         isAccountTrackerLoading: false,
@@ -352,7 +354,7 @@ export const initBackgroundState: BackgroundStateType = {
                 },
             ],
         },
-        blockData: { 5: { blockNumber: -1, updateCounter: -1 } },
+        blockData: { 5: { blockNumber: -1 } },
         areDepositsPending: false,
         areWithdrawalsPending: false,
         pendingDeposits: {
@@ -405,6 +407,7 @@ export const initBackgroundState: BackgroundStateType = {
         settings: {
             hideAddressWarning: false,
             subscribedToReleaseaNotes: false,
+            useAntiPhishingProtection: false,
         },
         releaseNotesSettings: {
             lastVersionUserSawNews: "0.1.1",
@@ -431,6 +434,7 @@ export const initBackgroundState: BackgroundStateType = {
                     `https://mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
                 ],
                 blockExplorerUrls: ["https://etherscan.io"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
             ARBITRUM: {
                 name: "arbitrum",
@@ -450,6 +454,7 @@ export const initBackgroundState: BackgroundStateType = {
                 showGasLevels: false,
                 rpcUrls: ["https://arb1.arbitrum.io/rpc"],
                 blockExplorerUrls: ["https://arbiscan.io"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
             OPTIMISM: {
                 name: "optimism",
@@ -469,6 +474,7 @@ export const initBackgroundState: BackgroundStateType = {
                 showGasLevels: false,
                 rpcUrls: ["https://mainnet.optimism.io"],
                 blockExplorerUrls: ["https://optimistic.etherscan.io"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
             BSC: {
                 name: "bsc",
@@ -491,6 +497,7 @@ export const initBackgroundState: BackgroundStateType = {
                 showGasLevels: true,
                 rpcUrls: ["https://bsc-dataseed1.binance.org:443"],
                 blockExplorerUrls: ["https://bscscan.com"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
             GOERLI: {
                 name: "goerli",
@@ -512,6 +519,7 @@ export const initBackgroundState: BackgroundStateType = {
                     `https://goerli.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
                 ],
                 blockExplorerUrls: ["https://goerli.etherscan.io"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
             ROPSTEN: {
                 name: "ropsten",
@@ -533,6 +541,7 @@ export const initBackgroundState: BackgroundStateType = {
                     `https://ropsten.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
                 ],
                 blockExplorerUrls: ["https://ropsten.etherscan.io"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
             KOVAN: {
                 name: "kovan",
@@ -554,6 +563,7 @@ export const initBackgroundState: BackgroundStateType = {
                     `https://kovan.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
                 ],
                 blockExplorerUrls: ["https://kovan.etherscan.io"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
             RINKEBY: {
                 name: "rinkeby",
@@ -575,6 +585,7 @@ export const initBackgroundState: BackgroundStateType = {
                     `https://rinkeby.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
                 ],
                 blockExplorerUrls: ["https://rinkeby.etherscan.io"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
             BSC_TESTNET: {
                 name: "bsc_testnet",
@@ -597,6 +608,7 @@ export const initBackgroundState: BackgroundStateType = {
                 showGasLevels: true,
                 rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
                 blockExplorerUrls: ["https://testnet.bscscan.io"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
             LOCALHOST: {
                 name: "localhost",
@@ -615,6 +627,7 @@ export const initBackgroundState: BackgroundStateType = {
                 ens: false,
                 showGasLevels: false,
                 rpcUrls: ["http://localhost:8545"],
+                actionsTimeIntervals: {} as ActionsTimeInterval,
             },
         },
         dappRequests: {

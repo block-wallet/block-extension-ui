@@ -5,6 +5,7 @@ import PopupFooter from "../components/popup/PopupFooter"
 import PopupHeader from "../components/popup/PopupHeader"
 import PopupLayout from "../components/popup/PopupLayout"
 import PasswordInput from "../components/input/PasswordInput"
+
 import ConfirmDialog from "../components/dialog/ConfirmDialog"
 import ClickableText from "../components/button/ClickableText"
 
@@ -110,7 +111,7 @@ const UnlockPage = () => {
                     onClose={() => setHasDialog(false)}
                     onConfirm={() => openReset()}
                 />
-                <div className="p-6 flex flex-col space-y-8">
+                <div className="p-6 pb-0 flex flex-col space-y-8">
                     <div className="flex flex-col space-y-2">
                         <img
                             src={logo}
@@ -135,6 +136,10 @@ const UnlockPage = () => {
                                 reset wallet using seed phrase
                             </ClickableText>
                         </div>
+                        {/** UNCOMMENT THIS TO ENABLE PHISHING PROTECTION FEATURE */}
+                        {/*   {settings.useAntiPhishingProtection && (
+                            <AntiPhishing image={antiPhishingImage} />
+                        )} */}
                     </div>
                 </div>
             </PopupLayout>

@@ -4,7 +4,7 @@ import { Classes, classnames } from "../../styles/classes"
 
 import PageLayout from "../../components/PageLayout"
 import Divider from "../../components/Divider"
-import Spinner from "../../components/Spinner"
+import Spinner from "../../components/spinner/Spinner"
 import PasswordInput from "../../components/input/PasswordInput"
 
 import * as yup from "yup"
@@ -126,7 +126,7 @@ const ResetPage = () => {
                                 name="seedPhrase"
                                 type={showSeedPhrase ? "text" : "password"}
                                 ref={register}
-                                placeholder="Enter Seed Phrase"
+                                placeholder="Enter Seed Phrase separated by spaces"
                                 className={Classes.input}
                             />
                             <span className="text-xs text-red-500">

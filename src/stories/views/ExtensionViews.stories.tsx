@@ -159,6 +159,7 @@ export const Connect = () => (
             permissionRequests: {
                 "1": {
                     origin: "https://app.uniswap.org/",
+                    originId: "1",
                     siteMetadata: {
                         iconURL:
                             "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=010",
@@ -168,6 +169,7 @@ export const Connect = () => (
                 },
                 "2": {
                     origin: "https://app.1inch.io",
+                    originId: "1",
                     siteMetadata: {
                         iconURL:
                             "https://raw.githubusercontent.com/trustwallet/assets/master/dapps/1inch.exchange.png",
@@ -304,6 +306,7 @@ export const SwitchEthereumChain = () => (
                     params: {
                         chainId: 56,
                     },
+                    originId: "1",
                 },
             },
         }}

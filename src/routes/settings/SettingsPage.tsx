@@ -13,7 +13,7 @@ import { classnames } from "../../styles/classes"
 
 // Assets
 import book from "../../assets/images/icons/book.svg"
-import lock from "../../assets/images/icons/lock.svg"
+import spanner from "../../assets/images/icons/spanner.svg"
 import logoutIcon from "../../assets/images/icons/logout.svg"
 import account from "../../assets/images/icons/account.svg"
 
@@ -22,11 +22,12 @@ import { lockApp } from "../../context/commActions"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import classNames from "classnames"
+import GenericTooltip from "../../components/label/GenericTooltip"
 
 // declare const VERSION: string
 
 const SettingsPage = () => {
-    const { isSeedPhraseBackedUp } = useBlankState()!
+    const { isSeedPhraseBackedUp, isImportingDeposits } = useBlankState()!
     const handleError = useErrorHandler()
     const history = useOnMountHistory()
 
@@ -42,15 +43,17 @@ const SettingsPage = () => {
             to: "/settings/addressBook",
         },
         {
-            icon: lock,
-            label: "Lock Timeout",
-            to: "/settings/lockTimeout",
+            icon: spanner,
+            label: "Preferences",
+            to: "/settings/preferences",
         },
     ]
 
     const logout = () => {
         try {
-            lockApp()
+            if (!isImportingDeposits) {
+                lockApp()
+            }
         } catch {
             handleError("Error logging out")
         }
@@ -61,18 +64,39 @@ const SettingsPage = () => {
             header={<PopupHeader title="Settings" close="/" />}
             footer={
                 <PopupFooter>
-                    <button
-                        type="button"
-                        onClick={logout}
-                        className={classnames(Classes.logoutButton, "w-full")}
+                    <GenericTooltip
+                        top
+                        divFull
+                        disabled={!isImportingDeposits}
+                        content={
+                            <p className="w-full text-center">
+                                Please wait until deposits are done loading
+                                before locking the wallet
+                            </p>
+                        }
                     >
-                        <img
-                            alt="Logout"
-                            src={logoutIcon}
-                            className={classnames(Classes.buttonIcon)}
-                        />
-                        Logout
-                    </button>
+                        <button
+                            type="button"
+                            onClick={logout}
+                            className={classnames(
+                                !isImportingDeposits
+                                    ? Classes.logoutButton
+                                    : Classes.disabledLogoutButton,
+                                "w-full"
+                            )}
+                            disabled={isImportingDeposits}
+                        >
+                            <img
+                                alt="Logout"
+                                src={logoutIcon}
+                                className={classnames(
+                                    Classes.buttonIcon,
+                                    isImportingDeposits && "opacity-30"
+                                )}
+                            />
+                            Logout
+                        </button>
+                    </GenericTooltip>
                 </PopupFooter>
             }
         >

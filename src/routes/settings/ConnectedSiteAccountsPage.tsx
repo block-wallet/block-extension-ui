@@ -25,8 +25,8 @@ import { formatNumberLength } from "../../util/formatNumberLength"
 import { useOnClickOutside } from "../../util/useOnClickOutside"
 import { getAccountColor } from "../../util/getAccountColor"
 import WarningTip from "../../components/label/WarningTip"
-import { useTokensList } from "../../context/hooks/useTokensList"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
+import { formatHashLastChars, formatName } from "../../util/formatAccount"
 
 export type ConnectedSiteAccountsLocationState = {
     origin: string
@@ -79,10 +79,27 @@ const ConnectedSiteAccount: FunctionComponent<{
                             />
                         </div>
                         <div className="flex flex-col space-y-1 cursor-default">
-                            <span className="text-sm font-bold text-gray-800">
-                                {account.name} (...{account.address.slice(-4)})
-                            </span>
-                            <span className="text-xs text-gray-400">
+                            <div className="flex flex-row space-x-1">
+                                <span
+                                    className="text-sm font-bold text-gray-800 cursor-text"
+                                    title={account.name}
+                                >
+                                    {formatName(account.name, 18)}{" "}
+                                </span>
+                                <span
+                                    className="font-bold text-black cursor-text"
+                                    title={account.address}
+                                >
+                                    {formatHashLastChars(account.address)}
+                                </span>
+                            </div>
+                            <span
+                                className="text-xs text-gray-400"
+                                title={`${formatUnits(
+                                    account.balances[chainId]
+                                        .nativeTokenBalance || "0"
+                                )} ${networkNativeCurrency.symbol}`}
+                            >
                                 {formatNumberLength(
                                     formatUnits(
                                         account.balances[chainId]

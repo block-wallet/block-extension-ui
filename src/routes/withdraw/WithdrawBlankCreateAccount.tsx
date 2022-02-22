@@ -1,12 +1,8 @@
 import React, { useState } from "react"
 
-import { Classes } from "../../styles/classes"
-import classnames from "classnames"
-
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
 import PopupFooter from "../../components/popup/PopupFooter"
-import LinkButton from "../../components/button/LinkButton"
 import TextInput from "../../components/input/TextInput"
 
 import * as yup from "yup"
@@ -17,7 +13,7 @@ import { useForm } from "react-hook-form"
 import { createAccount } from "../../context/commActions"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
-import Spinner from "../../components/Spinner"
+import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 
 const createAccountSchema = yup.object().shape({
     accountName: yup.string().max(40, "Account name is too long"),
@@ -61,26 +57,24 @@ const WithdrawBlankCreateAccount = () => {
     return (
         <form className="w-full h-full" onSubmit={onSubmit}>
             <PopupLayout
-                header={<PopupHeader title="Withdraw From Privacy Pool" />}
+                header={
+                    <PopupHeader
+                        title="Withdraw From Privacy Pool"
+                        onBack={() => {
+                            history.push({
+                                pathname: "/privacy/withdraw/block/accounts",
+                                state: { pair },
+                            })
+                        }}
+                    />
+                }
                 footer={
                     <PopupFooter>
-                        <LinkButton
-                            location="/privacy/withdraw/block/accounts"
-                            state={{ pair }}
-                            text="Back"
-                            lite
-                        />
-                        <button
+                        <ButtonWithLoading
                             type="submit"
-                            className={classnames(
-                                Classes.button,
-                                "w-1/2 font-bold border-2 border-primary-300",
-                                creatingAccount &&
-                                    "opacity-50 pointer-events-none"
-                            )}
-                        >
-                            {!creatingAccount ? "Create" : <Spinner />}
-                        </button>
+                            label="Create"
+                            isLoading={creatingAccount}
+                        />
                     </PopupFooter>
                 }
             >

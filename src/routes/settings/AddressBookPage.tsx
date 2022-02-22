@@ -3,7 +3,6 @@ import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
 import AccountDisplay from "../../components/account/AccountDisplay"
 import VerticalSelect from "../../components/input/VerticalSelect"
-import PopupFooter from "../../components/popup/PopupFooter"
 import { AccountInfo } from "../../../../background/src/controllers/AccountTrackerController"
 import { addressBookDelete } from "../../context/commActions"
 import {
@@ -11,14 +10,13 @@ import {
     useAddressBookRecentAddresses,
 } from "../../context/hooks/useAddressBook"
 import { AddressBookEntry } from "@blank/background/controllers/AddressBookController"
-import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
-import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import { ActionButton } from "../../components/button/ActionButton"
+import accountAdd from "../../assets/images/icons/account_add.svg"
 
 const AddressBookPage: FunctionComponent<{
     addresses: AccountInfo[]
 }> = () => {
-    const history: any = useOnMountHistory()
     const addressBook = useAddressBook()
     const recentAddresses = useAddressBookRecentAddresses()
     const { nativeCurrency } = useSelectedNetwork()
@@ -34,26 +32,14 @@ const AddressBookPage: FunctionComponent<{
     }
 
     return (
-        <PopupLayout
-            header={<PopupHeader title="Address Book" />}
-            footer={
-                <PopupFooter>
-                    <ButtonWithLoading
-                        label="New Contact"
-                        onClick={() => {
-                            history.push({
-                                pathname: "/settings/addressBook/add",
-                                state: {
-                                    editMode: false,
-                                    contact: null,
-                                },
-                            })
-                        }}
-                    />
-                </PopupFooter>
-            }
-        >
-            <div className="flex flex-col p-6 space-y-8 text-sm text-gray-500">
+        <PopupLayout header={<PopupHeader title="Address Book" />}>
+            <div className="flex flex-col p-6 space-y-5 text-sm text-gray-500">
+                <ActionButton
+                    icon={accountAdd}
+                    label="Create New Contact"
+                    to="/settings/addressBook/add"
+                    state={{ editMode: false, contact: null }}
+                />
                 {Object.keys(addressBook).length !== 0 && (
                     <div className="flex flex-col space-y-4">
                         <span className="text-xs">CURRENT CONTACTS</span>

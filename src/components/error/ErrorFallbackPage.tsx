@@ -4,7 +4,7 @@ import PopupFooter from "../popup/PopupFooter"
 import PopupHeader from "../popup/PopupHeader"
 import PopupLayout from "../popup/PopupLayout"
 import { MdError } from "react-icons/md"
-import { FaGithub, FaTelegram, FaTwitter } from "react-icons/fa"
+import { FaGithub, FaTelegram, FaTwitter, FaGlobe } from "react-icons/fa"
 import { LINKS } from "../../util/constants"
 
 const ErrorFallbackPage: FunctionComponent<{
@@ -54,6 +54,13 @@ const ErrorFallbackPage: FunctionComponent<{
                 <div className="flex flex-col w-full space-y-4 p-4 items-center justify-center bg-primary-100 rounded-md">
                     <p>Contact</p>
                     <div className="flex flex-row items-center space-x-4">
+                        <a
+                            href={LINKS.WEBSITE_BUG_REPORT}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <FaGlobe size={24} />
+                        </a>
                         <a
                             href={LINKS.TELEGRAM}
                             target="_blank"

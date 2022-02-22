@@ -43,9 +43,9 @@ const TokenDisplay: FunctionComponent<TokenDisplayType> = ({
             return symbol
         } else {
             if (name.length < chars - 2) {
-                return `${symbol.substr(0, chars - 2 - name.length)}..`
+                return `${symbol.slice(0, chars - 2 - name.length)}..`
             } else {
-                return `${symbol.substr(0, 3)}..`
+                return `${symbol.slice(0, 3)}..`
             }
         }
     }

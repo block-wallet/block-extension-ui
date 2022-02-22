@@ -137,7 +137,12 @@ const PasswordSetupPage = () => {
                 </div>
                 <Divider />
                 <div className="flex flex-row p-6 space-x-4">
-                    <LinkButton location="/setup/" text="Back" lite />
+                    <LinkButton
+                        location="/setup/"
+                        text="Back"
+                        lite
+                        disabled={isCreating}
+                    />
                     <ButtonWithLoading
                         label="Create"
                         isLoading={isCreating}

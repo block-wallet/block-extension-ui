@@ -14,6 +14,8 @@ import { ButtonWithLoading } from "../components/button/ButtonWithLoading"
 import PasswordInput from "../components/input/PasswordInput"
 
 // Comms
+import { useBlankState } from "../context/background/backgroundHooks"
+import getRequestRouteAndStatus from "../context/util/getRequestRouteAndStatus"
 import { verifyPassword, requestSeedPhrase } from "../context/commActions"
 
 const schema = yup.object().shape({
@@ -29,6 +31,18 @@ const ReminderPage = () => {
     const [inputPassword, setInputPassword] = useState<string>("")
 
     const hasBack = history.location.state?.hasBack ?? true
+
+    const {
+        permissionRequests,
+        unapprovedTransactions,
+        dappRequests,
+    } = useBlankState()!
+
+    const [showRequests, requestRoute] = getRequestRouteAndStatus(
+        permissionRequests,
+        unapprovedTransactions,
+        dappRequests
+    )
 
     const {
         register,
@@ -69,6 +83,7 @@ const ReminderPage = () => {
                 <PopupHeader
                     title="You Haven’t Set Up a Backup"
                     backButton={hasBack}
+                    close={showRequests ? requestRoute : undefined}
                 />
             }
             footer={

@@ -141,9 +141,8 @@ const SearchToken = () => {
                 setIsCustomTokenView(true)
                 setTokenAddress(value)
                 setSelected([])
-            } else if (/^[a-zA-Z0-9_.-]{2,}$/.test(value)) {
+            } else if (/^[a-zA-Z0-9_.-]{3,}$/.test(value)) {
                 // Accept only number, letters and - . _
-                console.time("tokens search")
                 searchTokenInAssetsList(value.toUpperCase())
                     .then((res) => {
                         const exacts = res.filter(
@@ -155,7 +154,6 @@ const SearchToken = () => {
                                 r.symbol.toLowerCase() !== value.toLowerCase()
                         )
 
-                        console.timeEnd("tokens search")
                         return setResults([...exacts, ...others])
                     })
                     .catch((err) => console.log(err))

@@ -9,6 +9,7 @@ import { useBlankState } from "../../context/background/backgroundHooks"
 import { removeAccountFromSite } from "../../context/commActions"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
+import { formatHashLastChars, formatName } from "../../util/formatAccount"
 
 const ConnectedSite: FunctionComponent<{
     site: SiteMetadata
@@ -78,13 +79,18 @@ const ConnectedSitesPage = () => {
     }
 
     return (
-        <PopupLayout
-            header={<PopupHeader title="Connected Sites"></PopupHeader>}
-        >
+        <PopupLayout header={<PopupHeader title="Connected Sites" />}>
             <div className="flex flex-col p-6 space-y-6">
                 <span className="text-sm text-gray-500">
-                    <span className="font-bold text-black">
-                        {account.name} (...{account.address.substr(-4)})
+                    <span className="font-bold text-black" title={account.name}>
+                        {formatName(account.name, 30)}
+                    </span>
+                    <span
+                        className="font-bold text-black"
+                        title={account.address}
+                    >
+                        {" "}
+                        {formatHashLastChars(account.address)}
                     </span>
                     {connectedSites.length > 0
                         ? " is connected to these sites. They can view your account address."

@@ -13,4 +13,5 @@ export const LINKS = {
     TELEGRAM: "https://t.me/blockwallet",
     GITHUB: "https://github.com/block-wallet/",
     TWITTER: "https://twitter.com/BlockWallet",
+    WEBSITE_BUG_REPORT: "https://blockwallet.io/bug-report.html",
 }

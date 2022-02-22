@@ -1,5 +1,8 @@
 import React, { FunctionComponent, useLayoutEffect } from "react"
+import { rejectUnconfirmedRequests } from "../../context/commActions"
+import useBeforeunload from "../../context/hooks/useBeforeUnload"
 import usePreventWindowResize from "../../context/hooks/usePreventWindowResize"
+import { isAutomaticClose } from "../../context/setup"
 import PageLayout from "../PageLayout"
 
 const PopupLayout: FunctionComponent<{
@@ -13,6 +16,12 @@ const PopupLayout: FunctionComponent<{
             <hr className="border-0.5 border-gray-200 w-full" />
         </>
     )
+
+    useBeforeunload(() => {
+        if (!isAutomaticClose) {
+            rejectUnconfirmedRequests()
+        }
+    })
 
     useLayoutEffect(() => {
         preventResize()

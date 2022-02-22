@@ -4,7 +4,7 @@ export const formatHash = (hash: string, chars: number = 4) => {
     if (hash.length < WALLET_ADDRESS_DEFAULT_LENGTH || hash.length === chars) {
         return hash
     } else {
-        return `${hash.substr(0, chars + 2)}...${hash.substr(-chars)}`
+        return `${hash.slice(0, chars + 2)}...${hash.slice(-chars)}`
     }
 }
 
@@ -18,7 +18,12 @@ export const formatName = (
         if (accountName.length < maxLength) {
             return accountName
         } else {
-            return `${accountName.substr(0, maxLength - 3)}...`
+            return `${accountName.slice(0, maxLength - 3)}...`
         }
     }
+}
+
+export const formatHashLastChars = (hash: string, chars: number = 4) => {
+
+    return `(...${hash.slice(-chars)})`
 }

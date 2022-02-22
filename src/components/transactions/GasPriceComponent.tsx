@@ -15,7 +15,7 @@ import HorizontalSelect from "../input/HorizontalSelect"
 import Tooltip from "../../components/label/Tooltip"
 import { AiFillInfoCircle } from "react-icons/ai"
 import { ImCheckmark } from "react-icons/im"
-import Spinner from "../Spinner"
+import Spinner from "../spinner/Spinner"
 import Dialog from "../dialog/Dialog"
 import EndLabel from "../input/EndLabel"
 import { ButtonWithLoading as Button } from "../button/ButtonWithLoading"
@@ -223,6 +223,7 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
         setValue,
         getValues,
         setError,
+        clearErrors,
     } = useForm<GasAdvancedForm>({
         defaultValues: {
             gasLimit: formatUnits(
@@ -262,6 +263,7 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
         setGasLimitWarning("")
         setMaxFeeWarning("")
         setTipWarning("")
+        clearErrors("maxFeePerGas")
 
         const baseFee = BigNumber.from(baseFeePerGas)
 

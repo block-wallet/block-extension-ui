@@ -14,8 +14,8 @@ const MockTab: FunctionComponent<{
     const HistoryInjector = () => {
         const history = useHistory()
         useEffect(() => {
-            history.push({ pathname: location, state })
-        }, [location, state])
+            history.replace({ pathname: location, state })
+        }, [history])
         return null
     }
     return (
@@ -37,8 +37,8 @@ const MockPopup: FunctionComponent<{
     const HistoryInjector = () => {
         const history = useHistory()
         useEffect(() => {
-            history.push({ pathname: location, state })
-        }, [location, state])
+            history.replace({ pathname: location, state })
+        }, [history])
         return null
     }
     return (

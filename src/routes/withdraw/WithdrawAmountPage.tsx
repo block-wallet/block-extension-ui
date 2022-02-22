@@ -15,7 +15,7 @@ import { useBlankState } from "../../context/background/backgroundHooks"
 import LinkButton from "../../components/button/LinkButton"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
-import Spinner from "../../components/Spinner"
+import Spinner from "../../components/spinner/Spinner"
 import log from "loglevel"
 
 const CanWithdrawView: FunctionComponent<{

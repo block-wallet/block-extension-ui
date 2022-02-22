@@ -18,12 +18,15 @@ import {
     requestSeedPhrase,
 } from "../../context/commActions"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
-import SelectInput from "../../components/input/SelectInput"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import Dropdown from "../../components/input/Dropdown"
 
-const schema = yup.object().shape({
+const schema = yup.object({
     password: yup.string().required("No password provided."),
-    exportType: yup.string().required("Please select an export format"),
+    exportType: yup
+        .string()
+        .default("key")
+        .required("Please select an export format"),
     encryptingPassword: yup
         .string()
         .nullable()
@@ -32,6 +35,20 @@ const schema = yup.object().shape({
             is: (value: any) => value === "json",
             then: (rule) =>
                 rule.required("Please enter an encrypting password"),
+        }),
+    encryptingPasswordConfirmation: yup
+        .string()
+        .nullable()
+        .notRequired()
+        .when("encryptingPassword", {
+            is: (value: any) => !!value,
+            then: (rule) =>
+                rule
+                    .required("Required")
+                    .oneOf(
+                        [yup.ref("encryptingPassword"), null],
+                        "Encrypting passwords must match."
+                    ),
         }),
 })
 
@@ -44,40 +61,47 @@ const ExportAccountPage = () => {
         isVerificationInProgress,
         setIsVerificationInProgress,
     ] = useState<boolean>(false)
-
-    const [exportType, setExportType] = useState<string>("key")
-
     const {
         register,
         handleSubmit,
         setError,
         errors,
+        watch,
+        setValue,
     } = useForm<ExportAccountFormData>({
+        defaultValues: {
+            exportType: "key",
+        },
         resolver: yupResolver(schema),
+        shouldUnregister: false,
     })
 
+    const exportType = watch("exportType")
     const onSubmit = handleSubmit(async (data: ExportAccountFormData) => {
         setIsVerificationInProgress(true)
         try {
-            await verifyPassword(data.password)
+            const isValidPassword = await verifyPassword(data.password)
+            if (!isValidPassword) {
+                throw new Error("Incorrect password")
+            }
 
             let exportData = ""
 
             switch (data.exportType) {
-                case "Private Key":
+                case "key":
                     exportData = await exportAccountPrivateKey(
                         blankState.selectedAddress,
                         data.password
                     )
                     break
-                case "JSON Data":
+                case "json":
                     exportData = await exportAccountJson(
                         blankState.selectedAddress,
                         data.password,
                         data.encryptingPassword!
                     )
                     break
-                case "Seed Phrase":
+                case "seedphrase":
                     exportData = await requestSeedPhrase(data.password)
                     break
             }
@@ -87,9 +111,9 @@ const ExportAccountPage = () => {
                 pathname: "/accounts/menu/export/done",
                 state: { exportData, exportType: data.exportType },
             })
-        } catch {
+        } catch (e) {
             setError("password", {
-                message: "Error exporting account",
+                message: e.message,
                 shouldFocus: true,
             })
         }
@@ -122,33 +146,56 @@ const ExportAccountPage = () => {
                         />
                     </div>
                     <div className="flex flex-col space-y-1 mb-5">
-                        <SelectInput
-                            label="Select Format"
-                            name="exportType"
-                            register={register}
-                            error={errors.exportType?.message}
+                        <Dropdown
                             onChange={(value) => {
-                                setExportType(value)
+                                setValue("exportType", value)
                             }}
+                            currentValue={exportType}
+                            label="Format"
+                            id="exportType"
+                            error={errors.exportType?.message}
                         >
-                            <option value="Private Key">Private Key</option>
-                            <option value="JSON Data">JSON Data</option>
-                            <option value="Seed Phrase">Seed Phrase</option>
-                        </SelectInput>
+                            <Dropdown.DropdownItem value="key">
+                                Private Key
+                            </Dropdown.DropdownItem>
+                            <Dropdown.DropdownItem value="json">
+                                JSON Data
+                            </Dropdown.DropdownItem>
+                            <Dropdown.DropdownItem value="seedphrase">
+                                Seed Phrase
+                            </Dropdown.DropdownItem>
+                        </Dropdown>
                     </div>
                     <div className="flex flex-col space-y-1">
-                        {exportType === "JSON Data" && (
-                            <PasswordInput
-                                label="Encrypting Password"
-                                placeholder="Encrypting Password"
-                                register={register}
-                                error={errors.encryptingPassword?.message}
-                                autoFocus={false}
-                                name="encryptingPassword"
-                            />
+                        {exportType === "json" && (
+                            <>
+                                <div className="mb-5">
+                                    <PasswordInput
+                                        label="Encrypting Password"
+                                        placeholder="Encrypting Password"
+                                        register={register}
+                                        error={
+                                            errors.encryptingPassword?.message
+                                        }
+                                        autoFocus={false}
+                                        name="encryptingPassword"
+                                    />
+                                </div>
+                                <PasswordInput
+                                    label="Confirm Encrypting Password"
+                                    placeholder="Confirm Encrypting Password"
+                                    register={register}
+                                    error={
+                                        errors.encryptingPasswordConfirmation
+                                            ?.message
+                                    }
+                                    autoFocus={false}
+                                    name="encryptingPasswordConfirmation"
+                                />
+                            </>
                         )}
                     </div>
-                    {exportType === "JSON Data" && (
+                    {exportType === "json" && (
                         <WarningTip
                             text={
                                 "Encrypting password is optional but strongly recommended"
@@ -157,6 +204,10 @@ const ExportAccountPage = () => {
                             justify="justify-start"
                         />
                     )}
+                    {/** UNCOMMENT THIS TO ENABLE PHISHING PROTECTION FEATURE */}
+                    {/*  {blankState.settings.useAntiPhishingProtection && (
+                        <AntiPhishing image={blankState.antiPhishingImage} />
+                    )} */}
                 </div>
             </PopupLayout>
         </div>

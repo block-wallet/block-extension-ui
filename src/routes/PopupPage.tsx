@@ -30,7 +30,7 @@ import { useBlankState } from "../context/background/backgroundHooks"
 import { useSelectedAccount } from "../context/hooks/useSelectedAccount"
 import { useSelectedNetwork } from "../context/hooks/useSelectedNetwork"
 import { isFeatureEnabled } from "../context/util/isFeatureEnabled"
-import { session } from "../context/commActions"
+import { session } from "../context/setup"
 import { useConnectedSite } from "../context/hooks/useConnectedSite"
 import { useTokensList } from "../context/hooks/useTokensList"
 

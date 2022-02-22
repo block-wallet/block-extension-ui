@@ -6,7 +6,6 @@ import {
     KnownCurrencies,
 } from "@blank/background/controllers/blank-deposit/types"
 import {
-    Handlers,
     MessageTypes,
     RequestTypes,
     ResponseTypes,
@@ -14,9 +13,8 @@ import {
     StateSubscription,
     SubscriptionMessageTypes,
     ResponseBlankCurrencyDepositsCount,
-    TransportResponseMessage,
 } from "@blank/background/utils/types/communication"
-import { Messages, Origin, BackgroundActions } from "./commTypes"
+import { Messages } from "./commTypes"
 import { ITokens, Token } from "@blank/background/controllers/erc-20/Token"
 import { IBlankDeposit } from "@blank/background/controllers/blank-deposit/BlankDeposit"
 import { SiteMetadata } from "@blank/provider/types"
@@ -24,8 +22,6 @@ import {
     TransactionAdvancedData,
     TransactionMeta,
 } from "@blank/background/controllers/transactions/utils/types"
-import { checkRedraw } from "./util/platform"
-import log from "loglevel"
 import { TransactionGasEstimation } from "@blank/background/controllers/transactions/TransactionController"
 import {
     PopupTabs,
@@ -33,137 +29,10 @@ import {
 } from "@blank/background/controllers/PreferencesController"
 import { DappRequestConfirmOptions } from "@blank/background/utils/types/ethereum"
 import { TransactionFeeData } from "@blank/background/controllers/erc-20/transactions/SignedTransaction"
+import { handlers, port } from "./setup"
+import { Currency } from "@blank/background/utils/currency"
 
-const handlers: Handlers = {}
 let requestId = 0
-let port: chrome.runtime.Port
-export let isPortConnected = false
-export let session: { origin: string; data: SiteMetadata } | null = null
-
-// Run on init
-// Some of these methods could be implemented in another "init" file since they're not exactly communication actions
-
-/**
- * This checks if the instance is on a popup
- * The isPopup util checks the url, but the instance could be a window (e.g. permission request)
- *
- */
-const isBrowserPopup = () => {
-    return new Promise<boolean>((resolve) => {
-        chrome.tabs.getCurrent((tab) => {
-            if (!tab) {
-                resolve(true)
-            } else {
-                resolve(false)
-            }
-        })
-    })
-}
-
-/**
- * Connect ports
- */
-const initPort = () => {
-    // Open port
-    port = chrome.runtime.connect({ name: Origin.EXTENSION })
-
-    // Check for error
-    port.onDisconnect.addListener(() => {
-        const error = chrome.runtime.lastError
-        if (error) {
-            log.error("Port disconnected", error.message)
-        } else {
-            log.debug("Port disconnected.")
-        }
-    })
-
-    // Add port message listener
-    port.onMessage.addListener(
-        (data: TransportResponseMessage<MessageTypes>): void => {
-            const handler = handlers[data.id]
-
-            if (!handler) {
-                // Check for background actions
-                if (data.id === BackgroundActions.CLOSE_WINDOW) {
-                    window.close()
-                } else {
-                    log.error("Unknown response", data)
-                }
-                return
-            }
-
-            if (!handler.subscriber) {
-                delete handlers[data.id]
-            }
-
-            if (data.subscription) {
-                ;(handler.subscriber as Function)(data.subscription)
-            } else if ("error" in data) {
-                handler.reject(new Error(data.error))
-            } else {
-                handler.resolve(data.response)
-            }
-        }
-    )
-
-    chrome.tabs.query(
-        { active: true, currentWindow: true },
-        async (tabs: chrome.tabs.Tab[]) => {
-            const isPopup = await isBrowserPopup()
-
-            if (!isPopup || !tabs[0]) {
-                session = null
-                return
-            }
-
-            const { favIconUrl, url, title } = tabs[0]
-
-            if (!url) {
-                session = null
-            } else {
-                const { origin, hostname } = new URL(url)
-                session = {
-                    origin,
-                    data: {
-                        iconURL: favIconUrl || null,
-                        name: title || hostname,
-                    },
-                }
-            }
-        }
-    )
-
-    isPortConnected = true
-}
-
-/**
- * Initialization function
- * Checks if the background is running before connecting the port
- */
-export const initialize = () => {
-    chrome.runtime &&
-        chrome.runtime.sendMessage(
-            { message: "isBlankInitialized" },
-            (response: any) => {
-                const error = chrome.runtime.lastError
-                if (!response || error) {
-                    setTimeout(initialize, 100)
-                } else {
-                    if (response.isBlankInitialized === true) {
-                        if (!isPortConnected) {
-                            initPort()
-                        }
-                    }
-                }
-            }
-        )
-}
-
-// Run initialization function
-initialize()
-
-// Run platform check
-checkRedraw()
 
 /**
  * Send message generic
@@ -179,7 +48,7 @@ const sendMessage = <TMessageType extends MessageTypes>(
 
         handlers[id] = { reject, resolve, subscriber }
 
-        if (port) port.postMessage({ id, message, request: request || {} })
+        port.postMessage({ id, message, request: request || {} })
     })
 }
 
@@ -341,6 +210,13 @@ export const unlockApp = async (password: string): Promise<boolean> => {
  */
 export const returnToOnboarding = async (): Promise<void> => {
     return sendMessage(Messages.APP.RETURN_TO_ONBOARDING)
+}
+
+/**
+ * Rejects all open and unconfirmed requests
+ */
+export const rejectUnconfirmedRequests = async (): Promise<void> => {
+    return sendMessage(Messages.APP.REJECT_UNCONFIRMED_REQUESTS)
 }
 
 /**
@@ -1192,6 +1068,71 @@ export const dismissWelcomeMessage = async (): Promise<boolean> => {
     return sendMessage(Messages.WALLET.DISMISS_WELCOME_MESSAGE, {})
 }
 
+/**
+ * Dismisses the release notes message
+ */
 export const dismissReleaseNotes = async (): Promise<boolean> => {
     return sendMessage(Messages.WALLET.DISMISS_RELEASE_NOTES, {})
+}
+
+/**
+ * Updates release notes subscription status
+ * @param enabled Subscription to release notes status
+ */
+export const toggleReleaseNotesSubscription = async (
+    enabled: boolean
+): Promise<void> => {
+    return sendMessage(Messages.WALLET.TOGGLE_RELEASE_NOTES_SUBSCRIPTION, {
+        releaseNotesSubscriptionEnabled: enabled,
+    })
+}
+
+/**
+ * Generates a new base64 image that can be use for the phishing protection
+ * @returns a base64 image used for phishing protection
+ */
+export const generateNewAntiPhishingImage = async (): Promise<string> => {
+    return sendMessage(Messages.WALLET.GENERATE_ANTI_PHISHING_IMAGE, {})
+}
+
+/**
+ * Sets the provided base64 image as the phishing protection picture
+ * @param image the base64 image to be used for phishing protection
+ */
+export const updateAntiPhishingImage = async (image: string): Promise<void> => {
+    return sendMessage(Messages.WALLET.UPDATE_ANTI_PHISHING_IMAGE, {
+        antiPhishingImage: image,
+    })
+}
+
+/**
+ * Updates phishing protection status
+ * @param enabled Whether user wants to use the phishing protection feature or not.
+ */
+export const toggleAntiPhishingProtection = async (
+    enabled: boolean
+): Promise<void> => {
+    return sendMessage(Messages.WALLET.TOGGLE_ANTI_PHISHING_PROTECTION, {
+        antiPhishingProtectionEnabeld: enabled,
+    })
+}
+
+/**
+ * Sets the user's native currency.
+ * @param currencyCode A valid curency code.
+ */
+export const setNativeCurrency = async (
+    currencyCode: string
+): Promise<void> => {
+    return sendMessage(Messages.WALLET.SET_NATIVE_CURRENCY, {
+        currencyCode,
+    })
+}
+
+/**
+ * Gets all the supported currencies
+ * @returns a list of all the valid currencies
+ */
+export const getValidCurrencies = async (): Promise<Currency[]> => {
+    return sendMessage(Messages.WALLET.GET_VALID_CURRENCIES)
 }

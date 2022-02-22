@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 
 import PageLayout from "../../components/PageLayout"
 import Divider from "../../components/Divider"
-import Spinner from "../../components/Spinner"
+import Spinner from "../../components/spinner/Spinner"
 import classnames from "classnames"
 import { Classes } from "../../styles/classes"
 import { verifySeedPhrase } from "../../context/commActions"
@@ -15,7 +15,7 @@ import PopupFooter from "../../components/popup/PopupFooter"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import { closeCurrentTab } from "../../util/window"
 import IdleComponent from "../../components/IdleComponent"
-import PopupLayout from '../../components/popup/PopupLayout';
+import PopupLayout from "../../components/popup/PopupLayout"
 
 export interface SeedPhraseWord {
     word: string
@@ -103,19 +103,26 @@ const SeedWordsInput: FunctionComponent<{
     )
 }
 
-
 // subcomponent
-const SeedPhraseBlock = (props: any ) => {
-    const {isReminder, verificationError, seedWords, inputWords, onSeedWordsChange} = props
+const SeedPhraseBlock = (props: any) => {
+    const {
+        isReminder,
+        verificationError,
+        seedWords,
+        inputWords,
+        onSeedWordsChange,
+    } = props
 
     return (
-        <div className={classnames("flex flex-col text-gray-600 text-sm",
-                        isReminder ? "space-y-6 p-4" : "space-y-8 p-8")}
+        <div
+            className={classnames(
+                "flex flex-col text-gray-600 text-sm",
+                isReminder ? "space-y-6 p-4" : "space-y-8 p-8"
+            )}
         >
             <span>
-                Make sure that you've got it right - type out your
-                phrase by selecting the words below in the correct
-                order.
+                Make sure that you've got it right - type out your phrase by
+                selecting the words below in the correct order.
             </span>
 
             <span
@@ -199,15 +206,11 @@ const BackupConfirmPage = () => {
 
     return (
         <IdleComponent>
-            {isReminder ?
-            (
+            {isReminder ? (
                 // reminder view in app
                 <PopupLayout
                     header={
-                        <PopupHeader
-                            title="Confirm Seed Phrase"
-                            keepState
-                        />
+                        <PopupHeader title="Confirm Seed Phrase" keepState />
                     }
                     footer={
                         <PopupFooter>
@@ -219,16 +222,15 @@ const BackupConfirmPage = () => {
                         </PopupFooter>
                     }
                 >
-                    <SeedPhraseBlock 
-                        isReminder={true} 
-                        verificationError={verificationError} 
-                        seedWords={seedWords} 
+                    <SeedPhraseBlock
+                        isReminder={true}
+                        verificationError={verificationError}
+                        seedWords={seedWords}
                         inputWords={inputWords}
-                        onSeedWordsChange={(words: any) => setInputWords(words)} />  
+                        onSeedWordsChange={(words: any) => setInputWords(words)}
+                    />
                 </PopupLayout>
-            )
-            :
-            (
+            ) : (
                 // browser tab version during installation
                 <PageLayout
                     screen={isReminder}
@@ -240,46 +242,46 @@ const BackupConfirmPage = () => {
                         Confirm Seed Phrase
                     </span>
                     <Divider />
-                    <SeedPhraseBlock 
-                        isReminder={isReminder} 
-                        verificationError={verificationError} 
-                        seedWords={seedWords} 
+                    <SeedPhraseBlock
+                        isReminder={isReminder}
+                        verificationError={verificationError}
+                        seedWords={seedWords}
                         inputWords={inputWords}
-                        onSeedWordsChange={(words: any) => setInputWords(words)} />  
+                        onSeedWordsChange={(words: any) => setInputWords(words)}
+                    />
                     <Divider />
 
                     <div className="flex flex-row p-6 space-x-4">
                         <Link
-                                to={{
-                                    pathname: backLink,
-                                    state: { seedPhrase, password },
-                                }}
-                                className={Classes.liteButton}
-                                draggable={false}
-                            >
+                            to={{
+                                pathname: backLink,
+                                state: { seedPhrase, password },
+                            }}
+                            className={Classes.liteButton}
+                            draggable={false}
+                        >
                             Back
                         </Link>
                         <button
-                                    type="button"
-                                    className={classnames(
-                                        Classes.button,
-                                        "font-bold border-2 border-primary-300",
-                                        (!isPhraseValid() ||
-                                            isVerificationInProgress) &&
-                                            "opacity-50 pointer-events-none"
-                                    )}
-                                    onClick={confirmSeedPhrase}
-                            >
+                            type="button"
+                            className={classnames(
+                                Classes.button,
+                                "font-bold border-2 border-primary-300",
+                                (!isPhraseValid() ||
+                                    isVerificationInProgress) &&
+                                    "opacity-50 pointer-events-none"
+                            )}
+                            onClick={confirmSeedPhrase}
+                        >
                             {!isVerificationInProgress ? (
-                                    "Confirm"
-                                ) : (
-                                    <Spinner />
-                                )}
+                                "Confirm"
+                            ) : (
+                                <Spinner />
+                            )}
                         </button>
                     </div>
                 </PageLayout>
             )}
-            
         </IdleComponent>
     )
 }

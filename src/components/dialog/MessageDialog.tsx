@@ -22,8 +22,8 @@ const MessageDialog: FunctionComponent<messageDialogProps> = ({
         <Dialog open={open} onClickOutside={onClickOutside}>
             <>
                 {header}
-                <h2 className="text-lg font-bold text-center">{title}</h2>
-                <div className="p-5 flex">
+                <h2 className="text-lg font-bold text-center mt-4">{title}</h2>
+                <div className="px-5 flex mt-2 mb-4">
                     <span className="text-sm text-center w-full text-gray-500">
                         {message}
                     </span>

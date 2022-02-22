@@ -34,7 +34,7 @@ const SuccessDialog: FunctionComponent<{
             open={open}
             onClickOutside={onDone}
             header={
-                <div className="flex justify-center pb-4">
+                <div className="flex justify-center">
                     <Icon
                         icon={IconNames.ConfirmationCheck}
                         className="w-12 h-12 pointer-events-none"

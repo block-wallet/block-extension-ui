@@ -3,7 +3,11 @@ import { FunctionComponent } from "react"
 
 import { formatUnits } from "ethers/lib/utils"
 import { AccountInfo } from "@blank/background/controllers/AccountTrackerController"
-import { formatName, formatHash } from "../../util/formatAccount"
+import {
+    formatName,
+    formatHash,
+    formatHashLastChars,
+} from "../../util/formatAccount"
 import { getAccountColor } from "../../util/getAccountColor"
 import { formatNumberLength } from "../../util/formatNumberLength"
 
@@ -95,14 +99,30 @@ const AccountDisplay: FunctionComponent<{
                         )}
                         onClick={() => canCopy && copyToClipboard()}
                     >
-                        <span className="font-bold">
-                            {formatName(account.name, 24)}{" "}
-                            {!showAddress
-                                ? "(..." + account.address.substr(-4) + ")"
-                                : ""}
-                        </span>
+                        <div className="flex flex-row space-x-1">
+                            <span className="font-bold" title={account.name}>
+                                {formatName(
+                                    account.name,
+                                    showAddress ? 25 : 18
+                                )}
+                            </span>
+                            {!showAddress && (
+                                <span
+                                    className="font-bold"
+                                    title={account.address}
+                                >
+                                    {formatHashLastChars(account.address)}
+                                </span>
+                            )}
+                        </div>
                         {!showAddress ? (
-                            <span className="text-gray-500">
+                            <span
+                                className="text-gray-500"
+                                title={`${formatUnits(
+                                    account.balances[chainId]
+                                        .nativeTokenBalance || "0"
+                                )} ${networkNativeCurrency.symbol}`}
+                            >
                                 {formatNumberLength(
                                     formatUnits(
                                         account.balances[chainId]

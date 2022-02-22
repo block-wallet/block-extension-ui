@@ -6,8 +6,9 @@ import HorizontalSelect from "../../components/input/HorizontalSelect"
 import Divider from "../../components/Divider"
 import PopupFooter from "../../components/popup/PopupFooter"
 import TextInput from "../../components/input/TextInput"
-import SelectInput from "../../components/input/SelectInput"
-
+import WaitingDialog, {
+    useWaitingDialog,
+} from "../../components/dialog/WaitingDialog"
 import * as yup from "yup"
 import { InferType } from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
@@ -21,14 +22,15 @@ import {
 import { useBlankState } from "../../context/background/backgroundHooks"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import Dropdown from "../../components/input/Dropdown"
 
 // Schema
-const createAccountSchema = yup.object().shape({
+const createAccountSchema = yup.object({
     accountName: yup.string().max(40, "Account name is too long"),
 })
 type createAccountFormData = InferType<typeof createAccountSchema>
 
-const importAccountSchema = yup.object().shape({
+const importAccountSchema = yup.object({
     privateKey: yup
         .string()
         .required("Please enter a private key")
@@ -39,12 +41,17 @@ const importAccountSchema = yup.object().shape({
 })
 type importAccountFormData = InferType<typeof importAccountSchema>
 
+type subProps = {
+    onStartCreating: () => void
+    onEndCreating: () => void
+    onError: (error: string) => void
+    isCreating: boolean
+}
 // Subcomponents
-const CreateAccountForm = (props: any) => {
-    const { setIsCreating } = props
+const CreateAccountForm = (props: subProps) => {
+    const { onStartCreating, onEndCreating, onError, isCreating } = props
     const state = useBlankState()!
-    const history = useOnMountHistory()
-    const [creatingAccount, setCreatingAccount] = useState(false)
+
     const {
         register,
         handleSubmit,
@@ -72,16 +79,15 @@ const CreateAccountForm = (props: any) => {
                     "Account name is already in use, please use a different one."
                 )
 
-            setCreatingAccount(true)
-            setIsCreating(true)
+            onStartCreating()
 
             const newAccount = await createAccountAction(data.accountName)
             await selectAccount(newAccount.address)
 
-            setCreatingAccount(false)
-
-            history.push("/")
+            onEndCreating()
         } catch {
+            onError("Couldn't create the account")
+
             setError("accountName", {
                 message: "Error creating the account",
                 shouldFocus: true,
@@ -93,7 +99,7 @@ const CreateAccountForm = (props: any) => {
         <form
             className="flex flex-col justify-between flex-1 h-full"
             onSubmit={onSubmit}
-            id="create-account-form" 
+            id="create-account-form"
             aria-label="Create account"
         >
             <div className="flex flex-col flex-1 p-6 space-y-1">
@@ -112,7 +118,7 @@ const CreateAccountForm = (props: any) => {
             <PopupFooter>
                 <ButtonWithLoading
                     type="submit"
-                    isLoading={creatingAccount}
+                    isLoading={isCreating}
                     label={"Create"}
                 ></ButtonWithLoading>
             </PopupFooter>
@@ -120,20 +126,26 @@ const CreateAccountForm = (props: any) => {
     )
 }
 
-const ImportAccountForm = (props: any) => {
-    const { setIsCreating } = props
+const ImportAccountForm = (props: subProps) => {
+    const { isCreating, onStartCreating, onEndCreating, onError } = props
 
     const state = useBlankState()!
-    const history = useOnMountHistory()
-    const [importingAccount, setImportingAccount] = useState(false)
+
     const {
         register,
         handleSubmit,
         errors,
         setError,
+        setValue,
+        watch,
     } = useForm<importAccountFormData>({
+        defaultValues: {
+            importType: "key",
+        },
+        shouldUnregister: false,
         resolver: yupResolver(importAccountSchema),
     })
+    const importType = watch("importType")
     const placeholderAccountName = `Account ${
         Object.keys(state.accounts).length + 1
     }`
@@ -157,8 +169,7 @@ const ImportAccountForm = (props: any) => {
                 return
             }
 
-            setImportingAccount(true)
-            setIsCreating(true)
+            onStartCreating()
 
             const newAccount = await importAccountPrivateKey(
                 { privateKey: data.privateKey },
@@ -166,28 +177,25 @@ const ImportAccountForm = (props: any) => {
             )
             await selectAccount(newAccount.address)
 
-            setImportingAccount(false)
-            setIsCreating(false)
-
-            history.push("/")
+            onEndCreating()
         } catch (e: any) {
             if (
                 e.message ===
                 "The account you're are trying to import is a duplicate"
             ) {
+                onError("This account already exists")
                 setError("privateKey", {
                     message: "Account already exists",
                     shouldFocus: true,
                 })
             } else {
+                onError("Couldn't import the account")
+
                 setError("privateKey", {
                     message: "Error importing the account",
                     shouldFocus: true,
                 })
             }
-
-            setImportingAccount(false)
-            setIsCreating(false)
         }
     })
 
@@ -210,16 +218,19 @@ const ImportAccountForm = (props: any) => {
                     />
                 </div>
                 <div className="flex flex-col space-y-1 mb-5">
-                    <SelectInput
+                    <Dropdown
+                        onChange={(value) => {
+                            setValue("importType", value)
+                        }}
+                        currentValue={importType}
                         label="Select Type"
-                        name="importType"
-                        register={register}
-                        error={errors.type?.message}
+                        id="type"
+                        error={errors.importType?.message}
                     >
-                        <option value="Private Key" selected>
+                        <Dropdown.DropdownItem value="key">
                             Private Key
-                        </option>
-                    </SelectInput>
+                        </Dropdown.DropdownItem>
+                    </Dropdown>
                 </div>
                 <div className="flex flex-col space-y-1">
                     <TextInput
@@ -232,12 +243,16 @@ const ImportAccountForm = (props: any) => {
                         maxLength={66}
                     />
                 </div>
+                {/** UNCOMMENT THIS TO ENABLE PHISHING PROTECTION FEATURE */}
+                {/* {state.settings.useAntiPhishingProtection && (
+                    <AntiPhishing image={state.antiPhishingImage} />
+                )} */}
             </div>
             <hr className="border-0.5 border-gray-200 w-full" />
             <PopupFooter>
                 <ButtonWithLoading
                     type="submit"
-                    isLoading={importingAccount}
+                    isLoading={isCreating}
                     label={"Import"}
                 ></ButtonWithLoading>
             </PopupFooter>
@@ -249,14 +264,44 @@ const ImportAccountForm = (props: any) => {
 const CreateAccountPage = () => {
     const tabs = ["Create", "Import"]
     const [selectedTab, setSelectedTab] = useState(tabs[0])
+    const history = useOnMountHistory()
 
-    const [isCreating, setIsCreating] = useState(false)
+    const [actionLabel, setActionLabel] = useState("")
+    const [error, setError] = useState("")
+
+    const { isOpen, status, dispatch } = useWaitingDialog()
+
+    const isCreating = status === "loading" && isOpen
+
     return (
         <PopupLayout
             header={
                 <PopupHeader title="Create Account" disabled={isCreating} />
             }
         >
+            <WaitingDialog
+                status={status}
+                open={isOpen}
+                titles={{
+                    loading: "Fetching balances...",
+                    error: "Error",
+                    success: "Success!",
+                }}
+                texts={{
+                    loading: `Please wait while your account is being ${actionLabel}...`,
+                    error: error,
+                    success: `Congratulations! Your account is ${actionLabel}!`,
+                }}
+                onDone={() => {
+                    if (!!error) {
+                        dispatch({ type: "close" })
+                        return
+                    }
+
+                    history.push("/")
+                }}
+                timeout={1400}
+            />
             <HorizontalSelect
                 options={tabs}
                 value={selectedTab}
@@ -265,9 +310,59 @@ const CreateAccountPage = () => {
             <Divider />
             <div className="flex flex-col flex-1 w-full">
                 {selectedTab === "Create" ? (
-                    <CreateAccountForm setIsCreating={setIsCreating} />
+                    <CreateAccountForm
+                        onStartCreating={() => {
+                            dispatch({
+                                type: "open",
+                                payload: { status: "loading" },
+                            })
+                            setActionLabel("created")
+                        }}
+                        onError={(e) => {
+                            dispatch({
+                                type: "setStatus",
+                                payload: { status: "error" },
+                            })
+                            setError(
+                                "There was an error while creating the account"
+                            )
+                        }}
+                        onEndCreating={() => {
+                            setActionLabel("created")
+                            dispatch({
+                                type: "setStatus",
+                                payload: { status: "success" },
+                            })
+                        }}
+                        isCreating={isCreating}
+                    />
                 ) : (
-                    <ImportAccountForm setIsCreating={setIsCreating} />
+                    <ImportAccountForm
+                        onStartCreating={() => {
+                            dispatch({
+                                type: "open",
+                                payload: { status: "loading" },
+                            })
+                            setActionLabel("imported")
+                        }}
+                        onError={(e) => {
+                            dispatch({
+                                type: "setStatus",
+                                payload: { status: "error" },
+                            })
+                            setError(
+                                "There was an error while importing the account"
+                            )
+                        }}
+                        onEndCreating={() => {
+                            setActionLabel("imported")
+                            dispatch({
+                                type: "setStatus",
+                                payload: { status: "success" },
+                            })
+                        }}
+                        isCreating={isCreating}
+                    />
                 )}
             </div>
         </PopupLayout>
