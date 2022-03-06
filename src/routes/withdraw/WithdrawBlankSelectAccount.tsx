@@ -11,6 +11,7 @@ import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { useSortedAccounts } from "../../context/hooks/useSortedAccounts"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
+import { TokenWithBalance } from "../../context/hooks/useTokensList"
 
 const Warning: FunctionComponent<{
     onConfirm: any
@@ -48,7 +49,10 @@ const Warning: FunctionComponent<{
 
 const WithdrawBlankSelectAccount = () => {
     const history: any = useOnMountHistory()
-    const { pair } = history.location.state as { pair: CurrencyAmountPair }
+    const { pair, preSelectedAsset } = history.location.state as {
+        pair: CurrencyAmountPair
+        preSelectedAsset: TokenWithBalance
+    }
 
     const accountArray = useSortedAccounts()
     const currentAccount = useSelectedAccount()
@@ -71,7 +75,7 @@ const WithdrawBlankSelectAccount = () => {
 
         history.push({
             pathname: "/privacy/withdraw/block/accounts/step/confirm",
-            state: { address: selectedAccount.address, pair },
+            state: { address: selectedAccount.address, pair, preSelectedAsset },
         })
     }
 
@@ -89,7 +93,7 @@ const WithdrawBlankSelectAccount = () => {
                     onBack={() => {
                         history.push({
                             pathname: "/privacy/withdraw/select",
-                            state: { pair },
+                            state: { pair, preSelectedAsset },
                         })
                     }}
                 />
@@ -109,7 +113,7 @@ const WithdrawBlankSelectAccount = () => {
                 }
                 createAccountTo={{
                     pathname: "/privacy/withdraw/block/accounts/create",
-                    state: { pair },
+                    state: { pair, preSelectedAsset },
                 }}
             />
         </PopupLayout>

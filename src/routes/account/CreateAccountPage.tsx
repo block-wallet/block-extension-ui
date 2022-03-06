@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
@@ -60,7 +60,7 @@ const CreateAccountForm = (props: subProps) => {
     } = useForm<createAccountFormData>({
         resolver: yupResolver(createAccountSchema),
     })
-    const [placeholderAccountName] = useState(
+    const placeholderAccountName = useRef(
         `Account ${Object.keys(state.accounts).length + 1}`
     )
     const accountNameExists = (name: string) => {
@@ -68,7 +68,7 @@ const CreateAccountForm = (props: subProps) => {
     }
     const onSubmit = handleSubmit(async (data: createAccountFormData) => {
         if (!data.accountName || !data.accountName.trim()) {
-            data.accountName = placeholderAccountName
+            data.accountName = placeholderAccountName.current
         }
 
         data.accountName = data.accountName.trim()
@@ -108,7 +108,7 @@ const CreateAccountForm = (props: subProps) => {
                     label="Account Name"
                     name="accountName"
                     register={register}
-                    placeholder={placeholderAccountName}
+                    placeholder={placeholderAccountName.current}
                     error={errors.accountName?.message}
                     autoFocus={true}
                     maxLength={40}
@@ -146,15 +146,15 @@ const ImportAccountForm = (props: subProps) => {
         resolver: yupResolver(importAccountSchema),
     })
     const importType = watch("importType")
-    const placeholderAccountName = `Account ${
-        Object.keys(state.accounts).length + 1
-    }`
+    const placeholderAccountName = useRef(
+        `Account ${Object.keys(state.accounts).length + 1}`
+    )
     const accountNameExists = (name: string) => {
         return Object.values(state.accounts).some((a) => a.name === name)
     }
     const onSubmit = handleSubmit(async (data: importAccountFormData) => {
         if (!data.accountName || !data.accountName.trim()) {
-            data.accountName = placeholderAccountName
+            data.accountName = placeholderAccountName.current
         }
 
         data.accountName = data.accountName.trim()
@@ -211,7 +211,7 @@ const ImportAccountForm = (props: subProps) => {
                         label="Account Name"
                         name="accountName"
                         register={register}
-                        placeholder={placeholderAccountName}
+                        placeholder={placeholderAccountName.current}
                         error={errors.accountName?.message}
                         autoFocus={true}
                         maxLength={40}

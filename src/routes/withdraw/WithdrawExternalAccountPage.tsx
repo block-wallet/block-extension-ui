@@ -25,6 +25,7 @@ import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import AddressBookSelect from "../../components/addressBook/AddressBookSelect"
 import { AccountInfo } from "@blank/background/controllers/AccountTrackerController"
 import AccountDisplay from "../../components/account/AccountDisplay"
+import { TokenWithBalance } from "../../context/hooks/useTokensList"
 
 const schema = yup.object().shape({
     address: yup
@@ -48,7 +49,10 @@ const WithdrawExternalPage = () => {
     const history: any = useOnMountHistory()
     const network = useSelectedNetwork()
     const currentAccount = useSelectedAccount()
-    const { pair } = history.location.state as { pair: CurrencyAmountPair }
+    const { pair, preSelectedAsset } = history.location.state as {
+        pair: CurrencyAmountPair
+        preSelectedAsset: TokenWithBalance
+    }
 
     const [ensEnabled, setEnsEnabled] = useState<boolean>(false)
     const [ensSearch, setEnsSearch] = useState<string>("")
@@ -128,7 +132,7 @@ const WithdrawExternalPage = () => {
                         onBack={() => {
                             history.push({
                                 pathname: "/privacy/withdraw/select",
-                                state: { pair },
+                                state: { pair, preSelectedAsset },
                             })
                         }}
                     />

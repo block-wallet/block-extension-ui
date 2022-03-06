@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form"
 // Components
 import PopupFooter from "../../components/popup/PopupFooter"
 import PopupHeader from "../../components/popup/PopupHeader"
-import Spinner from "../../components/spinner/Spinner"
 import { AssetSelection } from "../../components/assets/tokens/AssetSelection"
 import { GasPriceSelector } from "../../components/transactions/GasPriceSelector"
 import ErrorMessage from "../../components/error/ErrorMessage"
@@ -220,11 +219,7 @@ const AddressDisplay: FunctionComponent<{
 }
 
 // Tools
-const LoadingSendEther = () => (
-    <div className="flex flex-row items-center justify-center w-full h-full bg-primary-100">
-        <Spinner size="2rem" />
-    </div>
-)
+
 const BalanceValidation = (balance: BigNumber, amount: BigNumber): boolean => {
     return BigNumber.from(balance).gte(BigNumber.from(amount))
 }
@@ -283,7 +278,7 @@ const SendConfirmPage = () => {
 
     const isEIP1559Compatible = network.isEIP1559Compatible
     const receivingAddress = history.location.state.address
-    const preSelectedAsset = history.location.state.asset
+    const preSelectedAsset = history.location.state.asset as TokenWithBalance
 
     // Tokens
     const { currentNetworkTokens, nativeToken } = useTokensList()
@@ -302,9 +297,11 @@ const SendConfirmPage = () => {
     const [showingTheWholeAddress, setShowingTheWholeAddress] = useState(false)
     const [usingMax, setUsingMax] = useState(false)
     const [nativeCurrencyAmt, setNativeCurrency] = useState(0)
+
     const [selectedToken, setSelectedToken] = useState<TokenWithBalance>(
         preSelectedAsset ? preSelectedAsset : tokensList[0]
     )
+
     const { gasPricesLevels } = useGasPriceData()
 
     const [selectedGas, setSelectedGas] = useState<TransactionFeeData>({
@@ -544,14 +541,27 @@ const SendConfirmPage = () => {
             try {
                 setIsGasLoading(true)
 
-                const {
+                const hasTokenBalance = BigNumber.from(
+                    selectedToken.balance
+                ).gt(constants.Zero)
+
+                const estimateValue = hasTokenBalance
+                    ? constants.One
+                    : constants.Zero
+
+                let {
                     gasLimit,
                     estimationSucceeded,
                 } = await getSendTransactionGasLimit(
                     selectedToken.token.address,
                     receivingAddress,
-                    constants.One
+                    estimateValue
                 )
+
+                // In case the estimation failed but user has no balance on the selected token, we won't display the estimation error.
+                if (!hasTokenBalance && !estimationSucceeded) {
+                    estimationSucceeded = true
+                }
 
                 setGasEstimationFailed(!estimationSucceeded)
 
@@ -571,7 +581,8 @@ const SendConfirmPage = () => {
                     ...selectedGas,
                     gasLimit: BigNumber.from(gasLimit),
                 })
-            } catch {
+            } catch (error) {
+                console.log("error ", error)
             } finally {
                 setIsGasLoading(false)
             }
@@ -601,7 +612,7 @@ const SendConfirmPage = () => {
     const [inputFocus, setInputFocus] = useState(false)
     return (
         <PopupLayout
-            header={<PopupHeader title="Send" disabled={isLoading} />}
+            header={<PopupHeader title="Send" disabled={isLoading} keepState />}
             footer={
                 <PopupFooter>
                     <ButtonWithLoading

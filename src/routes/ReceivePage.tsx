@@ -20,7 +20,7 @@ const ReceivePage = () => {
     }
 
     return (
-        <PopupLayout header={<PopupHeader title="Receive Funds" />}>
+        <PopupLayout header={<PopupHeader title="Receive Funds" keepState />}>
             <div className="flex items-center justify-center my-6">
                 <QRCode value={accountAddress} />
             </div>

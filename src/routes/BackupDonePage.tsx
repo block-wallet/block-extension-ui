@@ -9,7 +9,7 @@ import PopupFooter from "../components/popup/PopupFooter"
 const BackupDonePage = () => {
     return (
         <PopupLayout
-            header={<PopupHeader title="You’re Now Safe!" />}
+            header={<PopupHeader title="You’re Now Safe!" backButton={false} />}
             footer={
                 <PopupFooter>
                     <LinkButton location="/" text="Done" lite />

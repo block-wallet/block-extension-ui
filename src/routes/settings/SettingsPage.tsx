@@ -71,7 +71,8 @@ const SettingsPage = () => {
                         content={
                             <p className="w-full text-center">
                                 Please wait until deposits are done loading
-                                before locking the wallet
+                                before locking the wallet. This can take up to
+                                15 minutes
                             </p>
                         }
                     >

@@ -4,8 +4,6 @@ import React, { FunctionComponent, useMemo, useRef, useState } from "react"
 import { BiRadioCircleMarked } from "react-icons/bi"
 import { Redirect } from "react-router-dom"
 import AccountIcon from "../../components/icons/AccountIcon"
-import ThreeDotsIcon from "../../components/icons/ThreeDotsIcon"
-import blueDotsIcon from "../../assets/images/icons/blue_dots.svg"
 import TrashBinIcon from "../../components/icons/TrashBinIcon"
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
@@ -27,6 +25,7 @@ import { getAccountColor } from "../../util/getAccountColor"
 import WarningTip from "../../components/label/WarningTip"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 import { formatHashLastChars, formatName } from "../../util/formatAccount"
+import DotsMenu from "../../components/menu/DotsMenu"
 
 export type ConnectedSiteAccountsLocationState = {
     origin: string
@@ -61,7 +60,10 @@ const ConnectedSiteAccount: FunctionComponent<{
         <>
             <ConfirmDialog
                 title="Remove site connection"
-                message={`Do you want to remove ${account.name} connection?`}
+                message={`Do you want to remove ${formatName(
+                    account.name,
+                    18
+                )} connection?`}
                 open={hasDialog}
                 onClose={() => setHasDialog(false)}
                 onConfirm={() => {
@@ -111,64 +113,35 @@ const ConnectedSiteAccount: FunctionComponent<{
                             </span>
                         </div>
                     </div>
-                    <div className="relative" ref={ref}>
-                        <div
-                            className={classnames(
-                                "p-2 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300 cursor-pointer",
-                                showOptions
-                                    ? "bg-primary-100 text-primary-300"
-                                    : ""
-                            )}
-                            onClick={() => {
-                                setShowOptions(!showOptions)
-                            }}
-                        >
-                            {showOptions ? (
-                                <img
-                                    src={blueDotsIcon}
-                                    alt="options"
-                                    className="w-4 h-4"
-                                />
-                            ) : (
-                                <div className="w-4 h-4 flex items-center justify-center">
-                                    <ThreeDotsIcon />
+
+                    <DotsMenu>
+                        {connected ? (
+                            <div
+                                onClick={() => {
+                                    setHasDialog(true)
+                                }}
+                                className="text-red-500 cursor-pointer flex flex-row justify-center p-2 items-center hover:bg-gray-100"
+                            >
+                                <div className="pl-1 pr-1">
+                                    <TrashBinIcon fill="red" />
                                 </div>
-                            )}
-                        </div>
-                        <div
-                            className={classnames(
-                                "absolute shadow-md bg-white right-0 select-none rounded-md z-10 font-semibold",
-                                showOptions ? "" : "hidden"
-                            )}
-                        >
-                            {connected ? (
-                                <div
-                                    onClick={() => {
-                                        setHasDialog(true)
-                                    }}
-                                    className="text-red-500 cursor-pointer flex flex-row justify-center p-2 items-center hover:bg-gray-100"
-                                >
-                                    <div className="pl-1 pr-1">
-                                        <TrashBinIcon fill="red" />
-                                    </div>
-                                    <span>Disconnect</span>
+                                <span>Disconnect</span>
+                            </div>
+                        ) : (
+                            <div
+                                onClick={() => {
+                                    handleConnectSite(account.address)
+                                    setShowOptions(!showOptions)
+                                }}
+                                className="text-green-400 cursor-pointer flex flex-row justify-start p-2 items-center hover:bg-gray-100"
+                            >
+                                <div className="">
+                                    <BiRadioCircleMarked size={24} />
                                 </div>
-                            ) : (
-                                <div
-                                    onClick={() => {
-                                        handleConnectSite(account.address)
-                                        setShowOptions(!showOptions)
-                                    }}
-                                    className="text-green-400 cursor-pointer flex flex-row justify-start p-2 items-center hover:bg-gray-100"
-                                >
-                                    <div className="">
-                                        <BiRadioCircleMarked size={24} />
-                                    </div>
-                                    <span>Connect</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                                <span>Connect</span>
+                            </div>
+                        )}
+                    </DotsMenu>
                 </div>
                 {connected ? (
                     <div className="flex flex-row">

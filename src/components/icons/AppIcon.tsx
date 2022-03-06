@@ -1,24 +1,35 @@
 import classnames from "classnames"
 import React from "react"
 
-const AppIcon = (props: any) => (
+interface AppIconProps {
+    size: number
+    iconURL: string
+    iconSize?: number
+    title?: string
+    background?: boolean
+}
+
+const AppIcon = ({
+    size,
+    iconURL,
+    iconSize,
+    background = true,
+    title,
+}: AppIconProps) => (
     <div
         className={classnames(
-            "flex flex-row items-center justify-center rounded-full bg-primary-100",
-            ` w-${props.size} h-${props.size}`
+            "flex flex-row items-center justify-center rounded-full",
+            `w-${size} h-${size}`,
+            background && "bg-primary-100"
         )}
     >
-        {props.iconURL ? (
+        {iconURL ? (
             <img
                 alt="icon"
-                src={props.iconURL}
+                src={iconURL}
                 draggable={false}
-                className={
-                    props.iconSize
-                        ? `max-h-${props.iconSize}`
-                        : `max-h-${props.size - 3}`
-                }
-                title={props.title}
+                className={iconSize ? `max-h-${iconSize}` : `max-h-${size - 3}`}
+                title={title}
             />
         ) : null}
     </div>

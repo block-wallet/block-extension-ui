@@ -13,7 +13,7 @@ import { useOnMountHistory } from "../../context/hooks/useOnMount"
 
 const WithdrawBlankSelectOrCreateAccount = () => {
     const history: any = useOnMountHistory()
-    const { pair } = history.location.state
+    const { pair, preSelectedAsset } = history.location.state
     return (
         <PopupLayout
             header={
@@ -41,7 +41,7 @@ const WithdrawBlankSelectOrCreateAccount = () => {
                                 to: {
                                     pathname:
                                         "/privacy/withdraw/block/accounts",
-                                    state: { pair },
+                                    state: { pair, preSelectedAsset },
                                 },
                             },
                             {
@@ -50,7 +50,7 @@ const WithdrawBlankSelectOrCreateAccount = () => {
                                 to: {
                                     pathname:
                                         "/privacy/withdraw/block/accounts/create",
-                                    state: { pair },
+                                    state: { pair, preSelectedAsset },
                                 },
                             },
                         ]}

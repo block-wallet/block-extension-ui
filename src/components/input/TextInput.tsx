@@ -81,7 +81,7 @@ const TextInput = (props: TextInputProps) => {
                 appearance === "outline"
                     ? Classes.input
                     : appearance === "border"
-                    ? Classes.inputBordered
+                    ? Classes.inputBorder
                     : Classes.blueSectionInput,
                 error !== "" ? "border-red-400 focus:border-red-400" : "",
                 warning !== ""

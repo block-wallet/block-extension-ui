@@ -7,7 +7,7 @@ import PopupLayout from "../../components/popup/PopupLayout"
 import { Classes } from "../../styles/classes"
 
 import Divider from "../../components/Divider"
-
+import connectIcon from "../../assets/images/icons/connect_dapp.svg"
 import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
 import AccountMultipleSelect from "../../components/account/AccountMultipleSelect"
 import { AccountInfo } from "@blank/background/controllers/AccountTrackerController"
@@ -126,115 +126,88 @@ const ConnectSteps = () => {
                 </PopupFooter>
             }
         >
-            <div>
-                {isLoading && <LoadingOverlay />}
-                {step === 1 ? (
-                    <>
-                        <div className="flex flex-col items-center w-full p-6 space-y-3">
-                            <AppIcon
-                                iconURL={site.siteMetadata.iconURL}
-                                size={14}
-                            />
-                            <span className="text-sm text-gray-800">
-                                {site.origin}
-                            </span>
-                            <span className="text-xs text-gray-600">
-                                Only connect with sites you trust.
-                            </span>
-                        </div>
-                        <Divider />
-                        <div className="flex flex-col p-6 space-y-5">
-                            <AccountSearchBar
-                                setIsSearching={(value) => {
-                                    if (!value)
-                                        setFilteredAccounts(accountsList)
-                                }}
-                                onChange={(value) => {
-                                    // Filter accounts if filter has value otherwise display full account list.
-                                    setFilteredAccounts(
-                                        value
-                                            ? filterAccounts(
-                                                  accountsList,
-                                                  value.toLowerCase()
-                                              )
-                                            : accountsList
-                                    )
-                                }}
-                            />
-
-                            <div className="flex flex-row items-center justify-start w-full text-sm space-x-4 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    className={Classes.checkboxAlt}
-                                    checked={checkAll}
-                                    onClick={() => {
-                                        !checkAll
-                                            ? setSelectedAccounts(
-                                                  filteredAccounts
-                                              )
-                                            : setSelectedAccounts([])
-                                    }}
-                                    onChange={() => {
-                                        setCheckAll((c) => !c)
-                                    }}
-                                    id="selectAll"
-                                />
-                                <label
-                                    className="text-gray-600 cursor-pointer"
-                                    htmlFor="selectAll"
-                                >
-                                    Please select accounts:
-                                </label>
-                            </div>
-                            <div className="flex flex-col space-y-3 text-sm text-gray-600">
-                                <AccountMultipleSelect
-                                    accounts={filteredAccounts}
-                                    selectedAccount={account}
-                                    value={selectedAccounts}
-                                    onChange={setSelectedAccounts}
-                                />
-                            </div>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div className="flex flex-col items-center w-full p-6 space-y-3">
-                            <AppIcon
-                                iconURL={site.siteMetadata.iconURL}
-                                size={14}
-                            />
-                            <span className="text-sm text-gray-800">
-                                {site.origin}
-                            </span>
-                            <span className="text-xs text-gray-600">
-                                Only connect with sites you trust.
-                            </span>
-                        </div>
-                        <Divider />
-                        <div className="flex flex-col p-6 space-y-6">
-                            <span className="text-sm text-gray-600">
-                                Allow this site to:
-                            </span>
-                            <div className="flex flex-row items-center space-x-4 text-sm text-gray-600 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    className={Classes.checkboxAlt}
-                                    checked={allowSite}
-                                    onChange={() => setAllowSite(!allowSite)}
-                                    id="allowCheck"
-                                />
-                                <label
-                                    className="cursor-pointer"
-                                    htmlFor="allowCheck"
-                                >
-                                    View the addresses of your permitted
-                                    accounts (required)
-                                </label>
-                            </div>
-                        </div>
-                    </>
-                )}
+            {isLoading && <LoadingOverlay />}
+            <div className="flex flex-col items-center w-full p-6 space-y-3">
+                <AppIcon
+                    iconURL={site.siteMetadata.iconURL || connectIcon}
+                    size={14}
+                    background={false}
+                />
+                <span className="text-sm text-gray-800">{site.origin}</span>
+                <span className="text-xs text-gray-600">
+                    Only connect with sites you trust.
+                </span>
             </div>
+            <Divider />
+            {step === 1 ? (
+                <div className="flex flex-col p-6 space-y-5">
+                    <AccountSearchBar
+                        setIsSearching={(value) => {
+                            if (!value) setFilteredAccounts(accountsList)
+                        }}
+                        onChange={(value) => {
+                            // Filter accounts if filter has value otherwise display full account list.
+                            setFilteredAccounts(
+                                value
+                                    ? filterAccounts(
+                                          accountsList,
+                                          value.toLowerCase()
+                                      )
+                                    : accountsList
+                            )
+                        }}
+                    />
+                    <div className="flex flex-row items-center justify-start w-full text-sm space-x-4 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className={Classes.checkboxAlt}
+                            checked={checkAll}
+                            onClick={() => {
+                                !checkAll
+                                    ? setSelectedAccounts(filteredAccounts)
+                                    : setSelectedAccounts([])
+                            }}
+                            onChange={() => {
+                                setCheckAll((c) => !c)
+                            }}
+                            id="selectAll"
+                        />
+                        <label
+                            className="text-gray-600 cursor-pointer"
+                            htmlFor="selectAll"
+                        >
+                            Please select accounts:
+                        </label>
+                    </div>
+                    <div className="flex flex-col space-y-3 text-sm text-gray-600">
+                        <AccountMultipleSelect
+                            accounts={filteredAccounts}
+                            selectedAccount={account}
+                            value={selectedAccounts}
+                            onChange={setSelectedAccounts}
+                        />
+                    </div>
+                </div>
+            ) : (
+                <div className="flex flex-col p-6 space-y-6">
+                    <span className="text-sm text-gray-600">
+                        Allow this site to:
+                    </span>
+                    <div className="flex flex-row items-center space-x-4 text-sm text-gray-600 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className={Classes.checkboxAlt}
+                            checked={allowSite}
+                            onChange={() => setAllowSite(!allowSite)}
+                            id="allowCheck"
+                        />
+                        <label className="cursor-pointer" htmlFor="allowCheck">
+                            View the addresses of your permitted accounts
+                            (required)
+                        </label>
+                    </div>
+                </div>
+            )}
         </PopupLayout>
     )
 }

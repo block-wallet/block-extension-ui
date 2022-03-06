@@ -42,6 +42,9 @@ type AddressFormData = InferType<typeof schema>
 
 const SendPage = () => {
     const history = useOnMountHistory()
+
+    const defaultAsset = history.location.state?.asset
+    const fromAssetPage = defaultAsset ?? false
     const currentAccount = useSelectedAccount()
     const network = useSelectedNetwork()
 
@@ -76,8 +79,7 @@ const SendPage = () => {
     // Hooks
     useEffect(() => {
         network.ens && setEnsEnabled(true)
-        history.location.state &&
-            setPreSelectedAsset(history.location.state.asset)
+        defaultAsset && setPreSelectedAsset(defaultAsset)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -96,6 +98,7 @@ const SendPage = () => {
                 address: data.address,
                 asset: preSelectedAsset,
                 ens: ensSelected,
+                fromAssetPage: fromAssetPage,
             },
         })
     })
@@ -163,7 +166,24 @@ const SendPage = () => {
     // Component
     return (
         <PopupLayout
-            header={<PopupHeader title="Send" />}
+            header={
+                <PopupHeader
+                    title="Send"
+                    onBack={() => {
+                        history.push(
+                            fromAssetPage
+                                ? {
+                                      pathname: "/asset/details",
+                                      state: {
+                                          address: defaultAsset.token.address,
+                                          transitionDirection: "right",
+                                      },
+                                  }
+                                : { pathname: "/home" }
+                        )
+                    }}
+                />
+            }
             footer={
                 <PopupFooter>
                     <ButtonWithLoading

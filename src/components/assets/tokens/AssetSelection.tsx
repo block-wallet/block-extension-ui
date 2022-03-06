@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import {
     TokenList,
     TokenWithBalance,
@@ -8,6 +8,8 @@ import SearchInput from "../../input/SearchInput"
 import TokenDisplay from "../../TokenDisplay"
 import { formatUnits } from "ethers/lib/utils"
 import { formatRounded } from "../../../util/formatRounded"
+import { useCustomCompareEffect } from "use-custom-compare"
+import { BigNumber } from "ethers"
 
 // Types
 interface AssetSelectionProps {
@@ -37,7 +39,6 @@ export const AssetSelection = (props: AssetSelectionProps) => {
 
     // State
     const [search, setSearch] = useState<string>("")
-    const [isEmpty, setIsEmpty] = useState<boolean>(true)
     const [selectedToken, setSelectedToken] = useState<
         TokenWithBalance | undefined
     >(defaultAsset)
@@ -45,12 +46,13 @@ export const AssetSelection = (props: AssetSelectionProps) => {
         defaultAsset?.token.address
     )
 
+    const [filteredTokens, setFilteredTokens] = useState<TokenList>(assets)
+
     // Handler
     const onChange = (event: any) => {
         const value = event.target.value
         // Update input value & check if empty
         setSearch(value)
-        value === "" ? setIsEmpty(true) : setIsEmpty(false)
     }
 
     const onClick = (
@@ -69,19 +71,71 @@ export const AssetSelection = (props: AssetSelectionProps) => {
     }
 
     // Token filtering function
-    const tokenFilter = ({ token }: TokenWithBalance) => {
-        if (!isEmpty) {
-            const name = token.name.toUpperCase()
-            const symbol = token.symbol.toUpperCase()
-            const uppercasedSearch = search.toUpperCase()
-            return (
-                name.includes(uppercasedSearch) ||
-                symbol.includes(uppercasedSearch)
+    const tokenFilter = useCallback(
+        ({ token }: TokenWithBalance) => {
+            if (search !== "") {
+                const name = token.name.toUpperCase()
+                const symbol = token.symbol.toUpperCase()
+                const uppercasedSearch = search.toUpperCase()
+                return (
+                    name.includes(uppercasedSearch) ||
+                    symbol.includes(uppercasedSearch)
+                )
+            } else {
+                return true
+            }
+        },
+        [search]
+    )
+
+    useEffect(() => {
+        setFilteredTokens(assets.filter(tokenFilter))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tokenFilter])
+
+    // Effect to update selected token when balance is updated to make parent component estimate gas again.
+    useCustomCompareEffect(
+        () => {
+            if (!selectedToken) return
+
+            const token = assets.find(
+                (t) => t.token.address === selectedToken.token.address
             )
-        } else {
-            return true
+            if (!token) return
+
+            setSelectedToken(token)
+            onAssetChange && onAssetChange(token)
+        },
+        [assets],
+        (prevDeps, nextDeps) => {
+            const prevAssets = prevDeps[0]
+            const nextAssets = nextDeps[0]
+
+            // No selected token, skip effect.
+            if (!selectedToken) return true
+
+            const prevToken = prevAssets.find(
+                (t) => t.token.address === selectedToken.token.address
+            )
+
+            // Token not found, skip effect
+            if (!prevToken) return true
+
+            const nextToken = nextAssets.find(
+                (t) => t.token.address === selectedToken.token.address
+            )
+
+            // Token not found, skip effect
+            if (!nextToken) return true
+
+            // Compare balances
+            const oldBalance = BigNumber.from(prevToken.balance)
+            const newBalance = BigNumber.from(nextToken.balance)
+
+            // If equal, skip effect
+            return oldBalance.eq(newBalance)
         }
-    }
+    )
 
     // Subcomponent
     const Child = (props: any) => {
@@ -94,28 +148,21 @@ export const AssetSelection = (props: AssetSelectionProps) => {
                     value={inputValue}
                     onChange={() => {}}
                 />
-                {assets.filter(tokenFilter).map((asset: TokenWithBalance) => {
+                {filteredTokens.map((asset: TokenWithBalance, index) => {
                     return (
                         <div
                             className="cursor-pointer"
-                            key={`selected-${asset.token.address}`}
+                            key={`selected-${index}`}
                             onClick={() => onClick(asset, props.setActive)}
                         >
                             <TokenDisplay
                                 data={{
-                                    address: asset.token.address,
-                                    decimals: asset.token.decimals,
-                                    logo: asset.token.logo,
-                                    name: asset.token.name,
-                                    symbol: asset.token.symbol,
-                                    type: asset.token.type,
+                                    ...asset.token,
                                 }}
                                 clickable={false}
                                 active={
                                     selectedToken?.token.address ===
                                     asset.token.address
-                                        ? true
-                                        : false
                                 }
                                 hoverable={true}
                             />

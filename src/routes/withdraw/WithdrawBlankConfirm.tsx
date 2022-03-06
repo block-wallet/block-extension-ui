@@ -45,15 +45,22 @@ import WaitingDialog, {
 } from "../../components/dialog/WaitingDialog"
 import GenericTooltip from "../../components/label/GenericTooltip"
 import { useAddressBook } from "../../context/hooks/useAddressBook"
+import { TokenWithBalance } from "../../context/hooks/useTokensList"
 
 const WithdrawBlankConfirm = () => {
     const history: any = useOnMountHistory()
-    const { pair, address: accountAddress, ens, external } = history.location
-        .state as {
+    const {
+        pair,
+        address: accountAddress,
+        ens,
+        external,
+        preSelectedAsset,
+    } = history.location.state as {
         pair: CurrencyAmountPair
         address: string
         ens: EnsResult | undefined
         external: boolean | undefined
+        preSelectedAsset: TokenWithBalance
     }
 
     const [hasHigherFee, setHasHigherFee] = useState(false)
@@ -191,7 +198,7 @@ const WithdrawBlankConfirm = () => {
             onCancel={() => {
                 history.push({
                     pathname: "/privacy/withdraw/block/accounts",
-                    state: { pair },
+                    state: { pair, preSelectedAsset },
                 })
             }}
             currency={pair.currency}
@@ -207,7 +214,7 @@ const WithdrawBlankConfirm = () => {
                             pathname: external
                                 ? "/privacy/withdraw/external"
                                 : "/privacy/withdraw/block/accounts",
-                            state: { pair },
+                            state: { pair, preSelectedAsset },
                         })
                     }}
                 >
@@ -290,7 +297,7 @@ const WithdrawBlankConfirm = () => {
                     error:
                         "There was an error Could not initiate the withdrawal.",
                 }}
-                timeout={1400}
+                timeout={900}
                 onDone={() => {
                     if (status === "error") {
                         dispatch({ type: "close" })

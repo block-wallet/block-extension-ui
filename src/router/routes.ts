@@ -7,7 +7,6 @@ import PrivacyPage from "../routes/PrivacyPage"
 import TransactionConfirmPage from "../routes/dApp/TransactionConfirmPage"
 import AccountsPage from "../routes/account/AccountsPage"
 import DepositConfirmPage from "../routes/deposit/DepositConfirmPage"
-import DepositDonePage from "../routes/deposit/DepositDonePage"
 import DepositPage from "../routes/deposit/DepositPage"
 import PopupPage from "../routes/PopupPage"
 import ReceivePage from "../routes/ReceivePage"
@@ -39,15 +38,22 @@ import WithdrawBlankConfirm from "../routes/withdraw/WithdrawBlankConfirm"
 import AccountMenu from "../components/account/AccountMenu"
 import EditAccountPage from "../routes/account/EditAccountPage"
 import WatchAssetPage from "../routes/dApp/WatchAsset"
+import SpeedUpPage from "../routes/transaction/SpeedUpPage"
+import CancelPage from "../routes/transaction/CancelPage"
 import ApproveAssetPage from "../routes/dApp/ApproveAsset"
+import AssetDetailsPage from "../components/assets/AssetDetailsPage"
 import PhishingProtectionPreferencesPage from "../routes/preferences/PhishingProtectionPreferencesPage"
-import ReleaseNotesPreferencesPage from "../routes/preferences/ReleaseNotesPreferencesPage"
 import LocalePreferencesPage from "../routes/preferences/LocalePreferencesPage"
 import PreferencesPage from "../routes/settings/PreferencesPage"
+import ReleaseNotesPreferencesPage from "../routes/preferences/ReleaseNotesPreferencesPage"
+import AddressWarningPreferencesPage from "../routes/preferences/AddressWarningPreferencesPage"
 
 export const appRoutes = makeRoutes([
     /* Root */
     { path: "/home", exact: true, component: PopupPage },
+    /* Transactions */
+    { path: "/transaction/cancel", exact: true, component: CancelPage },
+    { path: "/transaction/speedUp", exact: true, component: SpeedUpPage },
     /* My Accounts */
     { path: "/accounts", exact: true, component: AccountsPage },
     {
@@ -81,7 +87,6 @@ export const appRoutes = makeRoutes([
         exact: true,
         component: DepositConfirmPage,
     },
-    { path: "/privacy/deposit/done", exact: true, component: DepositDonePage },
     /* Withdraw */
     { path: "/privacy/withdraw", exact: true, component: WithdrawAmountPage },
     {
@@ -138,6 +143,12 @@ export const appRoutes = makeRoutes([
     },
 
     {
+        path: "/settings/preferences/addressWarning",
+        exact: true,
+        component: AddressWarningPreferencesPage,
+    },
+
+    {
         path: "/settings/preferences/lockTimeout",
         exact: true,
         component: LockTimeout,
@@ -188,6 +199,8 @@ export const appRoutes = makeRoutes([
     { path: "/sign", exact: true, component: SignPage },
     /* Watch Asset */
     { path: "/asset", exact: true, component: WatchAssetPage },
+    /* Asset Details */
+    { path: "/asset/details", exact: true, component: AssetDetailsPage },
     /* Connect */
     { path: "/connect", exact: true, component: ConnectPage },
     /* Token approval */

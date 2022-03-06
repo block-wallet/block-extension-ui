@@ -13,55 +13,11 @@ import Dropdown from "../../components/input/Dropdown"
 
 const LockTimeout = () => {
     const history = useOnMountHistory()!
-    const [saved, setSaved] = useState(false)
     const [currentTimeout, setCurrentTimeout] = useState(5)
     const [selectedTimeout, setSelectedTimeout] = useState(5)
     const [timeoutEnabled, setTimeoutEnabled] = useState(false)
 
     const { isOpen, status, dispatch } = useWaitingDialog()
-
-    const list = [
-        {
-            caption: "1 minute",
-            value: 1,
-        },
-        {
-            caption: "3 minutes",
-            value: 3,
-        },
-        {
-            caption: "5 minutes",
-            value: 5,
-        },
-        {
-            caption: "15 minutes",
-            value: 15,
-        },
-        {
-            caption: "30 minutes",
-            value: 30,
-        },
-        {
-            caption: "1 hour",
-            value: 60,
-        },
-        {
-            caption: "3 hours",
-            value: 180,
-        },
-        {
-            caption: "6 hours",
-            value: 360,
-        },
-        {
-            caption: "12 hours",
-            value: 720,
-        },
-        {
-            caption: "1 day",
-            value: 1440,
-        },
-    ]
 
     useEffect(() => {
         getIdleTimeout().then((timeout) => {

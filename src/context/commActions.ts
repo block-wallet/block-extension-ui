@@ -22,7 +22,13 @@ import {
     TransactionAdvancedData,
     TransactionMeta,
 } from "@blank/background/controllers/transactions/utils/types"
-import { TransactionGasEstimation } from "@blank/background/controllers/transactions/TransactionController"
+import { checkRedraw } from "./util/platform"
+import log from "loglevel"
+import {
+    FeeMarketEIP1559Values,
+    GasPriceValue,
+    TransactionGasEstimation,
+} from "@blank/background/controllers/transactions/TransactionController"
 import {
     PopupTabs,
     UserSettings,
@@ -976,6 +982,60 @@ export const confirmTransaction = async (
  */
 export const rejectTransaction = async (transactionId: string) => {
     return sendMessage(Messages.TRANSACTION.REJECT, { transactionId })
+}
+
+/**
+ * Allow to cancel a transaction. It does it by creating a **new transaction**
+ * with a 0 amount, but higher gas fee.
+ * @param transactionId
+ */
+export const cancelTransaction = async (
+    transactionId: string,
+    gasLimit?: BigNumber,
+    gasValues?: GasPriceValue | FeeMarketEIP1559Values
+) => {
+    return sendMessage(Messages.TRANSACTION.CANCEL_TRANSACTION, {
+        transactionId,
+        gasValues,
+        gasLimit,
+    })
+}
+
+/**
+ * Allow to speed up a transaction. It does it by creating a **new transaction**
+ * with the same amount, but higher gas fee.
+ * @param transactionId
+ */
+export const speedUpTransaction = async (
+    transactionId: string,
+    gasLimit?: BigNumber,
+    gasValues?: GasPriceValue | FeeMarketEIP1559Values
+) => {
+    return sendMessage(Messages.TRANSACTION.SPEED_UP_TRANSACTION, {
+        transactionId,
+        gasValues,
+        gasLimit,
+    })
+}
+
+/**
+ * Get the gas price of a cancel transaction
+ * @param transactionId
+ */
+export const getCancelGasPrice = async (transactionId: string) => {
+    return sendMessage(Messages.TRANSACTION.GET_CANCEL_GAS_PRICE, {
+        transactionId,
+    })
+}
+
+/**
+ * Get the gas price of a speed up transaction
+ * @param transactionId
+ */
+export const getSpeedUpGasPrice = async (transactionId: string) => {
+    return sendMessage(Messages.TRANSACTION.GET_SPEED_UP_GAS_PRICE, {
+        transactionId,
+    })
 }
 
 /**

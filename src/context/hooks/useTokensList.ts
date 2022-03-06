@@ -26,9 +26,8 @@ export const useTokensList = () => {
         // Place tokens with balance on top
         const currentNetworkTokens = Object.values(tokens)
             .filter((token) => {
-                return !(
-                    token.token.address in
-                    ["0x0000000000000000000000000000000000000000", "0x0"]
+                return (
+                    !["0x0000000000000000000000000000000000000000", "0x0"].includes(token.token.address)
                 )
             })
             .sort((a, b) => {
@@ -36,8 +35,8 @@ export const useTokensList = () => {
                 return firstNumber.gt(a.balance)
                     ? 1
                     : firstNumber.eq(a.balance)
-                    ? 0
-                    : -1
+                        ? 0
+                        : -1
             })
 
         return {

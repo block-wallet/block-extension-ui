@@ -1,9 +1,12 @@
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
 import PopupFooter from "../../components/popup/PopupFooter"
 import TextInput from "../../components/input/TextInput"
+import WaitingDialog, {
+    useWaitingDialog,
+} from "../../components/dialog/WaitingDialog"
 
 import * as yup from "yup"
 import { InferType } from "yup"
@@ -22,7 +25,7 @@ type createAccountFormData = InferType<typeof createAccountSchema>
 
 const WithdrawBlankCreateAccount = () => {
     const history: any = useOnMountHistory()
-    const { pair } = history.location.state
+    const { pair, preSelectedAsset } = history.location.state
     const {
         register,
         handleSubmit,
@@ -33,63 +36,105 @@ const WithdrawBlankCreateAccount = () => {
     })
     const { accounts } = useBlankState()!
     const accountNumber = Object.keys(accounts).length + 1
-    const placeholderAccountName = `Account ${accountNumber}`
-    const [creatingAccount, setCreatingAccount] = useState(false)
+    const placeholderAccountName = useRef(`Account ${accountNumber}`)
+    const { isOpen, status, dispatch } = useWaitingDialog()
+    const createdAccountAddressRef = useRef("")
 
     const onSubmit = handleSubmit(async (data: createAccountFormData) => {
         try {
-            setCreatingAccount(true)
+            dispatch({ type: "open", payload: { status: "loading" } })
+
             const newAccount = await createAccount(
-                data.accountName ? data.accountName : placeholderAccountName
+                data.accountName
+                    ? data.accountName
+                    : placeholderAccountName.current
             )
-            history.push({
-                pathname: "/privacy/withdraw/block/accounts/step/confirm",
-                state: { address: newAccount.address, pair },
-            })
+
+            createdAccountAddressRef.current = newAccount.address
+
+            dispatch({ type: "setStatus", payload: { status: "success" } })
         } catch {
             setError("accountName", {
                 message: "Error creating account.",
                 shouldFocus: true,
             })
+            dispatch({ type: "setStatus", payload: { status: "error" } })
         }
     })
 
     return (
-        <form className="w-full h-full" onSubmit={onSubmit}>
-            <PopupLayout
-                header={
-                    <PopupHeader
-                        title="Withdraw From Privacy Pool"
-                        onBack={() => {
-                            history.push({
-                                pathname: "/privacy/withdraw/block/accounts",
-                                state: { pair },
-                            })
-                        }}
-                    />
-                }
-                footer={
-                    <PopupFooter>
-                        <ButtonWithLoading
-                            type="submit"
-                            label="Create"
-                            isLoading={creatingAccount}
+        <>
+            <WaitingDialog
+                status={status}
+                open={isOpen}
+                titles={{
+                    loading: "Fetching balances...",
+                    error: "Error",
+                    success: "Success!",
+                }}
+                texts={{
+                    loading: `Please wait while your account is being created...`,
+                    error: "An error happened while creating the account.",
+                    success: `Congratulations! Your account is created!`,
+                }}
+                onDone={() => {
+                    if (!!errors.accountName) {
+                        dispatch({ type: "close" })
+                        return
+                    }
+
+                    if (createdAccountAddressRef.current === "")
+                        throw new Error("Account address is not set")
+
+                    history.push({
+                        pathname:
+                            "/privacy/withdraw/block/accounts/step/confirm",
+                        state: {
+                            address: createdAccountAddressRef.current,
+                            pair,
+                            preSelectedAsset,
+                        },
+                    })
+                }}
+                timeout={1000}
+            />
+            <form className="w-full h-full" onSubmit={onSubmit}>
+                <PopupLayout
+                    header={
+                        <PopupHeader
+                            title="Withdraw From Privacy Pool"
+                            onBack={() => {
+                                history.push({
+                                    pathname:
+                                        "/privacy/withdraw/block/accounts",
+                                    state: { pair, preSelectedAsset },
+                                })
+                            }}
                         />
-                    </PopupFooter>
-                }
-            >
-                <div className="flex flex-col p-6 space-y-1">
-                    <TextInput
-                        appearance="outline"
-                        label="Account Name"
-                        placeholder={placeholderAccountName}
-                        name="accountName"
-                        register={register}
-                        error={errors.accountName?.message}
-                    />
-                </div>
-            </PopupLayout>
-        </form>
+                    }
+                    footer={
+                        <PopupFooter>
+                            <ButtonWithLoading
+                                type="submit"
+                                label="Create"
+                                isLoading={status === "loading" && isOpen}
+                            />
+                        </PopupFooter>
+                    }
+                >
+                    <div className="flex flex-col p-6 space-y-1">
+                        <TextInput
+                            appearance="outline"
+                            label="Account Name"
+                            placeholder={placeholderAccountName.current}
+                            name="accountName"
+                            register={register}
+                            error={errors.accountName?.message}
+                        />
+                    </div>
+                </PopupLayout>
+            </form>
+        </>
     )
 }
 

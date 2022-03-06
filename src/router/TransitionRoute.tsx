@@ -11,6 +11,15 @@ export type TransitionRouteProps = {
     component: any
 } & RouteProps
 
+export type TransitionDirection = "up" | "right" | "down" | "left"
+
+const TransitionClass = {
+    up: "slide-up",
+    right: "slide-right",
+    down: "slide",
+    left: "slide-left",
+}
+
 export const TransitionRoute: FunctionComponent<TransitionRouteProps> = ({
     transition,
     component: Component,
@@ -22,6 +31,10 @@ export const TransitionRoute: FunctionComponent<TransitionRouteProps> = ({
     const lastPathName =
         lastLocation?.pathname === "/home" ? "/" : lastLocation?.pathname
 
+    // If specified in state by the name of TransitionDirection, this will overpass the logic depending on path depth and apply the received transition direction.
+    const transitionDirection = (location.state as any)
+        ?.transitionDirection as TransitionDirection
+
     const nodeRef = useRef(null)
     // Transition logic:
     // -> to root "/" --> slide-up
@@ -30,6 +43,10 @@ export const TransitionRoute: FunctionComponent<TransitionRouteProps> = ({
     // -> from a level 2 page (for ex: /deposit/confirm) to a minor level page (for ex: /deposit) --> slide-right
 
     transition = useMemo(() => {
+        if (transitionDirection) {
+            return TransitionClass[transitionDirection]
+        }
+
         if (
             lastPathName &&
             lastPathName !== "/" &&
@@ -38,11 +55,15 @@ export const TransitionRoute: FunctionComponent<TransitionRouteProps> = ({
         ) {
             const currentDepth = getPathDepth(pathName)
             const lastDepth = getPathDepth(lastPathName)
-            return lastDepth > currentDepth ? "slide-right" : "slide-left"
+            return lastDepth > currentDepth
+                ? TransitionClass["right"]
+                : TransitionClass["left"]
         } else {
-            return pathName === "/" ? "slide-up" : "slide"
+            return pathName === "/"
+                ? TransitionClass["up"]
+                : TransitionClass["down"]
         }
-    }, [lastPathName, pathName])
+    }, [lastPathName, pathName, transitionDirection])
 
     return (
         <Route {...rest} component={transition ? undefined : Component}>

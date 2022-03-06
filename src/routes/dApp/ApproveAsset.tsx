@@ -580,34 +580,34 @@ const ApproveAsset: FunctionComponent<ApproveAssetProps> = ({
                     approve()
                 }}
             />
-            <div className="px-6 py-3 flex flex-row items-center">
-                {isConfirming && <LoadingOverlay />}
-                <CheckBoxDialog
-                    message={`Approval request was sent with an account that's different from the selected one in your wallet. \n\n Please select if you want to continue or reject the transaction.`}
-                    onClose={() => {
-                        setAccountWarningClosed(true)
-                    }}
-                    onCancel={reject}
-                    onConfirm={(saveChoice) => {
-                        if (saveChoice) {
-                            setUserSettings({
-                                ...settings,
-                                hideAddressWarning: true,
-                            })
-                        }
-                    }}
-                    title="Different address detected"
-                    open={
-                        differentAddress &&
-                        !accountWarningClosed &&
-                        !hideAddressWarning &&
-                        !isLoading
+            {isConfirming && <LoadingOverlay />}
+            <CheckBoxDialog
+                message={`Approval request was sent with an account that's different from the selected one in your wallet. \n\n Please select if you want to continue or reject the transaction.`}
+                onClose={() => {
+                    setAccountWarningClosed(true)
+                }}
+                onCancel={reject}
+                onConfirm={(saveChoice) => {
+                    if (saveChoice) {
+                        setUserSettings({
+                            ...settings,
+                            hideAddressWarning: true,
+                        })
                     }
-                    closeText="Reject"
-                    confirmText="Continue"
-                    showCheckbox
-                    checkboxText="Don't show this warning again"
-                />
+                }}
+                title="Different address detected"
+                open={
+                    differentAddress &&
+                    !accountWarningClosed &&
+                    !hideAddressWarning &&
+                    !isLoading
+                }
+                closeText="Reject"
+                confirmText="Continue"
+                showCheckbox
+                checkboxText="Don't show this warning again"
+            />
+            <div className="px-6 py-3 flex flex-row items-center">
                 <AccountIcon
                     className="w-10 h-10"
                     fill={getAccountColor(account.address)}

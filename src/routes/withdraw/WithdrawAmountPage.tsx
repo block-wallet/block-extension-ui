@@ -17,17 +17,21 @@ import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 import Spinner from "../../components/spinner/Spinner"
 import log from "loglevel"
+import { TokenWithBalance } from "../../context/hooks/useTokensList"
+import { KnownCurrencies } from "@blank/background/controllers/blank-deposit/types"
 
 const CanWithdrawView: FunctionComponent<{
     options: ResponseBlankCurrencyDepositsCount
-}> = ({ options }) => {
+    preSelectedAsset: TokenWithBalance
+    onBack: () => void
+}> = ({ options, preSelectedAsset, onBack }) => {
     const [optionIndex, setOptionIndex] = useState(0)
 
     const history = useOnMountHistory()
     const next = () => {
         history.push({
             pathname: "/privacy/withdraw/select",
-            state: { pair: options[optionIndex].pair },
+            state: { pair: options[optionIndex].pair, preSelectedAsset },
         })
     }
 
@@ -39,11 +43,7 @@ const CanWithdrawView: FunctionComponent<{
             header={
                 <PopupHeader
                     title="Withdraw From Privacy Pool"
-                    onBack={() => {
-                        history.push({
-                            pathname: "/privacy",
-                        })
-                    }}
+                    onBack={onBack}
                 />
             }
             footer={
@@ -83,16 +83,22 @@ const CanWithdrawView: FunctionComponent<{
     )
 }
 
-const CannotWithdrawView = () => {
+const CannotWithdrawView = (props: any) => {
     return (
         <PopupLayout
-            header={<PopupHeader title="Withdraw From Privacy Pool" />}
+            header={
+                <PopupHeader
+                    title="Withdraw From Privacy Pool"
+                    onBack={props.onBack}
+                />
+            }
             footer={
                 <PopupFooter>
                     <LinkButton
                         location="/privacy/deposit"
                         classes="w-full"
-                        text="Deposit To Privacy Pool"
+                        text="Deposit to Privacy Pool"
+                        state={{ preSelectedAsset: props.preSelectedAsset }}
                     />
                 </PopupFooter>
             }
@@ -111,10 +117,15 @@ const CannotWithdrawView = () => {
     )
 }
 
-const UpdatingNotesStateView = () => {
+const UpdatingNotesStateView = (props: any) => {
     return (
         <PopupLayout
-            header={<PopupHeader title="Withdraw From Privacy Pool" />}
+            header={
+                <PopupHeader
+                    title="Withdraw From Privacy Pool"
+                    onBack={props.onBack}
+                />
+            }
         >
             <div className="flex flex-row items-center justify-center w-full h-full">
                 <Spinner size="2rem" />
@@ -126,11 +137,24 @@ const UpdatingNotesStateView = () => {
 const WithdrawAmountPage = () => {
     const { depositsCount } = useBlankState()!
     const [isLoading, setIsLoading] = useState(false)
+
+    const history = useOnMountHistory()
+    const preSelectedAsset = history.location.state
+        ?.preSelectedAsset as TokenWithBalance
+
     let baseWithdrawOptions: typeof depositsCount["eth"] = []
     Object.values(depositsCount).map(
         (d) => (baseWithdrawOptions = baseWithdrawOptions.concat(d))
     )
 
+    // If arriving from asset page, filter the deposits by the preselected asset to display only the corresponding ones.
+    if (preSelectedAsset) {
+        baseWithdrawOptions = baseWithdrawOptions.filter(
+            (d) =>
+                d.pair.currency ===
+                (preSelectedAsset.token.symbol.toLowerCase() as KnownCurrencies)
+        )
+    }
     const withdrawOptions = baseWithdrawOptions
         .filter((d) => d.count !== 0)
         .map((d) => ({ ...d, name: `${d.pair.currency}-${d.pair.amount}` }))
@@ -149,14 +173,28 @@ const WithdrawAmountPage = () => {
         updateNotes()
     }, [])
 
+    const onBack = () => {
+        history.push({
+            pathname: "/privacy",
+            state: { preSelectedAsset },
+        })
+    }
+
     const canWithdraw = withdrawOptions.length > 0
 
     return isLoading ? (
-        <UpdatingNotesStateView />
+        <UpdatingNotesStateView onBack={onBack} />
     ) : canWithdraw ? (
-        <CanWithdrawView options={withdrawOptions} />
+        <CanWithdrawView
+            options={withdrawOptions}
+            onBack={onBack}
+            preSelectedAsset={preSelectedAsset}
+        />
     ) : (
-        <CannotWithdrawView />
+        <CannotWithdrawView
+            onBack={onBack}
+            preSelectedAsset={preSelectedAsset}
+        />
     )
 }
 

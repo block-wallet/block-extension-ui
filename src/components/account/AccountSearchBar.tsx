@@ -8,7 +8,7 @@ import searchIcon from "../../assets/images/icons/search.svg"
 import CloseIcon from "../icons/CloseIcon"
 
 const AccountSearchBar: FunctionComponent<{
-    createAccountTo?: string
+    createAccountTo?: any
     onChange: (value: string) => void
     setIsSearching: (isSearching: boolean) => void
 }> = ({ createAccountTo = "/accounts/create", onChange, setIsSearching }) => {
@@ -42,7 +42,8 @@ const AccountSearchBar: FunctionComponent<{
                     <ActionButton
                         icon={accountAdd}
                         label="Create New Account"
-                        to={createAccountTo}
+                        to={createAccountTo.pathname}
+                        state={createAccountTo.state}
                     />
                 )}
             </div>

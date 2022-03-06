@@ -4,9 +4,11 @@ import PopupLayout from "../../components/popup/PopupLayout"
 import lock from "../../assets/images/icons/lock.svg"
 import world from "../../assets/images/icons/world.svg"
 import news from "../../assets/images/icons/news.svg"
+import bell from "../../assets/images/icons/bell.svg"
 import { useHistory } from "react-router-dom"
 import classnames from "classnames"
 import VerticalSelect from "../../components/input/VerticalSelect"
+
 const PreferencesPage = () => {
     const history = useHistory()
     const options = [
@@ -24,6 +26,11 @@ const PreferencesPage = () => {
             icon: news,
             label: "Release Notes",
             to: "/settings/preferences/releaseNotes",
+        },
+        {
+            icon: bell,
+            label: "Address Warning",
+            to: "/settings/preferences/addressWarning",
         },
         /** UNCOMMENT THIS TO ENABLE PHISHING PROTECTION FEATURE */
         /*  {

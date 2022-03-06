@@ -26,7 +26,7 @@ const WithdrawHistory = () => {
 
     // Render
     return (
-        <PopupLayout header={<PopupHeader title="Withdrawals" />}>
+        <PopupLayout header={<PopupHeader title="Withdrawals" keepState />}>
             {/* History */}
             <div className="flex flex-col w-full px-6 py-3">
                 {Array.isArray(withdrawals) && withdrawals.length > 0 ? (

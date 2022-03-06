@@ -11,6 +11,7 @@ import {
 import { parseEther } from "@ethersproject/units"
 import { CurrencyAmountPair } from "@blank/background/controllers/blank-deposit/types"
 import { DappReq } from "../../context/hooks/useDappRequest"
+import { TransactionMeta } from "@blank/background/controllers/transactions/utils/types"
 
 export const Popup = () => (
     <MockPopup
@@ -53,6 +54,9 @@ const generateTx = (i: number) => ({
     },
     loadingGasValues: false,
     origin: "0x0",
+    value: parseEther("1.2"),
+    from: "0x0",
+    to: "0x0",
     transactionCategory: TransactionCategories.SENT_ETHER,
     metaType: MetaType.REGULAR,
 })

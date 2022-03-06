@@ -10,29 +10,48 @@ const WarningDialog: FunctionComponent<{
     title: string
     message: string
     onDone: () => void
-}> = ({ open, title, message, onDone }) => {
+    buttonLabel?: string
+    iconColor?: string
+    useClickOutside?: boolean
+    wideMargins?: boolean
+}> = ({
+    open,
+    title,
+    message,
+    onDone,
+    buttonLabel = "OK",
+    iconColor = "text-yellow-500",
+    useClickOutside = true,
+    wideMargins = true,
+}) => {
     return (
         <MessageDialog
             header={
-                <AiOutlineWarning className="text-yellow-500 w-16 h-16 mb-2 block m-auto" />
+                <AiOutlineWarning
+                    className={classnames(
+                        "w-16 h-16 mb-2 block m-auto",
+                        iconColor
+                    )}
+                />
             }
             footer={
                 <>
-                    <div className="-mx-6">
+                    <div className={wideMargins ? "-mx-6" : "-mx-3"}>
                         <Divider />
                     </div>
                     <button
                         className={classnames(Classes.liteButton, "mt-4")}
                         onClick={onDone}
                     >
-                        OK
+                        {buttonLabel}
                     </button>
                 </>
             }
-            onClickOutside={onDone}
+            onClickOutside={useClickOutside ? onDone : undefined}
             title={title}
             message={message}
             open={open}
+            wideMargins={wideMargins}
         />
     )
 }

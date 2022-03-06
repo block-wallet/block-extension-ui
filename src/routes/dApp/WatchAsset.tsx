@@ -193,9 +193,12 @@ const WatchAsset: FunctionComponent<DappRequestProps> = ({
                             />
                         </div>
                     )}
-                    <span className="ml-auto text-sm text-gray-800">
-                        {capitalize(network.name)}
-                    </span>
+                    <div className="flex flex-row items-center ml-auto p-1 px-2 pr-1 text-gray-600 rounded-md border border-primary-200 text-xs bg-green-100">
+                        <span className="inline-flex rounded-full h-2 w-2 mr-2 animate-pulse bg-green-400 pointer-events-none" />
+                        <span className="mr-1 pointer-events-none text-green-600">
+                            {capitalize(network.name)}
+                        </span>
+                    </div>
                 </PopupHeader>
             }
             footer={

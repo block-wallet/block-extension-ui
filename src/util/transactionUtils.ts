@@ -4,6 +4,8 @@ import { TransactionStatus } from "../context/commTypes"
 export interface RichedTransactionMeta extends TransactionMeta {
     //Dynamically calculated using this transaction status and comparing the nonce with other transactions.
     isQueued?: boolean
+    // Allows to force the status of a transaction to be dropped
+    forceDrop?: boolean
 }
 
 export const flagQueuedTransactions = (

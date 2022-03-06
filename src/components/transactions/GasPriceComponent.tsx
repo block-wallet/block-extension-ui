@@ -259,26 +259,25 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
     }
 
     const validateFees = (fees: TransactionFeeData) => {
-        // Clean warnings
-        setGasLimitWarning("")
-        setMaxFeeWarning("")
-        setTipWarning("")
         clearErrors("maxFeePerGas")
 
         const baseFee = BigNumber.from(baseFeePerGas)
 
-        // Validations
-        if (fees.gasLimit?.lt(defaultFees.gasLimit!)) {
-            setGasLimitWarning("Gas limit lower than suggested")
-        }
+        setGasLimitWarning(
+            fees.gasLimit?.lt(defaultFees.gasLimit!)
+                ? "Gas limit lower than suggested"
+                : ""
+        )
 
-        if (fees.maxFeePerGas?.lt(baseFee)) {
-            setMaxFeeWarning("Max fee lower than base fee")
-        }
+        setMaxFeeWarning(
+            fees.maxFeePerGas?.lt(baseFee.add(fees.maxPriorityFeePerGas!))
+                ? "Max fee lower than base fee + tip"
+                : ""
+        )
 
-        if (fees.maxFeePerGas?.lt(baseFee.add(fees.maxPriorityFeePerGas!))) {
+        if (fees.maxFeePerGas?.lt(fees.maxPriorityFeePerGas!)) {
             setError("maxFeePerGas", {
-                message: "Max fee lower than base fee + tip",
+                message: "Max fee lower than the max tip",
             })
         }
 
@@ -290,14 +289,14 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
             setMaxFeeWarning("Max fee lower than network limit")
         }
 
-        if (fees.maxPriorityFeePerGas?.lt(averageTip)) {
-            setTipWarning(
-                `Tip lower than suggested tip of ${formatUnits(
-                    averageTip,
-                    "gwei"
-                )} Gwei`
-            )
-        }
+        setTipWarning(
+            fees.maxPriorityFeePerGas?.lt(averageTip)
+                ? `Tip lower than suggested tip of ${formatUnits(
+                      averageTip,
+                      "gwei"
+                  )} Gwei`
+                : ""
+        )
 
         if (
             gasLowerCap &&
@@ -483,7 +482,7 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
                                 Classes.inputBordered,
                                 "w-full",
                                 !isCustom && "text-gray-400",
-                                errors.maxFeePerGas
+                                !!errors.maxFeePerGas?.message
                                     ? "border-red-400 focus:border-red-600"
                                     : maxFeeWarning
                                     ? "border-yellow-400 focus:border-yellow-600"
@@ -522,7 +521,7 @@ const GasSelectorAdvanced = (props: GasComponentProps) => {
                     <span
                         className={classnames(
                             "text-xs",
-                            errors.maxFeePerGas
+                            !!errors.maxFeePerGas?.message
                                 ? "text-red-500"
                                 : maxFeeWarning
                                 ? "text-yellow-500"

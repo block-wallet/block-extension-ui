@@ -33,6 +33,7 @@
         "react-virtualized-auto-sizer": "^1.0.6",
         "react-window": "^1.8.6",
         "styled-components": "^5.3.3",
+        "use-custom-compare": "^1.2.0",
         "yup": "^0.32.8"
     },
     "devDependencies": {
@@ -160,7 +161,8 @@
         "start:ext": "MODE=dev rm -rf public && cp -r ../../public public && run-p build:tailwind:dev build:ext:dev && rm -rf public",
         "build:ext:dev": "cra-build-watch --build-path './../../dist' --after-rebuild-hook 'cp ./../../dist/index.html ./../../dist/tab.html && cp ./../../dist/index.html ./../../dist/popup.html'",
         "build:ext": "make build/ui",
-        "storybook": "yarn build:tailwind:dev && start-storybook -p 6006 -s public",
+        "start:storybook": "start-storybook -p 6006 -s public",
+        "storybook": "run-p build:tailwind:dev start:storybook",
         "test": "jest",
         "test:watch": "jest --watch",
         "eslint-report": "eslint src --ext .tsx,.ts -o eslint-report.html -f html"

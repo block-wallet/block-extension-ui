@@ -20,7 +20,7 @@ const AccountSelect: FunctionComponent<{
     showSelectedCheckmark = true,
     showDefaultLabel,
     onAccountChange,
-    createAccountTo = "/accounts/create",
+    createAccountTo = { pathname: "/accounts/create" },
 }) => {
     const currentAccount = useSelectedAccount()
     const otherAccounts = accounts.filter(

@@ -11,6 +11,7 @@ import { TransitionRoute } from "./TransitionRoute"
 import { ErrorBoundary } from "react-error-boundary"
 import ErrorFallbackPage from "../components/error/ErrorFallbackPage"
 import MessageDialog from "../components/dialog/MessageDialog"
+import ErrorDialog from "../components/dialog/ErrorDialog"
 import getRequestRouteAndStatus from "../context/util/getRequestRouteAndStatus"
 import { CgDanger } from "react-icons/cg"
 import { Classes } from "../styles"
@@ -108,34 +109,14 @@ const PopupRouter: FunctionComponent = ({ children }) => {
                                     state.isUserNetworkOnline
                                 }
                             />
-                            <MessageDialog
-                                header={
-                                    <CgDanger className="text-red-500 w-20 h-20 mb-2 block m-auto" />
-                                }
-                                footer={
-                                    <>
-                                        <div className="-mx-6">
-                                            <Divider />
-                                        </div>
-                                        <button
-                                            className={classnames(
-                                                Classes.liteButton,
-                                                "mt-4"
-                                            )}
-                                            onClick={() =>
-                                                setShouldShowDialog(false)
-                                            }
-                                        >
-                                            OK
-                                        </button>
-                                    </>
-                                }
+                            <ErrorDialog
                                 onClickOutside={() =>
                                     setShouldShowDialog(false)
                                 }
                                 title="No connection"
                                 message="Please check your internet connection. Some features of the wallet will remain disabled while you’re offline."
                                 open={shouldShowDialog}
+                                onClickButton={() => setShouldShowDialog(false)}
                             />
                             <IdleComponent>
                                 <PopupComponent />

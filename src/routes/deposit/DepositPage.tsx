@@ -24,6 +24,10 @@ import { TokenWithBalance } from "../../context/hooks/useTokensList"
 import { ButtonWithLoading } from "../../components/button/ButtonWithLoading"
 
 const DepositPage = () => {
+    const history = useOnMountHistory()
+    const preSelectedAsset = history.location.state
+        ?.preSelectedAsset as TokenWithBalance
+
     const account = useSelectedAccount()
     const { chainId, nativeCurrency } = useSelectedNetwork()
 
@@ -72,20 +76,28 @@ const DepositPage = () => {
     }, [selectedCurrency, globalPendingDeposits])
 
     useEffect(() => {
-        if (!selectedCurrency) return
+        if (!selectedCurrency || !selectedToken) return
 
         const amounts: string[] = getCurrencyAmountList(selectedCurrency)
 
         setDisabledOptions(
             amounts.map((amount: string) =>
                 selectedTokenBalance.lt(
-                    parseUnits(amount, nativeCurrency.decimals)
+                    parseUnits(amount, selectedToken.token.decimals)
                 )
             )
         )
     }, [selectedCurrency, selectedTokenBalance, nativeCurrency])
 
-    const history = useOnMountHistory()
+    useEffect(() => {
+        if (!preSelectedAsset) return
+
+        setSelectedToken(preSelectedAsset)
+        setSelectedCurrency(
+            preSelectedAsset.token.symbol.toLowerCase() as KnownCurrencies
+        )
+    }, [preSelectedAsset])
+
     const next = () => {
         history.push({
             pathname: "/privacy/deposit/confirm",
@@ -95,7 +107,17 @@ const DepositPage = () => {
 
     return (
         <PopupLayout
-            header={<PopupHeader title="Deposit to Privacy Pool" />}
+            header={
+                <PopupHeader
+                    title="Deposit to Privacy Pool"
+                    onBack={() => {
+                        history.push({
+                            pathname: "/privacy",
+                            state: { preSelectedAsset },
+                        })
+                    }}
+                />
+            }
             footer={
                 <PopupFooter>
                     <ButtonWithLoading
@@ -112,6 +134,7 @@ const DepositPage = () => {
             <div className="flex flex-col p-6 space-y-1">
                 <AssetSelection
                     assets={tokens}
+                    defaultAsset={preSelectedAsset}
                     onAssetChange={(asset) => {
                         setSelectedToken(asset)
                         setSelectedCurrency(

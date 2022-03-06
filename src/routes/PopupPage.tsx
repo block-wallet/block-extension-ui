@@ -29,13 +29,13 @@ import { HiOutlineExclamationCircle } from "react-icons/hi"
 import { useBlankState } from "../context/background/backgroundHooks"
 import { useSelectedAccount } from "../context/hooks/useSelectedAccount"
 import { useSelectedNetwork } from "../context/hooks/useSelectedNetwork"
-import { isFeatureEnabled } from "../context/util/isFeatureEnabled"
 import { session } from "../context/setup"
 import { useConnectedSite } from "../context/hooks/useConnectedSite"
 import { useTokensList } from "../context/hooks/useTokensList"
 
 // Assets
 import eye from "../assets/images/icons/eye.svg"
+import TokenSummary from "../components/TokenSummary"
 
 const AccountDisplay = () => {
     const blankState = useBlankState()!
@@ -127,8 +127,6 @@ const PopupPage = () => {
     const account = useSelectedAccount()
     const { nativeToken } = useTokensList()
     const network = useSelectedNetwork()
-    const tornadoEnabled = isFeatureEnabled(network, "tornado")
-    const sendsEnabled = isFeatureEnabled(network, "sends")
 
     const [hasErrorDialog, setHasErrorDialog] = useState(!!error)
 
@@ -202,7 +200,8 @@ const PopupPage = () => {
                             content={
                                 <p className="w-40 text-center">
                                     Please wait until deposits are done loading
-                                    to change networks.
+                                    to change networks. This can take up to 15
+                                    minutes.
                                 </p>
                             }
                         >
@@ -210,13 +209,9 @@ const PopupPage = () => {
                         </GenericTooltip>
                         <DAppConnection />
                     </div>
-                    <div
-                        className="flex flex-col items-center w-full h-40 p-4 justify-between rounded-md bg-primary-100"
-                        style={{ minHeight: "10rem" }}
-                    >
-                        <div className="flex flex-col items-center space-y-1">
-                            <span
-                                className="text-2xl font-bold"
+                    <TokenSummary>
+                        <TokenSummary.Balances>
+                            <TokenSummary.TokenBalance
                                 title={
                                     formatUnits(
                                         nativeToken.balance || "0",
@@ -232,8 +227,8 @@ const PopupPage = () => {
                                     5
                                 )}{" "}
                                 {network.nativeCurrency.symbol}
-                            </span>
-                            <span className="text-sm text-gray-600">
+                            </TokenSummary.TokenBalance>
+                            <TokenSummary.ExchangeRateBalance>
                                 {formatCurrency(
                                     toCurrencyAmount(
                                         nativeToken.balance ||
@@ -250,24 +245,22 @@ const PopupPage = () => {
                                         showSymbol: true,
                                     }
                                 )}
-                            </span>
-                        </div>
-                        <div className="flex flex-row items-center justify-around w-full">
+                            </TokenSummary.ExchangeRateBalance>
+                        </TokenSummary.Balances>
+                        <TokenSummary.Actions>
                             <Link
                                 to="/send"
                                 draggable={false}
                                 className={classnames(
                                     "flex flex-col items-center space-y-2 group",
-                                    (!sendsEnabled ||
-                                        !state.isUserNetworkOnline) &&
+                                    !network.isSendEnabled &&
                                         "pointer-events-none"
                                 )}
                             >
                                 <div
                                     className={classnames(
                                         "w-8 h-8 overflow-hidden transition duration-300 rounded-full group-hover:opacity-75",
-                                        !sendsEnabled ||
-                                            !state.isUserNetworkOnline
+                                        !network.isSendEnabled
                                             ? "bg-gray-300"
                                             : "bg-primary-300"
                                     )}
@@ -279,7 +272,7 @@ const PopupPage = () => {
                                     Send
                                 </span>
                             </Link>
-                            {tornadoEnabled && (
+                            {network.isTornadoEnabled && (
                                 <Link
                                     to="/privacy"
                                     draggable={false}
@@ -297,8 +290,8 @@ const PopupPage = () => {
                                     </span>
                                 </Link>
                             )}
-                        </div>
-                    </div>
+                        </TokenSummary.Actions>
+                    </TokenSummary>
                     <ActivityAssetsView initialTab={state.popupTab} />
                 </div>
             </div>

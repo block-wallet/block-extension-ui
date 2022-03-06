@@ -12,7 +12,7 @@ import { useOnMountHistory } from "../../context/hooks/useOnMount"
 
 const WithdrawTypeSelectPage = () => {
     const history: any = useOnMountHistory()
-    const { pair } = history.location.state
+    const { pair, preSelectedAsset } = history.location.state
     return (
         <PopupLayout
             header={
@@ -21,6 +21,7 @@ const WithdrawTypeSelectPage = () => {
                     onBack={() => {
                         history.push({
                             pathname: "/privacy/withdraw",
+                            state: { preSelectedAsset },
                         })
                     }}
                 />
@@ -41,7 +42,7 @@ const WithdrawTypeSelectPage = () => {
                                 label: "External Wallet",
                                 to: {
                                     pathname: "/privacy/withdraw/external",
-                                    state: { pair },
+                                    state: { pair, preSelectedAsset },
                                 },
                             },
                             {
@@ -50,7 +51,7 @@ const WithdrawTypeSelectPage = () => {
                                 to: {
                                     pathname:
                                         "/privacy/withdraw/block/accounts",
-                                    state: { pair },
+                                    state: { pair, preSelectedAsset },
                                 },
                             },
                         ]}

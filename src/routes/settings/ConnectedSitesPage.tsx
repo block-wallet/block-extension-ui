@@ -9,6 +9,7 @@ import { useBlankState } from "../../context/background/backgroundHooks"
 import { removeAccountFromSite } from "../../context/commActions"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
+import { FaGlobe } from "react-icons/fa"
 import { formatHashLastChars, formatName } from "../../util/formatAccount"
 
 const ConnectedSite: FunctionComponent<{
@@ -26,7 +27,11 @@ const ConnectedSite: FunctionComponent<{
                 onClick={() => onSiteClick(origin)}
             >
                 <div className="flex flex-row items-center justify-center w-10 h-10 p-2 rounded-full bg-primary-100">
-                    <AppIcon iconURL={site.iconURL} size={10} />
+                    {site.iconURL ? (
+                        <AppIcon iconURL={site.iconURL} size={10} />
+                    ) : (
+                        <FaGlobe size={24} />
+                    )}
                 </div>
                 <span className="text-sm font-bold text-gray-800">
                     {new URL(origin).hostname}

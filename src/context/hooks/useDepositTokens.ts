@@ -40,17 +40,22 @@ export const useDepositTokens = () => {
             if (!tokenList) {
                 setTokenList(await getTokens())
             }
-            tokenAddresses[name as "mainnet" | "goerli"].forEach((a) => {
-                if (tokenList && a in tokenList) {
-                    actualTokens.push({
-                        balance:
-                            a in networkBalances
-                                ? networkBalances[a].balance
-                                : BigNumber.from(0),
-                        token: tokenList[a],
-                    })
-                }
-            })
+
+            // If the current network supports any ERC20 tokens,
+            // include them in the list
+            if (name in tokenAddresses) {
+                tokenAddresses[name as "mainnet" | "goerli"].forEach((a) => {
+                    if (tokenList && a in tokenList) {
+                        actualTokens.push({
+                            balance:
+                                a in networkBalances
+                                    ? networkBalances[a].balance
+                                    : BigNumber.from(0),
+                            token: tokenList[a],
+                        })
+                    }
+                })
+            }
 
             setDepositTokens(actualTokens)
         }

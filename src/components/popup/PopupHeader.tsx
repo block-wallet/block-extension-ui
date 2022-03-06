@@ -8,6 +8,7 @@ import AppIcon from "../icons/AppIcon"
 
 import CloseIcon from "../icons/CloseIcon"
 import ArrowIcon from "../icons/ArrowIcon"
+import DotsMenu from "../menu/DotsMenu"
 
 const PopupHeader: FunctionComponent<{
     title: string
@@ -16,8 +17,9 @@ const PopupHeader: FunctionComponent<{
     close?: string | boolean
     icon?: string | null
     disabled?: boolean // used to disable back or close buttons
-    onClose?: () => void
-    onBack?: () => void // in case we want to replace default back behavior
+    onClose?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
+    onBack?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void // in case we want to replace default back behavior
+    actions?: React.ReactNode[]
 }> = ({
     title,
     backButton = true,
@@ -28,6 +30,7 @@ const PopupHeader: FunctionComponent<{
     disabled = false,
     onClose,
     onBack,
+    actions,
 }) => {
     const history = useOnMountHistory()
     const lastLocation = useOnMountLastLocation()
@@ -51,8 +54,8 @@ const PopupHeader: FunctionComponent<{
             {backButton && (
                 <button
                     type="button"
-                    onClick={() => {
-                        if (onBack) return onBack()
+                    onClick={(e) => {
+                        if (onBack) return onBack(e)
 
                         if (keepState)
                             return history.replace({
@@ -91,8 +94,8 @@ const PopupHeader: FunctionComponent<{
             </span>
             {close && (
                 <button
-                    onClick={() => {
-                        onClose && onClose()
+                    onClick={(e) => {
+                        if (onClose) return onClose(e)
                         history.push(
                             typeof close === "string" ? close : "/home"
                         )
@@ -102,9 +105,15 @@ const PopupHeader: FunctionComponent<{
                         "p-2 ml-auto -mr-2 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300",
                         disabled && "pointer-events-none text-gray-300"
                     )}
+                    type="button"
                 >
                     <CloseIcon />
                 </button>
+            )}
+            {actions && (
+                <div className="ml-auto">
+                    <DotsMenu>{actions}</DotsMenu>
+                </div>
             )}
             {children}
         </div>

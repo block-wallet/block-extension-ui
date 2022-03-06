@@ -4,6 +4,8 @@ import React, { useState } from "react"
 import PopupHeader from "../components/popup/PopupHeader"
 import PopupLayout from "../components/popup/PopupLayout"
 import VerticalSelect from "../components/input/VerticalSelect"
+import ConfirmDialog from "../components/dialog/ConfirmDialog"
+import SuccessDialog from "../components/dialog/SuccessDialog"
 
 // Assets
 import compliance from "../assets/images/icons/compliance.svg"
@@ -16,12 +18,15 @@ import AccountIcon from "../components/icons/AccountIcon"
 import { useBlankState } from "../context/background/backgroundHooks"
 import classnames from "classnames"
 import Spinner from "../components/spinner/Spinner"
+import { TokenWithBalance } from "../context/hooks/useTokensList"
 
 /**
  * PrivacyPage:
  */
 const PrivacyPage = () => {
     const history = useOnMountHistory()
+    const preSelectedAsset = history.location.state
+        ?.preSelectedAsset as TokenWithBalance
     const {
         isImportingDeposits,
         importingErrors,
@@ -31,6 +36,11 @@ const PrivacyPage = () => {
     } = useBlankState()!
 
     const [isLoading, setIsLoading] = useState(false)
+    const [showReconstructDialog, setShowReconstructDialog] = useState(false)
+    const [
+        showReconstructSuccessDialog,
+        setShowReconstructSuccessDialog,
+    ] = useState(false)
 
     const thereIsImportDepositErrors =
         importingErrors && importingErrors.length > 0
@@ -38,7 +48,20 @@ const PrivacyPage = () => {
     return (
         <PopupLayout
             header={
-                <PopupHeader title="Privacy" onBack={() => history.push("/")} />
+                <PopupHeader
+                    title="Privacy"
+                    onBack={() => {
+                        preSelectedAsset
+                            ? history.push({
+                                  pathname: "/asset/details",
+                                  state: {
+                                      address: preSelectedAsset.token.address,
+                                      transitionDirection: "right",
+                                  },
+                              })
+                            : history.push("/")
+                    }}
+                />
             }
         >
             <div className="flex flex-col space-y-7 p-6">
@@ -52,7 +75,10 @@ const PrivacyPage = () => {
                                     !isImportingDeposits &&
                                     !thereIsImportDepositErrors
                                 ) {
-                                    history.push("/privacy/deposit")
+                                    history.push({
+                                        pathname: "/privacy/deposit",
+                                        state: { preSelectedAsset },
+                                    })
                                 }
                             }}
                             className={classnames(
@@ -84,7 +110,10 @@ const PrivacyPage = () => {
                                     !isImportingDeposits &&
                                     !thereIsImportDepositErrors
                                 ) {
-                                    history.push("/privacy/withdraw")
+                                    history.push({
+                                        pathname: "/privacy/withdraw",
+                                        state: { preSelectedAsset },
+                                    })
                                 }
                             }}
                             className={classnames(
@@ -114,6 +143,29 @@ const PrivacyPage = () => {
                 <div className="flex flex-col space-y-4">
                     <span className="text-xs">OTHER</span>
 
+                    <ConfirmDialog
+                        title="Reconstruct tornado notes"
+                        message={`This will query all tornado events. It can take up to 15 minutes and you will not be able to use privacy features or change networks during this time.`}
+                        open={showReconstructDialog}
+                        onClose={() => {
+                            setShowReconstructDialog(false)
+                        }}
+                        onConfirm={() => {
+                            setShowReconstructSuccessDialog(true)
+                        }}
+                    />
+
+                    <SuccessDialog
+                        open={showReconstructSuccessDialog}
+                        title="Reconstruct tornado notes"
+                        timeout={800}
+                        message="Note reconstruction started."
+                        onDone={() => {
+                            forceDepositsImport()
+                            history.push("/")
+                        }}
+                    />
+
                     <VerticalSelect
                         options={[
                             {
@@ -130,11 +182,13 @@ const PrivacyPage = () => {
                         ]}
                         value={undefined}
                         onChange={(option) => {
-                            if (option.name === "reconstruct")
-                                forceDepositsImport()
-                            option.to.includes("https://")
-                                ? chrome.tabs.create({ url: option.to })
-                                : history.push(option.to)
+                            if (option.name === "reconstruct") {
+                                setShowReconstructDialog(true)
+                            } else {
+                                option.to.includes("https://")
+                                    ? chrome.tabs.create({ url: option.to })
+                                    : history.push(option.to)
+                            }
                         }}
                         containerClassName="flex flex-col space-y-3"
                         display={(option, i) => {

@@ -218,6 +218,7 @@ const BackupConfirmPage = () => {
                                 label="Confirm"
                                 isLoading={isVerificationInProgress}
                                 onClick={confirmSeedPhrase}
+                                disabled={!isPhraseValid()}
                             />
                         </PopupFooter>
                     }
