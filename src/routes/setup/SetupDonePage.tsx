@@ -36,10 +36,10 @@ const SetupDonePage = () => {
                 <div className="flex flex-col items-center relative py-14 z-10">
                     <LogoHeader />
                     <div className="flex flex-col items-center my-12 space-y-6">
-                        <span className="font-title font-semibold text-5xl">
+                        <span className="font-title font-semibold text-5xl text-center">
                             Set-up completed!
                         </span>
-                        <div className="flex flex-col md:flex-row items-center space-x-1 w-52 md:w-full mx-auto text-gray-600 text-sm text-center leading-loose">
+                        <div className="flex flex-col md:flex-row items-center space-x-1 w-92 px-4 md:px-0 md:w-full mx-auto text-gray-600 text-sm text-center leading-loose">
                             <span>
                                 You're ready to start using BlockWallet.
                                 <br />

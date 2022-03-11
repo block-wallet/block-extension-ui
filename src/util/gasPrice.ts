@@ -25,10 +25,10 @@ interface CalculateFeeOptions {
 
 const calculateTransactionGas = (
     gasLimit: BigNumber,
-    gasPrice: BigNumber | undefined,
-    maxFeePerGas: BigNumber
+    gasPrice?: BigNumber | undefined,
+    maxFeePerGas?: BigNumber
 ): BigNumber => {
-    return BigNumber.from(gasLimit!.mul(gasPrice ?? maxFeePerGas!))
+    return BigNumber.from(gasLimit!.mul(gasPrice ?? maxFeePerGas ?? 0))
 }
 
 const calculateGasPricesFromTransactionFees = (

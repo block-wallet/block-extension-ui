@@ -19,7 +19,7 @@ import { closeCurrentTab } from "../../util/window"
 import IdleComponent from "../../components/IdleComponent"
 
 const SideTips = () => (
-    <div className="flex flex-col w-full space-y-6 text-sm text-left md:w-64 md:ml-6">
+    <div className="flex flex-col justify-between h-full w-full space-y-6 text-sm text-left md:w-64 md:ml-6">
         <div className="flex flex-col w-full p-6 space-y-4 rounded-md bg-primary-200">
             <img src={drawerIcon} className="w-5 h-5" alt="" />
             <span>

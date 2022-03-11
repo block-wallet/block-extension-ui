@@ -409,6 +409,7 @@ const TransactionItem: React.FC<{
                     }`}
                     style={{ width: "calc(100% + 2 * 1.5rem)" }}
                     role="button"
+                    data-txid={txHash}
                     onClick={() => {
                         if (!txHash) return
 
@@ -558,7 +559,13 @@ const TransactionItem: React.FC<{
                         >
                             <div className="w-full flex justify-end">
                                 <span
-                                    className="text-sm font-bold text-right truncate w-4/6 mr-1"
+                                    className={classNames(
+                                        "text-sm font-bold text-right truncate mr-1",
+                                        transactionCategory ===
+                                            TransactionCategories.BLANK_WITHDRAWAL
+                                            ? "w-5/12"
+                                            : "w-4/6"
+                                    )}
                                     title={formatTransactionValue(
                                         transfer as TransferType
                                     ).reduce(

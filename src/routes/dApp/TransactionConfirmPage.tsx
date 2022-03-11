@@ -217,26 +217,41 @@ const TransactionConfirm = () => {
                 params.maxFeePerGas!
             )
             const { slow, fast } = gasPricesLevels
-            const { minValue } = calculateGasPricesFromTransactionFees(
-                {
-                    gasLimit: params.gasLimit,
-                    maxFeePerGas: BigNumber.from(slow.maxFeePerGas!),
-                    maxPriorityFeePerGas: BigNumber.from(
-                        slow.maxPriorityFeePerGas!
-                    ),
-                },
-                BigNumber.from(baseFeePerGas)
-            )
-            const { maxValue } = calculateGasPricesFromTransactionFees(
-                {
-                    gasLimit: params.gasLimit,
-                    maxFeePerGas: BigNumber.from(fast.maxFeePerGas!),
-                    maxPriorityFeePerGas: BigNumber.from(
-                        fast.maxPriorityFeePerGas!
-                    ),
-                },
-                BigNumber.from(baseFeePerGas)
-            )
+            let minValue = BigNumber.from(0),
+                maxValue = BigNumber.from(0)
+
+            if (isEIP1559Compatible) {
+                minValue = calculateGasPricesFromTransactionFees(
+                    {
+                        gasLimit: params.gasLimit,
+                        maxFeePerGas: BigNumber.from(slow.maxFeePerGas!),
+                        maxPriorityFeePerGas: BigNumber.from(
+                            slow.maxPriorityFeePerGas!
+                        ),
+                    },
+                    BigNumber.from(baseFeePerGas)
+                ).minValue
+                maxValue = calculateGasPricesFromTransactionFees(
+                    {
+                        gasLimit: params.gasLimit,
+                        maxFeePerGas: BigNumber.from(fast.maxFeePerGas!),
+                        maxPriorityFeePerGas: BigNumber.from(
+                            fast.maxPriorityFeePerGas!
+                        ),
+                    },
+                    BigNumber.from(baseFeePerGas)
+                ).maxValue
+            } else {
+                minValue = calculateTransactionGas(
+                    params.gasLimit,
+                    slow.gasPrice!
+                )
+                maxValue = calculateTransactionGas(
+                    params.gasLimit,
+                    fast.gasPrice!
+                )
+            }
+
             const isLower = estimatedGasExceedsBaseLowerThreshold(
                 minValue,
                 estimatedGas
@@ -264,7 +279,7 @@ const TransactionConfirm = () => {
         }
         // We only need to calculate these every new transaction and not run this on every render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionId])
+    }, [transactionId, isEIP1559Compatible])
 
     // Functions
     const confirm = async () => {

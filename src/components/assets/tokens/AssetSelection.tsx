@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useState } from "react"
 import {
     TokenList,
     TokenWithBalance,
@@ -46,7 +46,7 @@ export const AssetSelection = (props: AssetSelectionProps) => {
         defaultAsset?.token.address
     )
 
-    const [filteredTokens, setFilteredTokens] = useState<TokenList>(assets)
+    //const [filteredTokens, setFilteredTokens] = useState<TokenList>(assets)
 
     // Handler
     const onChange = (event: any) => {
@@ -69,29 +69,6 @@ export const AssetSelection = (props: AssetSelectionProps) => {
         }
         setActive(false)
     }
-
-    // Token filtering function
-    const tokenFilter = useCallback(
-        ({ token }: TokenWithBalance) => {
-            if (search !== "") {
-                const name = token.name.toUpperCase()
-                const symbol = token.symbol.toUpperCase()
-                const uppercasedSearch = search.toUpperCase()
-                return (
-                    name.includes(uppercasedSearch) ||
-                    symbol.includes(uppercasedSearch)
-                )
-            } else {
-                return true
-            }
-        },
-        [search]
-    )
-
-    useEffect(() => {
-        setFilteredTokens(assets.filter(tokenFilter))
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tokenFilter])
 
     // Effect to update selected token when balance is updated to make parent component estimate gas again.
     useCustomCompareEffect(
@@ -136,6 +113,22 @@ export const AssetSelection = (props: AssetSelectionProps) => {
             return oldBalance.eq(newBalance)
         }
     )
+
+    const filteredTokens = React.useMemo(() => {
+        return assets.filter(({ token }: TokenWithBalance) => {
+            if (search !== "") {
+                const name = token.name.toUpperCase()
+                const symbol = token.symbol.toUpperCase()
+                const uppercasedSearch = search.toUpperCase()
+                return (
+                    name.includes(uppercasedSearch) ||
+                    symbol.includes(uppercasedSearch)
+                )
+            } else {
+                return true
+            }
+        })
+    }, [search, assets])
 
     // Subcomponent
     const Child = (props: any) => {
