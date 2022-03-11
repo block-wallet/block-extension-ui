@@ -1129,6 +1129,13 @@ export const dismissWelcomeMessage = async (): Promise<boolean> => {
 }
 
 /**
+ * Dismisses the default wallet preferences
+ */
+export const dismissDefaultWalletPreferences = async (): Promise<boolean> => {
+    return sendMessage(Messages.WALLET.DISMISS_DEFAULT_WALLET_PREFERENCES, {})
+}
+
+/**
  * Dismisses the release notes message
  */
 export const dismissReleaseNotes = async (): Promise<boolean> => {
@@ -1144,6 +1151,18 @@ export const toggleReleaseNotesSubscription = async (
 ): Promise<void> => {
     return sendMessage(Messages.WALLET.TOGGLE_RELEASE_NOTES_SUBSCRIPTION, {
         releaseNotesSubscriptionEnabled: enabled,
+    })
+}
+
+/**
+ * Updates the default browser wallet
+ * @param enabled default browser wallet status
+ */
+export const toggleDefaultBrowserWallet = async (
+    enabled: boolean
+): Promise<void> => {
+    return sendMessage(Messages.WALLET.TOGGLE_DEFAULT_BROWSER_WALLET, {
+        defaultBrowserWalletEnabled: enabled,
     })
 }
 

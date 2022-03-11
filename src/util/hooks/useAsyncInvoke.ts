@@ -1,4 +1,5 @@
 import * as React from "react"
+import { mergeReducer } from "../reducerUtils"
 
 enum Status {
     IDLE = "idle",
@@ -10,10 +11,14 @@ enum Status {
 interface AsyncState<T> {
     status?: Status
     data?: T
-    error?: Error
+    error?: Error | null
 }
 
-const defaultInitialState = { status: Status.IDLE, data: null, error: null }
+const defaultInitialState = {
+    status: Status.IDLE,
+    data: undefined,
+    error: null,
+}
 
 //
 
@@ -32,12 +37,12 @@ const defaultInitialState = { status: Status.IDLE, data: null, error: null }
  * ```
  */
 function useAsyncInvoke<T>(initialState: AsyncState<T> = {}) {
-    const initialStateRef = React.useRef({
+    const initialStateRef = React.useRef<AsyncState<T>>({
         ...defaultInitialState,
         ...initialState,
     })
     const [{ status, data, error }, setState] = React.useReducer(
-        (s: AsyncState<T>, a: any) => ({ ...s, ...a }),
+        mergeReducer<AsyncState<T>, any>(),
         initialStateRef.current
     )
 

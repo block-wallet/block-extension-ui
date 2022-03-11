@@ -13,6 +13,7 @@ const CheckBoxDialog: FunctionComponent<{
     checkboxText?: string
     closeText?: string
     confirmText?: string
+    showCloseButton?: boolean
     onClose: () => void
     onCancel?: () => void
     onConfirm: (option?: boolean) => void
@@ -23,6 +24,7 @@ const CheckBoxDialog: FunctionComponent<{
     showCheckbox = false,
     checkboxText = "",
     closeText = "Cancel",
+    showCloseButton = true,
     confirmText = "Confirm",
     onClose,
     onCancel,
@@ -67,15 +69,17 @@ const CheckBoxDialog: FunctionComponent<{
                 <div className="">
                     <hr className="absolute left-0 border-0.5 border-gray-200 w-full" />
                     <div className="flex flex-row w-full items-center pt-5 justify-between space-x-4 mt-auto">
-                        <button
-                            className={classnames(Classes.liteButton)}
-                            onClick={() => {
-                                onCancel && onCancel()
-                                onClose()
-                            }}
-                        >
-                            {closeText}
-                        </button>
+                        {showCloseButton && (
+                            <button
+                                className={classnames(Classes.liteButton)}
+                                onClick={() => {
+                                    onCancel && onCancel()
+                                    onClose()
+                                }}
+                            >
+                                {closeText}
+                            </button>
+                        )}
                         <button
                             onClick={() => {
                                 onConfirm(checked)

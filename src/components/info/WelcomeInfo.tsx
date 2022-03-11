@@ -4,11 +4,14 @@ import { ButtonWithLoading } from "../button/ButtonWithLoading"
 import PopupFooter from "../popup/PopupFooter"
 import PopupLayout from "../popup/PopupLayout"
 import Info from "./Info"
+import { useBlankState } from "../../context/background/backgroundHooks"
 
 interface WelcomeInfoProps {
     onDismiss: () => void
 }
 const WelcomeInfo: FC<WelcomeInfoProps> = ({ onDismiss }) => {
+    const { settings } = useBlankState()!
+
     return (
         <PopupLayout
             footer={
@@ -25,10 +28,18 @@ const WelcomeInfo: FC<WelcomeInfoProps> = ({ onDismiss }) => {
                     <Info.Title>Welcome to BlockWallet!</Info.Title>
                     <div className="p-1 pt-6">
                         <Info.List>
-                            <Info.Item type="warn">
-                                Set BlockWallet as your default browser wallet
-                                to interact with DApps.
-                            </Info.Item>
+                            {settings.defaultBrowserWallet ? (
+                                <Info.Item type="success">
+                                    BlockWallet is your default browser wallet
+                                    to interact with DApps.
+                                </Info.Item>
+                            ) : (
+                                <Info.Item type="warn">
+                                    Set BlockWallet as your default browser
+                                    wallet to interact with DApps.
+                                </Info.Item>
+                            )}
+
                             <Info.Item type="warn">
                                 Select BlockWallet or, alternatively the
                                 injected option, to connect with DApps.

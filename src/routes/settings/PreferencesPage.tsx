@@ -1,6 +1,7 @@
 import React from "react"
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
+import pin from "../../assets/images/icons/pin.svg"
 import lock from "../../assets/images/icons/lock.svg"
 import world from "../../assets/images/icons/world.svg"
 import news from "../../assets/images/icons/news.svg"
@@ -18,7 +19,7 @@ const PreferencesPage = () => {
             to: "/settings/preferences/lockTimeout",
         },
         {
-            icon: world,
+            icon: pin,
             label: "Locale Configuration",
             to: "/settings/preferences/locale",
         },
@@ -28,9 +29,14 @@ const PreferencesPage = () => {
             to: "/settings/preferences/releaseNotes",
         },
         {
+            icon: world,
+            label: "Default Browser Wallet",
+            to: "/settings/preferences/defaultWallet",
+        },
+        {
             icon: bell,
-            label: "Address Warning",
-            to: "/settings/preferences/addressWarning",
+            label: "Warnings",
+            to: "/settings/preferences/warnings",
         },
         /** UNCOMMENT THIS TO ENABLE PHISHING PROTECTION FEATURE */
         /*  {
@@ -39,6 +45,7 @@ const PreferencesPage = () => {
             to: "/settings/preferences/phishing",
         }, */
     ]
+
     return (
         <PopupLayout header={<PopupHeader title="Preferences" close="/" />}>
             <div className="flex flex-col space-y-6 p-6">

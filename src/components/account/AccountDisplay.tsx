@@ -40,6 +40,7 @@ const AccountDisplay: FunctionComponent<{
     showAccountDetailsIcon?: boolean
     showEditButton?: boolean
     handleRemoveContact?: any
+    customOptions?: React.ReactNode
 }> = ({
     account,
     selected,
@@ -52,6 +53,7 @@ const AccountDisplay: FunctionComponent<{
     showAccountDetailsIcon = false,
     showEditButton = false,
     handleRemoveContact = () => {},
+    customOptions,
 }) => {
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [showOptions, setShowOptions] = useState(false)
@@ -192,36 +194,46 @@ const AccountDisplay: FunctionComponent<{
                         {/* options box */}
                         <div
                             className={classnames(
-                                "absolute shadow-md bg-white w-32 mt-2 right-0 select-none rounded-md z-50 font-semibold",
+                                "absolute shadow-md bg-white w-36 mt-2 right-0 select-none rounded-md z-50 font-semibold",
                                 showOptions ? "" : "hidden"
                             )}
                         >
-                            <div
-                                className="flex flex-row justify-start items-center w-full p-2 cursor-pointer text-black hover:bg-gray-100"
-                                onClick={() =>
-                                    history.push({
-                                        pathname: "/settings/addressBook/add",
-                                        state: {
-                                            editMode: true,
-                                            contact: account,
-                                        },
-                                    })
-                                }
-                            >
-                                <div className="pl-2 pr-3">
-                                    <img src={editIcon} alt="Edit"></img>
-                                </div>
-                                <span>Edit</span>
-                            </div>
-                            <div
-                                className="flex flex-row justify-start items-center w-full p-2 cursor-pointer text-red-500 hover:bg-gray-100"
-                                onClick={() => setConfirmOpen(true)}
-                            >
-                                <div className="pl-2 pr-3">
-                                    <TrashBinIcon fill="red" />
-                                </div>
-                                <span>Remove</span>
-                            </div>
+                            {customOptions ? (
+                                customOptions
+                            ) : (
+                                <>
+                                    <div
+                                        className="flex flex-row justify-start items-center w-full p-2 cursor-pointer text-black hover:bg-gray-100 hover:rounded-t-md"
+                                        onClick={() =>
+                                            history.push({
+                                                pathname:
+                                                    "/settings/addressBook/add",
+                                                state: {
+                                                    editMode: true,
+                                                    contact: account,
+                                                },
+                                            })
+                                        }
+                                    >
+                                        <div className="pl-2 pr-3">
+                                            <img
+                                                src={editIcon}
+                                                alt="Edit"
+                                            ></img>
+                                        </div>
+                                        <span>Edit</span>
+                                    </div>
+                                    <div
+                                        className="flex flex-row justify-start items-center w-full p-2 cursor-pointer text-red-500 hover:bg-gray-100 hover:rounded-b-md"
+                                        onClick={() => setConfirmOpen(true)}
+                                    >
+                                        <div className="pl-2 pr-3">
+                                            <TrashBinIcon fill="red" />
+                                        </div>
+                                        <span>Remove</span>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 ) : null}

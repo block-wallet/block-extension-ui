@@ -58,7 +58,7 @@ const AddContactPage = (props: any) => {
     const [canUpdate, setCanUpdate] = useState(!editMode)
 
     const pageTitle = editMode ? "Edit Contact" : "New Contact"
-    const buttonTitle = editMode ? "Update" : "Add"
+    const buttonTitle = editMode ? "Update" : "Create"
 
     const placeholderСontactName = `Contact ${
         Object.keys(addressBook).length + 1
@@ -126,7 +126,9 @@ const AddContactPage = (props: any) => {
                             error={errors.contactName?.message}
                             autoFocus={true}
                             maxLength={40}
-                            defaultValue={contact?.name}
+                            defaultValue={
+                                contact?.name || placeholderСontactName
+                            }
                             onChange={() => setCanUpdate(true)}
                         />
                     </div>

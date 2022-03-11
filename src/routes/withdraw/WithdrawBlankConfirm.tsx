@@ -46,6 +46,7 @@ import WaitingDialog, {
 import GenericTooltip from "../../components/label/GenericTooltip"
 import { useAddressBook } from "../../context/hooks/useAddressBook"
 import { TokenWithBalance } from "../../context/hooks/useTokensList"
+import { useDepositTokens } from "../../context/hooks/useDepositTokens"
 
 const WithdrawBlankConfirm = () => {
     const history: any = useOnMountHistory()
@@ -62,6 +63,10 @@ const WithdrawBlankConfirm = () => {
         external: boolean | undefined
         preSelectedAsset: TokenWithBalance
     }
+    const logo = useDepositTokens().find(
+        ({ token }) =>
+            token.symbol.toLowerCase() === pair.currency.toLowerCase()
+    )?.token?.logo
 
     const [hasHigherFee, setHasHigherFee] = useState(false)
     const [error, setError] = useState("")
@@ -307,7 +312,7 @@ const WithdrawBlankConfirm = () => {
                 }}
             />
             <div className="flex flex-col p-6 space-y-4">
-                <div className="flex flex-col items-center w-full p-6 space-y-8 text-sm text-center rounded-md bg-primary-100">
+                <div className="flex flex-col items-center w-full px-6 py-4 space-y-3 text-sm text-center rounded-md bg-primary-100">
                     <div className="flex flex-row space-x-4">
                         <div className="flex flex-col items-center flex-1 space-y-2">
                             <img
@@ -333,7 +338,15 @@ const WithdrawBlankConfirm = () => {
                         </div>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-2xl font-bold">
+                        <span className="text-2xl font-bold flex flex-col items-center">
+                            {logo && (
+                                <img
+                                    src={logo}
+                                    className="w-6 h-6 mb-2"
+                                    alt={`${pair.currency.toUpperCase()}`}
+                                    title={`${pair.currency.toUpperCase()}`}
+                                />
+                            )}
                             {pair.amount} {pair.currency.toUpperCase()}
                         </span>
                         <span className="text-sm text-gray-500">
@@ -390,11 +403,20 @@ const WithdrawBlankConfirm = () => {
                             <span>Fees:</span>
                         </div>
                         <div className="flex flex-col items-end">
-                            <span className="text-sm">
+                            <span className="text-sm flex items-center">
                                 {estimatedFee ? (
-                                    `${
-                                        estimatedFee.totalFee
-                                    } ${pair.currency.toUpperCase()}`
+                                    <>
+                                        {`${
+                                            estimatedFee.totalFee
+                                        } ${pair.currency.toUpperCase()}`}
+                                        {logo && (
+                                            <img
+                                                src={logo}
+                                                className="w-4 h-4 ml-2"
+                                                alt={`${pair.currency.toUpperCase()} logo`}
+                                            />
+                                        )}
+                                    </>
                                 ) : err ? (
                                     "-"
                                 ) : (

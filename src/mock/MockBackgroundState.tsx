@@ -403,11 +403,14 @@ export const initBackgroundState: BackgroundStateType = {
         incomingTransactions: {},
         showTestNetworks: true,
         showWelcomeMessage: false,
+        showDefaultWalletPreferences: false,
         popupTab: "activity",
         settings: {
             hideAddressWarning: false,
             subscribedToReleaseaNotes: false,
             useAntiPhishingProtection: false,
+            defaultBrowserWallet: true,
+            hideEstimatedGasExceedsThresholdWarning: false,
         },
         releaseNotesSettings: {
             lastVersionUserSawNews: "0.1.1",

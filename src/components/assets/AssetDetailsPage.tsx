@@ -85,7 +85,7 @@ const AssetDetailsPage = () => {
                     actions={
                         !isNative
                             ? [
-                                <a
+                                  <a
                                       href={generateExplorerLink(
                                           availableNetworks,
                                           selectedNetwork,
@@ -96,30 +96,30 @@ const AssetDetailsPage = () => {
                                       rel="noopener noreferrer"
                                       key={1}
                                   >
-                                    <div className="text-grey-900 cursor-pointer flex flex-row p-2 items-center hover:bg-gray-100 rounded-t-md w-40">
-                                        <div className="pl-1 pr-1 w-8">
-                                            <img
+                                      <div className="text-grey-900 cursor-pointer flex flex-row p-2 items-center hover:bg-gray-100 rounded-t-md w-40">
+                                          <div className="pl-1 pr-1 w-8">
+                                              <img
                                                   width={"16"}
                                                   height={"16"}
                                                   src={openExternal}
                                                   alt={`View on ${explorerName}`}
                                               />
-                                        </div>
-                                        <span>View on {explorerName}</span>
-                                    </div>
-                                </a>,
-                                <div
+                                          </div>
+                                          <span>View on {explorerName}</span>
+                                      </div>
+                                  </a>,
+                                  <div
                                       key={2}
                                       onClick={() => {
                                           setConfirmOpen(true)
                                       }}
                                       className="text-red-500 cursor-pointer flex flex-row p-2 items-center hover:bg-gray-100 rounded-b-md w-40"
                                   >
-                                    <div className="pl-1 pr-1 w-8">
-                                        <TrashBinIcon fill="red" />
-                                    </div>
-                                    <span>Remove Token</span>
-                                </div>,
+                                      <div className="pl-1 pr-1 w-8">
+                                          <TrashBinIcon fill="red" />
+                                      </div>
+                                      <span>Remove Token</span>
+                                  </div>,
                               ]
                             : undefined
                     }

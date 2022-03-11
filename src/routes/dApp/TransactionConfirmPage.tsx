@@ -51,6 +51,13 @@ import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
 import { getAccountColor } from "../../util/getAccountColor"
 import { formatNumberLength } from "../../util/formatNumberLength"
 import { TransactionCategories } from "../../context/commTypes"
+import { useGasPriceData } from "../../context/hooks/useGasPriceData"
+import {
+    calculateGasPricesFromTransactionFees,
+    calculateTransactionGas,
+    estimatedGasExceedsBaseHigherThreshold,
+    estimatedGasExceedsBaseLowerThreshold,
+} from "../../util/gasPrice"
 
 const TransactionConfirmPage = () => {
     const { transaction } = useUnapprovedTransaction()
@@ -79,7 +86,15 @@ const TransactionConfirm = () => {
         settings,
     } = useBlankState()!
     const { isEIP1559Compatible, defaultNetworkLogo } = useSelectedNetwork()
-
+    const [gasPriceThresholdWarning, setGasPriceThresholdWarning] = useState<{
+        message?: string
+        title?: string
+        dialogOpen: boolean
+    }>({
+        message: "",
+        title: "",
+        dialogOpen: false,
+    })
     const { hideAddressWarning } = useUserSettings()
 
     const network = useSelectedNetwork()
@@ -152,11 +167,12 @@ const TransactionConfirm = () => {
     const accountName = account ? account.name : "BlockWallet"
 
     const calcTranTotals = () => {
-        const gas = BigNumber.from(
-            transactionGas.gasLimit!.mul(
-                transactionGas.gasPrice ?? transactionGas.maxFeePerGas!
-            )
+        const gas = calculateTransactionGas(
+            transactionGas.gasLimit!,
+            transactionGas.gasPrice,
+            transactionGas.maxFeePerGas!
         )
+
         const totalCalc = gas.add(params.value)
 
         setGasCost(gas)
@@ -187,6 +203,68 @@ const TransactionConfirm = () => {
         calcTranTotals()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionGas, transactionId])
+
+    const {
+        estimatedBaseFee: baseFeePerGas,
+        gasPricesLevels,
+    } = useGasPriceData()!
+
+    useEffect(() => {
+        if (!settings.hideEstimatedGasExceedsThresholdWarning) {
+            const estimatedGas = calculateTransactionGas(
+                params.gasLimit,
+                params.gasPrice,
+                params.maxFeePerGas!
+            )
+            const { slow, fast } = gasPricesLevels
+            const { minValue } = calculateGasPricesFromTransactionFees(
+                {
+                    gasLimit: params.gasLimit,
+                    maxFeePerGas: BigNumber.from(slow.maxFeePerGas!),
+                    maxPriorityFeePerGas: BigNumber.from(
+                        slow.maxPriorityFeePerGas!
+                    ),
+                },
+                BigNumber.from(baseFeePerGas)
+            )
+            const { maxValue } = calculateGasPricesFromTransactionFees(
+                {
+                    gasLimit: params.gasLimit,
+                    maxFeePerGas: BigNumber.from(fast.maxFeePerGas!),
+                    maxPriorityFeePerGas: BigNumber.from(
+                        fast.maxPriorityFeePerGas!
+                    ),
+                },
+                BigNumber.from(baseFeePerGas)
+            )
+            const isLower = estimatedGasExceedsBaseLowerThreshold(
+                minValue,
+                estimatedGas
+            )
+            if (isLower) {
+                setGasPriceThresholdWarning({
+                    title: "Low Gas Price",
+                    message:
+                        "The dApp suggests fees much lower than recommended.",
+                    dialogOpen: true,
+                })
+            }
+            const isHigher = estimatedGasExceedsBaseHigherThreshold(
+                maxValue,
+                estimatedGas
+            )
+            if (isHigher) {
+                setGasPriceThresholdWarning({
+                    title: "High Gas Price",
+                    message:
+                        "The dApp suggests fees much higher than recommended.",
+                    dialogOpen: true,
+                })
+            }
+        }
+        // We only need to calculate these every new transaction and not run this on every render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactionId])
 
     // Functions
     const confirm = async () => {
@@ -296,6 +374,15 @@ const TransactionConfirm = () => {
         )
     }
 
+    const addressDialogIsOpen =
+        differentAddress && !dialogClosed && !hideAddressWarning && !isLoading
+
+    const gasExceedsThresholdDialogIsOpen =
+        !isLoading &&
+        !addressDialogIsOpen &&
+        !settings.hideEstimatedGasExceedsThresholdWarning &&
+        gasPriceThresholdWarning.dialogOpen
+
     return (
         <PopupLayout
             header={
@@ -361,14 +448,32 @@ const TransactionConfirm = () => {
                         }
                     }}
                     title="Different address detected"
-                    open={
-                        differentAddress &&
-                        !dialogClosed &&
-                        !hideAddressWarning &&
-                        !isLoading
-                    }
+                    open={addressDialogIsOpen}
                     closeText="Reject"
                     confirmText="Continue"
+                    showCheckbox
+                    checkboxText="Don't show this warning again"
+                />
+                <CheckBoxDialog
+                    message={`${gasPriceThresholdWarning.message}\n\nYou can manually change the gas price by clicking on it.`}
+                    onClose={() => {
+                        setGasPriceThresholdWarning({
+                            dialogOpen: false,
+                        })
+                    }}
+                    onCancel={reject}
+                    onConfirm={(saveChoice) => {
+                        if (saveChoice) {
+                            setUserSettings({
+                                ...settings,
+                                hideEstimatedGasExceedsThresholdWarning: true,
+                            })
+                        }
+                    }}
+                    title={gasPriceThresholdWarning.title || ""}
+                    open={gasExceedsThresholdDialogIsOpen}
+                    confirmText="Continue"
+                    showCloseButton={false}
                     showCheckbox
                     checkboxText="Don't show this warning again"
                 />

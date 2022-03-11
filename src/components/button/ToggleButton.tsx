@@ -3,12 +3,20 @@ import React, { FunctionComponent, useEffect, useState } from "react"
 
 const ToggleButton: FunctionComponent<{
     register?: any
-
+    //inidicate the ID if you have more than one toggle input in the same screen to avoid collisions
+    id?: string
     label?: string
     inputName?: string
     defaultChecked: boolean
     onToggle: (checked: boolean) => void
-}> = ({ register, label, inputName, defaultChecked, onToggle }) => {
+}> = ({
+    register,
+    label,
+    inputName,
+    defaultChecked,
+    onToggle,
+    id = "toggleInput",
+}) => {
     const [isChecked, setIsCheked] = useState(defaultChecked)
 
     useEffect(() => {
@@ -22,7 +30,7 @@ const ToggleButton: FunctionComponent<{
 
     return (
         <label
-            htmlFor="toggleInput"
+            htmlFor={id}
             className="flex items-center justify-between w-full cursor-pointer"
         >
             {label && <div className="font-bold text-sm">{label}</div>}
@@ -42,7 +50,7 @@ const ToggleButton: FunctionComponent<{
                 <input
                     type="checkbox"
                     ref={register}
-                    id="toggleInput"
+                    id={id}
                     name={inputName ?? "toggleInput"}
                     className="sr-only"
                     onClick={() => {

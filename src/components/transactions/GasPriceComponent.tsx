@@ -29,7 +29,6 @@ import {
     makeStringNumberFormField,
 } from "../../util/form"
 import { useOnClickOutside } from "../../util/useOnClickOutside"
-import { formatCurrency, toCurrencyAmount } from "../../util/formatCurrency"
 import { formatRounded } from "../../util/formatRounded"
 
 // Assets
@@ -42,6 +41,7 @@ import { useBlankState } from "../../context/background/backgroundHooks"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 import { useGasPriceData } from "../../context/hooks/useGasPriceData"
 import WarningDialog from "../dialog/WarningDialog"
+import { calculateGasPricesFromTransactionFees } from "../../util/gasPrice"
 
 interface GasComponentProps {
     symbol: string
@@ -622,55 +622,22 @@ const GasPriceComponent: FunctionComponent<{
     ] = useState<TransactionSpeed>(getTransactionSpeeds(gasPricesLevels))
 
     const getGasOption = (label: string, gasFees: TransactionFeeData) => {
-        // MinValue: (baseeFee + tip) * gasLimit
-        // We assume that the baseFee could at most be reduced 25% in next 2 blocks so for calculating the min value we apply that reduction.
-
-        // 25% of BaseFee => (baseFee * 25) / 100
-        const percentage = baseFee
-            .mul(BigNumber.from(25))
-            .div(BigNumber.from(100))
-        const minBaseFee = baseFee.sub(percentage)
-        const minValue = minBaseFee
-            .add(gasFees.maxPriorityFeePerGas!)
-            .mul(gasFees.gasLimit!)
-
-        // MaxValue: maxFeePerGas * gasLimit
-        const maxValue = gasFees.maxFeePerGas!.mul(gasFees.gasLimit!)
-
-        // When the user is applying a custom value, we check if the maxValue calculated is lower than the minValue, it means that the maxFee that the user is willing
-        // to pay is lower than the min value calculated using baseFee + tip, so we will only display that value and not a range
-
-        // Flag to determinate if we should display only a max value
-
-        const minValueNativeCurrency = formatCurrency(
-            toCurrencyAmount(
-                minValue.lt(maxValue) ? minValue : maxValue,
-                exchangeRates[networkNativeCurrency.symbol],
-                nativeCurrencyDecimals
-            ),
-            {
+        const {
+            minValue,
+            maxValue,
+            minValueNativeCurrency,
+            maxValueNativeCurrency,
+        } = calculateGasPricesFromTransactionFees(gasFees, baseFee, {
+            exchangeRates,
+            localeInfo: {
                 currency: nativeCurrency,
-                locale_info: localeInfo,
-                showCurrency: false,
-                showSymbol: true,
-                precision: 2,
-            }
-        )
-
-        const maxValueNativeCurrency = formatCurrency(
-            toCurrencyAmount(
-                minValue.gt(maxValue) ? minValue : maxValue,
-                exchangeRates[networkNativeCurrency.symbol],
-                nativeCurrencyDecimals
-            ),
-            {
-                currency: nativeCurrency,
-                locale_info: localeInfo,
-                showCurrency: false,
-                showSymbol: true,
-                precision: 2,
-            }
-        )
+                language: localeInfo,
+            },
+            networkNativeCurrency: {
+                symbol: networkNativeCurrency.symbol,
+                decimals: nativeCurrencyDecimals,
+            },
+        })
 
         const minValueFormatted = formatRounded(
             formatUnits(minValue.lt(maxValue) ? minValue : maxValue),

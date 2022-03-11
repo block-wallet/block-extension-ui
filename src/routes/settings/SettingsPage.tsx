@@ -16,6 +16,7 @@ import book from "../../assets/images/icons/book.svg"
 import spanner from "../../assets/images/icons/spanner.svg"
 import logoutIcon from "../../assets/images/icons/logout.svg"
 import account from "../../assets/images/icons/account.svg"
+import about from "../../assets/images/icons/about.svg"
 
 // Context
 import { lockApp } from "../../context/commActions"
@@ -23,6 +24,7 @@ import { useOnMountHistory } from "../../context/hooks/useOnMount"
 import { useBlankState } from "../../context/background/backgroundHooks"
 import classNames from "classnames"
 import GenericTooltip from "../../components/label/GenericTooltip"
+import AppVersion from "../../components/AppVersion"
 
 // declare const VERSION: string
 
@@ -46,6 +48,11 @@ const SettingsPage = () => {
             icon: spanner,
             label: "Preferences",
             to: "/settings/preferences",
+        },
+        {
+            icon: about,
+            label: "About",
+            to: "/settings/about",
         },
     ]
 
@@ -168,13 +175,9 @@ const SettingsPage = () => {
                     </div>
                 </div>
             </div>
-            {process.env.VERSION && (
-                <div className="mb-1 mx-auto mt-auto">
-                    <span className="text-xxs text-gray-500">
-                        Version: v{process.env.VERSION}
-                    </span>
-                </div>
-            )}
+            <div className="mb-1 mx-auto mt-auto text-xxs ">
+                <AppVersion />
+            </div>
         </PopupLayout>
     )
 }

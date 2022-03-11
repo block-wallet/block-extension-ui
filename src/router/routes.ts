@@ -19,6 +19,7 @@ import AddTokensConfirmPage from "../routes/settings/AddTokensConfirmPage"
 import ExportAccountPage from "../routes/settings/ExportAccountPage"
 import ExportDonePage from "../routes/settings/ExportDonePage"
 import SettingsPage from "../routes/settings/SettingsPage"
+import AboutPage from "../routes/settings/AboutPage"
 import WithdrawAmountPage from "../routes/withdraw/WithdrawAmountPage"
 import WithdrawDonePage from "../routes/withdraw/WithdrawDonePage"
 import WithdrawHistory from "../routes/withdraw/WithdrawHistory"
@@ -45,8 +46,10 @@ import AssetDetailsPage from "../components/assets/AssetDetailsPage"
 import PhishingProtectionPreferencesPage from "../routes/preferences/PhishingProtectionPreferencesPage"
 import LocalePreferencesPage from "../routes/preferences/LocalePreferencesPage"
 import PreferencesPage from "../routes/settings/PreferencesPage"
+import DefaultWalletPreferencesPage from "../routes/preferences/DefaultWalletPreferencesPage"
 import ReleaseNotesPreferencesPage from "../routes/preferences/ReleaseNotesPreferencesPage"
-import AddressWarningPreferencesPage from "../routes/preferences/AddressWarningPreferencesPage"
+import WelcomeInfo from "../components/info/WelcomeInfo"
+import WarningsPreferencesPage from "../routes/preferences/WarningsPreferencesPage"
 
 export const appRoutes = makeRoutes([
     /* Root */
@@ -123,7 +126,7 @@ export const appRoutes = makeRoutes([
 
     /* Settings */
     { path: "/settings", exact: true, component: SettingsPage },
-
+    { path: "/settings/about", exact: true, component: AboutPage },
     { path: "/settings/preferences", exact: true, component: PreferencesPage },
     {
         path: "/settings/preferences/phishing",
@@ -143,15 +146,21 @@ export const appRoutes = makeRoutes([
     },
 
     {
-        path: "/settings/preferences/addressWarning",
+        path: "/settings/preferences/warnings",
         exact: true,
-        component: AddressWarningPreferencesPage,
+        component: WarningsPreferencesPage,
     },
 
     {
         path: "/settings/preferences/lockTimeout",
         exact: true,
         component: LockTimeout,
+    },
+
+    {
+        path: "/settings/preferences/defaultWallet",
+        exact: true,
+        component: DefaultWalletPreferencesPage,
     },
 
     { path: "/settings/tokens/add", exact: true, component: AddTokensPage },
@@ -216,4 +225,6 @@ export const appRoutes = makeRoutes([
     { path: "/reminder/backup", exact: true, component: BackupConfirmPage },
     { path: "/reminder/backup/done", exact: true, component: BackupDonePage },
     { path: "/error", exact: true, component: ErrorFallbackPage },
+    /* Welcome Message */
+    { path: "/welcome", exact: true, component: WelcomeInfo },
 ])

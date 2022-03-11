@@ -9,6 +9,11 @@ export const APPROVE_GAS_COST = BigNumber.from("0xcb34") // Hex for 52020, defau
  */
 export const DEFAULT_DECIMALS = 18
 
+/**
+ * Percentage of the estimated gas to define a lower and higher threshold to calculate a gas warning
+ */
+export const DEFAULT_TRANSACTION_GAS_PERCENTAGE_THRESHOLD = 20
+
 export const LINKS = {
     TELEGRAM: "https://t.me/blockwallet",
     GITHUB: "https://github.com/block-wallet/",
