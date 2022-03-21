@@ -1,6 +1,6 @@
 import { AccountInfo } from "@blank/background/controllers/AccountTrackerController"
 import { formatUnits } from "ethers/lib/utils"
-import React, { FunctionComponent, useMemo, useRef, useState } from "react"
+import React, { FunctionComponent, useMemo, useState } from "react"
 import { BiRadioCircleMarked } from "react-icons/bi"
 import { Redirect } from "react-router-dom"
 import AccountIcon from "../../components/icons/AccountIcon"
@@ -20,7 +20,6 @@ import {
 } from "../../context/hooks/useOnMount"
 import { classnames } from "../../styles"
 import { formatNumberLength } from "../../util/formatNumberLength"
-import { useOnClickOutside } from "../../util/useOnClickOutside"
 import { getAccountColor } from "../../util/getAccountColor"
 import WarningTip from "../../components/label/WarningTip"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
@@ -47,30 +46,13 @@ const ConnectedSiteAccount: FunctionComponent<{
     handleConnectSite,
     handleSwitchAccount,
 }) => {
-    const [showOptions, setShowOptions] = useState(false)
     const [hasDialog, setHasDialog] = useState(false)
 
     const { selectedAddress, networkNativeCurrency } = useBlankState()!
     const { chainId } = useSelectedNetwork()
 
-    const ref = useRef(null)
-    useOnClickOutside(ref, () => setShowOptions(false))
-
     return (
         <>
-            <ConfirmDialog
-                title="Remove site connection"
-                message={`Do you want to remove ${formatName(
-                    account.name,
-                    18
-                )} connection?`}
-                open={hasDialog}
-                onClose={() => setHasDialog(false)}
-                onConfirm={() => {
-                    handleRemoveFromSite(account.address)
-                    setShowOptions(!showOptions)
-                }}
-            />
             <div className="flex flex-col items-start">
                 <div className="flex flex-row items-center justify-between w-full">
                     <div className="flex flex-row items-center space-x-4">
@@ -120,7 +102,7 @@ const ConnectedSiteAccount: FunctionComponent<{
                                 onClick={() => {
                                     setHasDialog(true)
                                 }}
-                                className="text-red-500 cursor-pointer flex flex-row justify-center p-2 items-center hover:bg-gray-100"
+                                className="text-red-500 cursor-pointer flex flex-row justify-center p-2 items-center hover:bg-gray-100 hover:rounded-t-md"
                             >
                                 <div className="pl-1 pr-1">
                                     <TrashBinIcon fill="red" />
@@ -131,9 +113,8 @@ const ConnectedSiteAccount: FunctionComponent<{
                             <div
                                 onClick={() => {
                                     handleConnectSite(account.address)
-                                    setShowOptions(!showOptions)
                                 }}
-                                className="text-green-400 cursor-pointer flex flex-row justify-start p-2 items-center hover:bg-gray-100"
+                                className="text-green-400 cursor-pointer flex flex-row justify-start p-2 items-center hover:bg-gray-100 hover:rounded-t-md"
                             >
                                 <div className="">
                                     <BiRadioCircleMarked size={24} />
@@ -175,13 +156,25 @@ const ConnectedSiteAccount: FunctionComponent<{
                     </span>
                 )}
             </div>
+            <ConfirmDialog
+                title="Remove site connection"
+                message={`Do you want to remove ${formatName(
+                    account.name,
+                    18
+                )} connection?`}
+                open={hasDialog}
+                onClose={() => setHasDialog(false)}
+                onConfirm={() => {
+                    handleRemoveFromSite(account.address)
+                }}
+            />
         </>
     )
 }
 
 const ConnectedSiteAccountsPage = () => {
     const { accounts, selectedAddress, permissions } = useBlankState()!
-    const { origin } =
+    const { origin, fromRoot } =
         useOnMountLocation<ConnectedSiteAccountsLocationState>().state || {}
     const history = useOnMountHistory()
     const permission = permissions[origin]
@@ -231,6 +224,19 @@ const ConnectedSiteAccountsPage = () => {
                 <PopupHeader
                     icon={site.iconURL}
                     title={new URL(origin).hostname}
+                    onBack={() => {
+                        if (fromRoot) {
+                            history.push("/")
+                        } else {
+                            history.push({
+                                pathname: "/accounts/menu/connectedSites",
+                                state: {
+                                    fromAccountList:
+                                        history.location.state?.fromAccountList,
+                                },
+                            })
+                        }
+                    }}
                 ></PopupHeader>
             }
         >

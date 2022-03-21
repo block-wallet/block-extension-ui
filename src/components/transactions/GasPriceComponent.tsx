@@ -789,7 +789,12 @@ const GasPriceComponent: FunctionComponent<{
                         displayOnlyMaxValue && "space-x-4"
                     )}
                 >
-                    <div className={"text-xs font-semibold"}>
+                    <div
+                        className={classnames(
+                            "text-xs font-semibold",
+                            (isParentLoading || !isLoaded) && "w-56"
+                        )}
+                    >
                         {isParentLoading || !isLoaded
                             ? "Loading prices..."
                             : capitalize(selectedGas!.label)}

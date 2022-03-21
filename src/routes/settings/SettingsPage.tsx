@@ -68,7 +68,13 @@ const SettingsPage = () => {
 
     return (
         <PopupLayout
-            header={<PopupHeader title="Settings" close="/" />}
+            header={
+                <PopupHeader
+                    title="Settings"
+                    close="/"
+                    onBack={() => history.push("/")}
+                />
+            }
             footer={
                 <PopupFooter>
                     <GenericTooltip

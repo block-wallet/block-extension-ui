@@ -6,6 +6,7 @@ import lock from "../../assets/images/icons/lock.svg"
 import world from "../../assets/images/icons/world.svg"
 import news from "../../assets/images/icons/news.svg"
 import bell from "../../assets/images/icons/bell.svg"
+import shield from "../../assets/images/icons/shield.svg"
 import { useHistory } from "react-router-dom"
 import classnames from "classnames"
 import VerticalSelect from "../../components/input/VerticalSelect"
@@ -38,12 +39,11 @@ const PreferencesPage = () => {
             label: "Warnings",
             to: "/settings/preferences/warnings",
         },
-        /** UNCOMMENT THIS TO ENABLE PHISHING PROTECTION FEATURE */
-        /*  {
+        {
             icon: shield,
             label: "Phishing Protection",
             to: "/settings/preferences/phishing",
-        }, */
+        },
     ]
 
     return (

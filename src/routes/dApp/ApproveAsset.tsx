@@ -151,7 +151,7 @@ const ApproveAsset: FunctionComponent<ApproveAssetProps> = ({
 }) => {
     // Hooks
     const { accounts, selectedAddress, settings } = useBlankState()!
-    const { chainId, isEIP1559Compatible, name } = useSelectedNetwork()
+    const { chainId, isEIP1559Compatible, desc } = useSelectedNetwork()
     const { hideAddressWarning } = useUserSettings()
     const selectedAccountBalance = useSelectedAccountBalance()
     const { nativeToken } = useTokensList()
@@ -222,7 +222,7 @@ const ApproveAsset: FunctionComponent<ApproveAssetProps> = ({
     const tokenAddress = params.to!
     const tokenDecimals = transaction.advancedData?.decimals!
     const defaultAllowance = transaction.advancedData?.allowance!
-    const networkName = capitalize(name)
+    const networkName = capitalize(desc)
 
     // To prevent calculations on every render, force dependency array to only check state value that impacts
     useEffect(() => {

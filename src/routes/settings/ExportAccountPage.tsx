@@ -3,6 +3,7 @@ import React, { useState } from "react"
 import PopupHeader from "../../components/popup/PopupHeader"
 import PopupLayout from "../../components/popup/PopupLayout"
 import PasswordInput from "../../components/input/PasswordInput"
+import AntiPhishing from "../../components/phishing/AntiPhishing"
 
 import PopupFooter from "../../components/popup/PopupFooter"
 import WarningTip from "../../components/label/WarningTip"
@@ -56,6 +57,8 @@ type ExportAccountFormData = InferType<typeof schema>
 
 const ExportAccountPage = () => {
     const history = useOnMountHistory()
+    const fromAccountList = history.location.state?.fromAccountList
+
     const blankState = useBlankState()!
     const [
         isVerificationInProgress,
@@ -123,7 +126,17 @@ const ExportAccountPage = () => {
     return (
         <div className="flex flex-col w-full h-full" id="export-key-form">
             <PopupLayout
-                header={<PopupHeader title="Export Account Data" />}
+                header={
+                    <PopupHeader
+                        title="Export Account Data"
+                        onBack={() => {
+                            history.push({
+                                pathname: "/accounts/menu",
+                                state: { fromAccountList },
+                            })
+                        }}
+                    />
+                }
                 footer={
                     <PopupFooter>
                         <ButtonWithLoading
@@ -204,10 +217,13 @@ const ExportAccountPage = () => {
                             justify="justify-start"
                         />
                     )}
-                    {/** UNCOMMENT THIS TO ENABLE PHISHING PROTECTION FEATURE */}
-                    {/*  {blankState.settings.useAntiPhishingProtection && (
-                        <AntiPhishing image={blankState.antiPhishingImage} />
-                    )} */}
+                    {blankState.settings.useAntiPhishingProtection && (
+                        <div className="pt-1">
+                            <AntiPhishing
+                                image={blankState.antiPhishingImage}
+                            />
+                        </div>
+                    )}
                 </div>
             </PopupLayout>
         </div>

@@ -21,7 +21,7 @@ const AccountMenu = () => {
     const account = useSelectedAccount()
     const { nativeCurrency } = useSelectedNetwork()
     const history = useOnMountHistory()
-
+    const fromAccountList = history.location.state?.fromAccountList
     const explorerName = getExplorerTitle(availableNetworks, selectedNetwork)
     const options = [
         {
@@ -51,7 +51,20 @@ const AccountMenu = () => {
         },
     ]
     return (
-        <PopupLayout header={<PopupHeader title="Account" />}>
+        <PopupLayout
+            header={
+                <PopupHeader
+                    title="Account"
+                    onBack={() => {
+                        history.push({
+                            pathname: history.location.state?.fromAccountList
+                                ? "/accounts"
+                                : "/settings",
+                        })
+                    }}
+                />
+            }
+        >
             <div className="flex flex-col p-6 space-y-8 text-sm text-gray-500">
                 <div className="flex flex-col space-y-4">
                     <AccountDisplay
@@ -72,7 +85,10 @@ const AccountMenu = () => {
                                     ? chrome.tabs.create({ url: option.to })
                                     : history.push({
                                           pathname: option.to,
-                                          state: { from: "/accounts/menu" },
+                                          state: {
+                                              from: "/accounts/menu",
+                                              fromAccountList,
+                                          },
                                       })
                             }
                             containerClassName="flex flex-col space-y-4"

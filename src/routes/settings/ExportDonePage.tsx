@@ -28,7 +28,11 @@ const ExportDonePage = () => {
     return (
         <PopupLayout
             header={
-                <PopupHeader title="Export Account Data" close="/" keepState />
+                <PopupHeader
+                    title="Export Account Data"
+                    close="/"
+                    backButton={false}
+                />
             }
             footer={
                 <PopupFooter>

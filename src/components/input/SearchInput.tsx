@@ -143,6 +143,9 @@ const SearchInput = forwardRef<SearchInputProps, any>(
                         onChange={(e) => {
                             const value = e.target.value
 
+                            // If user emptied the input, trigger change to clear filters
+                            if (value === "") return onValueChanged(e)
+
                             if (value.length < minSearchChar) return
 
                             if (debounced) {

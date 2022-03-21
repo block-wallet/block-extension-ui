@@ -586,9 +586,14 @@ export const createWallet = async (password: string): Promise<void> => {
  */
 export const importWallet = async (
     password: string,
-    seedPhrase: string
+    seedPhrase: string,
+    defaultNetwork?: string
 ): Promise<boolean> => {
-    return sendMessage(Messages.WALLET.IMPORT, { password, seedPhrase })
+    return sendMessage(Messages.WALLET.IMPORT, {
+        password,
+        seedPhrase,
+        defaultNetwork,
+    })
 }
 
 /**

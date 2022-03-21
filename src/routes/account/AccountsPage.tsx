@@ -18,7 +18,14 @@ const AccountsPage = () => {
     }
 
     return (
-        <PopupLayout header={<PopupHeader title="My Accounts" />}>
+        <PopupLayout
+            header={
+                <PopupHeader
+                    title="My Accounts"
+                    onBack={() => history.push("/")}
+                />
+            }
+        >
             <AccountSelect
                 accounts={accounts}
                 selectedAccount={selectedAccount!}

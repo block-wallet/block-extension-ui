@@ -62,6 +62,8 @@ const AssetDetailsPage = () => {
 
     const explorerName = getExplorerTitle(availableNetworks, selectedNetwork)
 
+    const optionsWidth = (explorerName?.length ?? 0) > 10 ? "w-44" : "w-40"
+
     const removeToken = async () => {
         try {
             setIsRemoving(true)
@@ -96,7 +98,12 @@ const AssetDetailsPage = () => {
                                       rel="noopener noreferrer"
                                       key={1}
                                   >
-                                      <div className="text-grey-900 cursor-pointer flex flex-row p-2 items-center hover:bg-gray-100 rounded-t-md w-40">
+                                      <div
+                                          className={classnames(
+                                              "text-grey-900 cursor-pointer flex flex-row p-2 items-center hover:bg-gray-100 rounded-t-md",
+                                              optionsWidth
+                                          )}
+                                      >
                                           <div className="pl-1 pr-1 w-8">
                                               <img
                                                   width={"16"}
@@ -113,7 +120,10 @@ const AssetDetailsPage = () => {
                                       onClick={() => {
                                           setConfirmOpen(true)
                                       }}
-                                      className="text-red-500 cursor-pointer flex flex-row p-2 items-center hover:bg-gray-100 rounded-b-md w-40"
+                                      className={classnames(
+                                          "text-red-500 cursor-pointer flex flex-row p-2 items-center hover:bg-gray-100 rounded-b-md w-40",
+                                          optionsWidth
+                                      )}
                                   >
                                       <div className="pl-1 pr-1 w-8">
                                           <TrashBinIcon fill="red" />

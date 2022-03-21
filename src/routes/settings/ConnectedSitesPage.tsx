@@ -60,6 +60,7 @@ const ConnectedSitesPage = () => {
     const account = useSelectedAccount()
     const state = useBlankState()!
     const history = useOnMountHistory()
+    const fromAccountList = history.location.state?.fromAccountList
 
     const connectedSites = useMemo(() => {
         const permissions = Object.values(state.permissions)
@@ -73,7 +74,7 @@ const ConnectedSitesPage = () => {
     const handleSiteClick = (origin: string) => {
         history.push({
             pathname: "/accounts/menu/connectedSites/accountList",
-            state: { origin },
+            state: { origin, fromAccountList },
         })
     }
 
@@ -84,7 +85,19 @@ const ConnectedSitesPage = () => {
     }
 
     return (
-        <PopupLayout header={<PopupHeader title="Connected Sites" />}>
+        <PopupLayout
+            header={
+                <PopupHeader
+                    title="Connected Sites"
+                    onBack={() => {
+                        history.push({
+                            pathname: "/accounts/menu",
+                            state: { fromAccountList },
+                        })
+                    }}
+                />
+            }
+        >
             <div className="flex flex-col p-6 space-y-6">
                 <span className="text-sm text-gray-500">
                     <span className="font-bold text-black" title={account.name}>

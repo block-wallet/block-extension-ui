@@ -352,6 +352,7 @@ const DepositConfirmPage = () => {
                             }}
                             isParentLoading={isUpdating}
                             disabled={isUpdating}
+                            displayOnlyMaxValue
                         />
                     )}
                 </div>

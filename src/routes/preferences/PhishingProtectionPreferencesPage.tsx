@@ -93,7 +93,7 @@ const PhishingProtectionPreferencesPage = () => {
                 />
                 {phishingEnabled && (
                     <>
-                        <div className="mt-2">
+                        <div className="mt-1">
                             <AntiPhishing image={newPhishingImage} />
                         </div>
                         <ButtonWithIcon

@@ -18,6 +18,7 @@ import { importWallet } from "../../context/commActions"
 import { useOnMountHistory } from "../../context/hooks/useOnMount"
 
 import log from "loglevel"
+import { getQueryParameter } from "../../util/url"
 
 const schema = yup.object().shape({
     seedPhrase: yup
@@ -53,7 +54,6 @@ const SeedImportPage = () => {
     const [showSeedPhrase, setShowSeedPhrase] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [passwordScore, setPasswordScore] = useState<number>(0)
-
     const history: any = useOnMountHistory()
     const {
         register,
@@ -75,7 +75,12 @@ const SeedImportPage = () => {
         const { password, seedPhrase } = data
 
         try {
-            const result = await importWallet(password, seedPhrase)
+            const defaultNetwork = getQueryParameter("defaultNetwork")
+            const result = await importWallet(
+                password,
+                seedPhrase,
+                defaultNetwork ? defaultNetwork : undefined
+            )
 
             if (result) {
                 history.push({ pathname: "/setup/done" })

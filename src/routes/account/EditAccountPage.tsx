@@ -29,6 +29,9 @@ const EditAccountPage = () => {
     const { accounts } = useBlankState()!
     const account = useSelectedAccount()
     const history = useOnMountHistory()
+
+    const fromAccountList = history.location.state?.fromAccountList
+
     const { status, isOpen, dispatch } = useWaitingDialog()
 
     const {
@@ -76,7 +79,20 @@ const EditAccountPage = () => {
     })
     return (
         <PopupLayout
-            header={<PopupHeader title="Edit Account" disabled={isOpen} />}
+            header={
+                <PopupHeader
+                    title="Edit Account"
+                    disabled={isOpen}
+                    onBack={() =>
+                        history.push({
+                            pathname: "/accounts/menu",
+                            state: {
+                                fromAccountList,
+                            },
+                        })
+                    }
+                />
+            }
             footer={
                 <PopupFooter>
                     <ButtonWithLoading
@@ -110,7 +126,7 @@ const EditAccountPage = () => {
 
                     history.push({
                         pathname: "/accounts/menu",
-                        state: { fromAction: true },
+                        state: { fromAccountList },
                     })
                 }}
             />

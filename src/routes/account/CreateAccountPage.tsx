@@ -9,6 +9,7 @@ import TextInput from "../../components/input/TextInput"
 import WaitingDialog, {
     useWaitingDialog,
 } from "../../components/dialog/WaitingDialog"
+import AntiPhishing from "../../components/phishing/AntiPhishing"
 import * as yup from "yup"
 import { InferType } from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
@@ -204,7 +205,7 @@ const ImportAccountForm = (props: subProps) => {
             className="flex flex-col justify-between flex-1 h-full"
             onSubmit={onSubmit}
         >
-            <div className="flex flex-col flex-1 p-6 space-y-3">
+            <div className="flex flex-col flex-1 p-6 pb-3 space-y-3">
                 <div className="flex flex-col space-y-1">
                     <TextInput
                         appearance="outline"
@@ -243,10 +244,11 @@ const ImportAccountForm = (props: subProps) => {
                         maxLength={66}
                     />
                 </div>
-                {/** UNCOMMENT THIS TO ENABLE PHISHING PROTECTION FEATURE */}
-                {/* {state.settings.useAntiPhishingProtection && (
-                    <AntiPhishing image={state.antiPhishingImage} />
-                )} */}
+                {state.settings.useAntiPhishingProtection && (
+                    <div className="pt-2">
+                        <AntiPhishing image={state.antiPhishingImage} />
+                    </div>
+                )}
             </div>
             <hr className="border-0.5 border-gray-200 w-full" />
             <PopupFooter>
@@ -276,7 +278,7 @@ const CreateAccountPage = () => {
     return (
         <PopupLayout
             header={
-                <PopupHeader title="Create Account" disabled={isCreating} />
+                <PopupHeader title="Create New Account" disabled={isCreating} />
             }
         >
             <WaitingDialog

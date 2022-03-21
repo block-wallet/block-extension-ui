@@ -8,6 +8,7 @@ import PasswordInput from "../components/input/PasswordInput"
 
 import ConfirmDialog from "../components/dialog/ConfirmDialog"
 import ClickableText from "../components/button/ClickableText"
+import AntiPhishing from "../components/phishing/AntiPhishing"
 
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
@@ -36,7 +37,12 @@ const UnlockPage = () => {
         resolver: yupResolver(schema),
     })
     const history = useHistory()
-    const { isSeedPhraseBackedUp, isUserNetworkOnline } = useBlankState()!
+    const {
+        isSeedPhraseBackedUp,
+        isUserNetworkOnline,
+        settings,
+        antiPhishingImage,
+    } = useBlankState()!
     const [hasDialog, setHasDialog] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
 
@@ -136,10 +142,12 @@ const UnlockPage = () => {
                                 reset wallet using seed phrase
                             </ClickableText>
                         </div>
-                        {/** UNCOMMENT THIS TO ENABLE PHISHING PROTECTION FEATURE */}
-                        {/*   {settings.useAntiPhishingProtection && (
-                            <AntiPhishing image={antiPhishingImage} />
-                        )} */}
+
+                        {settings.useAntiPhishingProtection && (
+                            <div className="pt-3">
+                                <AntiPhishing image={antiPhishingImage} />
+                            </div>
+                        )}
                     </div>
                 </div>
             </PopupLayout>

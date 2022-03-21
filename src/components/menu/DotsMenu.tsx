@@ -37,6 +37,9 @@ const DotsMenu: FC = ({ children }) => {
                 )}
                 id="dotsMenu"
                 role="menu"
+                onClick={() => {
+                    setShowOptions(false)
+                }}
             >
                 {children}
             </div>

@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react"
+import React, { FunctionComponent, useState, useMemo } from "react"
 import AccountDisplay from "../account/AccountDisplay"
 import VerticalSelect from "../input/VerticalSelect"
 import { AccountInfo } from "@blank/background/controllers/AccountTrackerController"
@@ -6,6 +6,8 @@ import { useSelectedAccount } from "../../context/hooks/useSelectedAccount"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 import AccountSearchBar from "./AccountSearchBar"
 import { filterAccounts } from "../../util/filterAccounts"
+import { useBlankState } from "../../context/background/backgroundHooks"
+import { session } from "../../context/setup"
 
 const AccountSelect: FunctionComponent<{
     accounts: AccountInfo[]
@@ -22,11 +24,16 @@ const AccountSelect: FunctionComponent<{
     onAccountChange,
     createAccountTo = { pathname: "/accounts/create" },
 }) => {
+    const { permissions } = useBlankState()!
     const currentAccount = useSelectedAccount()
     const otherAccounts = accounts.filter(
         (account) => account.address !== currentAccount.address
     )
     const { nativeCurrency } = useSelectedNetwork()
+
+    const origin = session?.origin
+    const permission = origin ? permissions[origin] : undefined
+    const connectedAccounts = permission?.accounts ?? []
 
     const [isSearching, setIsSearching] = useState(false)
     const [showResults, setShowResults] = useState(false)
@@ -75,6 +82,9 @@ const AccountSelect: FunctionComponent<{
                                     currentAccount.address
                                 }
                                 showSelectedCheckmark={showSelectedCheckmark}
+                                showConnected={connectedAccounts.includes(
+                                    currentAccount.address
+                                )}
                             />
                         </div>
                     </div>
@@ -95,6 +105,9 @@ const AccountSelect: FunctionComponent<{
                                             selectedAccount.address ===
                                             account.address
                                         }
+                                        showConnected={connectedAccounts.includes(
+                                            account.address
+                                        )}
                                     />
                                 )}
                             />
@@ -117,6 +130,9 @@ const AccountSelect: FunctionComponent<{
                                 selected={
                                     selectedAccount.address === account.address
                                 }
+                                showConnected={connectedAccounts.includes(
+                                    account.address
+                                )}
                             />
                         )}
                     />

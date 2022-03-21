@@ -1,4 +1,4 @@
-import React, { FC } from "react"
+import React, { CSSProperties } from "react"
 import { FaExchangeAlt } from "react-icons/fa"
 import { FiUpload } from "react-icons/fi"
 import { RiCopperCoinFill } from "react-icons/ri"
@@ -43,6 +43,7 @@ import formatTransactionValue from "../../util/formatTransactionValue"
 import { useSelectedNetwork } from "../../context/hooks/useSelectedNetwork"
 import AppIcon from "./../icons/AppIcon"
 import { RichedTransactionMeta } from "../../util/transactionUtils"
+import { formatName } from "../../util/formatAccount"
 
 const transactionMessages = {
     [TransactionCategories.BLANK_DEPOSIT]: "Privacy Pool Deposit",
@@ -101,6 +102,27 @@ const getPendingTransactionMessage = (
         } of ${message[0].toLowerCase()}${message.substring(1)}`
 
     return message
+}
+
+const getTransactionItemStyles = (label: string, txValue: string) => {
+    let formattedLabel = label
+
+    // We're letting both containers to grow based on content but with a limit to keep them inside the container
+    let typeCss: CSSProperties = { maxWidth: "206px" }
+    let amountCss: CSSProperties = { maxWidth: "118px" }
+
+    // If label and value are both long, we crop the label prioritizing the value.
+    //Example: Privacy Pool Witdraw X.XXXXX
+    if (label.length > 18 && txValue.length > 7) {
+        formattedLabel = formatName(label, 20)
+    }
+
+    // If label is not that long, we give value more space.
+    if (label.length < 16) {
+        amountCss.maxWidth = "140px"
+    }
+
+    return { formattedLabel, typeCss, amountCss }
 }
 
 const transactionIcons = {
@@ -396,10 +418,27 @@ const TransactionItem: React.FC<{
         networkNativeCurrency
     )
 
+    const txValueSign = (() => {
+        switch (transactionCategory) {
+            case TransactionCategories.INCOMING:
+            case TransactionCategories.BLANK_WITHDRAWAL:
+                return "+"
+
+            default:
+                return BigNumber.from(transfer.amount).eq(0) ? "" : "-"
+        }
+    })()
+
     const txValue = transfer.amount
         ? formatTransactionValue(transfer as TransferType, true, 5)[0]
         : ""
 
+    const valueLabel = `${txValueSign}${txValue}`
+
+    const { formattedLabel, typeCss, amountCss } = getTransactionItemStyles(
+        label,
+        valueLabel
+    )
     return (
         <>
             <ContextMenuTrigger id={`${index}`}>
@@ -407,7 +446,7 @@ const TransactionItem: React.FC<{
                     className={`flex flex-row justify-between items-center px-6 py-5 -ml-6 transition duration-300 hover:bg-primary-100 hover:bg-opacity-50 active:bg-primary-200 active:bg-opacity-50 ${
                         !txHash ? "cursor-default" : ""
                     }`}
-                    style={{ width: "calc(100% + 2 * 1.5rem)" }}
+                    style={{ width: "calc(100% + 3rem)" }}
                     role="button"
                     data-txid={txHash}
                     onClick={() => {
@@ -425,12 +464,7 @@ const TransactionItem: React.FC<{
                     }}
                 >
                     {/* Type */}
-                    <div
-                        className={classNames(
-                            "flex flex-row items-center",
-                            !transfer.amount ? "w-5/6" : "grow w-full"
-                        )}
-                    >
+                    <div className="flex flex-row items-center" style={typeCss}>
                         <TransactionIcon
                             transaction={{
                                 transactionCategory,
@@ -447,7 +481,7 @@ const TransactionItem: React.FC<{
                                     className="text-sm font-bold truncate"
                                     title={label}
                                 >
-                                    {label}
+                                    {formattedLabel}
                                 </span>
                                 {flashbots && (
                                     <AppIcon
@@ -530,7 +564,7 @@ const TransactionItem: React.FC<{
                                         </button>
                                         <button
                                             type="button"
-                                            className="ml-1.5 border p-1 rounded-md cursor-pointer text-gray-500 border-current border font-bold hover:bg-gray-500 hover:text-white transition-colors"
+                                            className="ml-1.5 border p-1 rounded-md cursor-pointer text-gray-500 border-current font-bold hover:bg-gray-500 hover:text-white transition-colors"
                                             onClick={(e) => {
                                                 e.stopPropagation()
                                                 history.push({
@@ -552,19 +586,13 @@ const TransactionItem: React.FC<{
                     {/* Amount */}
                     {transfer.amount && (
                         <div
-                            className={classNames(
-                                "flex flex-col items-end",
-                                "grow-0 w-1/2"
-                            )}
+                            className={classNames("flex flex-col items-end")}
+                            style={amountCss}
                         >
                             <div className="w-full flex justify-end">
                                 <span
                                     className={classNames(
-                                        "text-sm font-bold text-right truncate mr-1",
-                                        transactionCategory ===
-                                            TransactionCategories.BLANK_WITHDRAWAL
-                                            ? "w-5/12"
-                                            : "w-4/6"
+                                        "text-sm font-bold text-right truncate mr-1"
                                     )}
                                     title={formatTransactionValue(
                                         transfer as TransferType
@@ -573,21 +601,7 @@ const TransactionItem: React.FC<{
                                         ""
                                     )}
                                 >
-                                    {(() => {
-                                        switch (transactionCategory) {
-                                            case TransactionCategories.INCOMING:
-                                            case TransactionCategories.BLANK_WITHDRAWAL:
-                                                return "+"
-
-                                            default:
-                                                return BigNumber.from(
-                                                    transfer.amount
-                                                ).eq(0)
-                                                    ? ""
-                                                    : "-"
-                                        }
-                                    })()}
-                                    {txValue}
+                                    {valueLabel}
                                 </span>
                                 <span className="text-sm font-bold text-right">
                                     {transfer.currency.toUpperCase()}

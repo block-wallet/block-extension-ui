@@ -13,7 +13,7 @@ const AntiPhishing: FunctionComponent<{
                     <a
                         target="_blank"
                         rel="noreferrer"
-                        href="https://ethereum.org/en/developers/docs/gas/"
+                        href="https://help.blockwallet.io/hc/en-us/articles/4756464544657"
                     >
                         <img
                             src={image}

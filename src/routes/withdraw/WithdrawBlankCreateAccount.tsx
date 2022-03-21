@@ -75,7 +75,7 @@ const WithdrawBlankCreateAccount = () => {
                 texts={{
                     loading: `Please wait while your account is being created...`,
                     error: "An error happened while creating the account.",
-                    success: `Congratulations! Your account is created!`,
+                    success: `Congratulations! Your account has been created!`,
                 }}
                 onDone={() => {
                     if (!!errors.accountName) {

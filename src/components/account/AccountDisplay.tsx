@@ -39,6 +39,7 @@ const AccountDisplay: FunctionComponent<{
     canCopy?: boolean
     showAccountDetailsIcon?: boolean
     showEditButton?: boolean
+    showConnected?: boolean
     handleRemoveContact?: any
     customOptions?: React.ReactNode
 }> = ({
@@ -52,6 +53,7 @@ const AccountDisplay: FunctionComponent<{
     canCopy = false,
     showAccountDetailsIcon = false,
     showEditButton = false,
+    showConnected = false,
     handleRemoveContact = () => {},
     customOptions,
 }) => {
@@ -144,11 +146,21 @@ const AccountDisplay: FunctionComponent<{
                             <CopyTooltip copied={copied}></CopyTooltip>
                         ) : null}
                     </div>
-                    {account.external ? (
-                        <span className="px-2 py-1 w-16 text-xs text-white bg-blue-400 rounded-md">
-                            External
-                        </span>
-                    ) : null}
+                    {(account.external || showConnected) && (
+                        <div className="flex flex-row space-x-1 text-xs text-white pt-1">
+                            {account.external && (
+                                <span className="px-2 py-1 w-16 bg-blue-500 rounded-md">
+                                    External
+                                </span>
+                            )}
+
+                            {showConnected && (
+                                <span className="px-2 py-1 w-20 bg-green-500 rounded-md">
+                                    Connected
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
             <div className="flex flex-row items-center space-x-3">
@@ -241,7 +253,10 @@ const AccountDisplay: FunctionComponent<{
                 {showAccountDetailsIcon ? (
                     <div
                         onClick={() => {
-                            history.push("/accounts/menu")
+                            history.push({
+                                pathname: "/accounts/menu",
+                                state: { fromAccountList: true },
+                            })
                         }}
                         className="cursor-pointer p-2 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300"
                     >
@@ -252,7 +267,13 @@ const AccountDisplay: FunctionComponent<{
                 {showEditButton && !defaultAccount ? (
                     <div
                         onClick={() => {
-                            history.push("/accounts/menu/edit")
+                            history.push({
+                                pathname: "/accounts/menu/edit",
+                                state: {
+                                    fromAccountList:
+                                        history.location.state?.fromAccountList,
+                                },
+                            })
                         }}
                         className="cursor-pointer p-2 transition duration-300 rounded-full hover:bg-primary-100 hover:text-primary-300"
                         draggable={false}
